@@ -1,0 +1,39 @@
+---
+import "@fontsource/barlow-condensed/latin-600.css";
+import "@fontsource/barlow-condensed/latin-700.css";
+import bold from "@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?url";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import { getAbsoluteLocaleUrl } from "astro:i18n";
+import { defaultLocale, locales } from "../i18n";
+
+interface Props {
+  title: string;
+  /** Keep the page out of search results (404): no canonical and no hreflang. */
+  noindex?: boolean;
+}
+
+const { title, noindex = false } = Astro.props;
+const locale = Astro.currentLocale ?? defaultLocale;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+// The home page in each language, and x-default to the English one (Kay, 17 October 2026).
+const alternates = noindex ? [] : locales.map((code) => [code, getAbsoluteLocaleUrl(code)] as const);
+const xDefault = getAbsoluteLocaleUrl("en");
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="preload" href={bold} as="font" type="font/woff2" crossorigin />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={xDefault} />}
+    <meta name="theme-color" content="#0f172a" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

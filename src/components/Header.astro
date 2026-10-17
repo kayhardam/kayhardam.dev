@@ -1,0 +1,85 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { defaultLocale, locales, text } from "../i18n";
+
+const locale = Astro.currentLocale ?? defaultLocale;
+const t = text(locale);
+const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code), current: code === locale }));
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a href={getRelativeLocaleUrl(locale)} class="logo">{t.site}</a>
+    <nav aria-label={t.languages}>
+      <ul>
+        {
+          languages.map((l) => (
+            <li>
+              <a href={l.href} hreflang={l.code} lang={l.code} aria-current={l.current ? "page" : undefined}>
+                {l.code.toUpperCase()}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--color-navy);
+    border-bottom: 1px solid var(--color-navy-line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 64px;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    text-decoration: none;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.375rem;
+    letter-spacing: 0.02em;
+    color: var(--color-on-navy);
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+  }
+
+  /* NL / EN: a slash between the two. */
+  li + li::before {
+    content: "/";
+    color: var(--color-on-navy-small);
+    padding-inline: 2px;
+  }
+
+  nav a {
+    justify-content: center;
+    min-width: var(--tap);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: 0.05em;
+    color: var(--color-on-navy-small);
+  }
+  nav a:hover,
+  nav a[aria-current="page"] {
+    color: var(--color-on-navy);
+  }
+</style>

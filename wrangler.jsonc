@@ -1,0 +1,28 @@
+// Cloudflare Workers Builds runs `npx wrangler deploy` after `npm run build`
+// on main, and `npx wrangler preview` on other branches.
+// This file makes that a plain static-assets upload of dist/: no Worker code,
+// no adapter. Without it, Wrangler reconfigures the project on every deploy.
+// After Coachboard's wrangler.jsonc (commit 4ceafd4).
+{
+  "name": "kayhardam-dev",
+  // Keep this in the past: Cloudflare rejects a date newer than its runtime.
+  // Nothing here depends on it; the Worker only serves files.
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    // /en → /en/, as trailingSlash: "always" expects.
+    "html_handling": "auto-trailing-slash",
+    // Serve dist/404.html, with status 404, for anything that doesn't exist.
+    "not_found_handling": "404-page"
+  },
+  // No "routes" yet: kayhardam.dev still shows the placeholder. The Custom
+  // Domain comes in phase 6, at the launch. Until then the site lives on
+  // workers.dev and on a preview URL per branch.
+  "workers_dev": true,
+  "preview_urls": true,
+  // `wrangler preview` refuses to run without this block. It may stay empty:
+  // it only holds preview-specific bindings and vars, and there are none.
+  "previews": {},
+  // Port 8788, not 8787: Coachboard's wrangler dev and e2e tests may run at the same time.
+  "dev": { "port": 8788 }
+}

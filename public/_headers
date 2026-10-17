@@ -1,0 +1,17 @@
+# Every response. After Coachboard's public/_headers (commit 4ceafd4).
+# The rest of the CSP is a <meta> in each page, written by Astro (security.csp
+# in astro.config.mjs). Browsers ignore frame-ancestors in a <meta>, so the ban
+# on framing is here.
+# HSTS without includeSubDomains or preload; browsers ignore it over plain HTTP.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Cross-Origin-Opener-Policy: same-origin
+
+# Astro puts a content hash in every file name under /_astro/.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

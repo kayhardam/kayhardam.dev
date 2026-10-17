@@ -1,0 +1,56 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { locales, text } from "../i18n";
+
+// One page for every missing URL: Dutch first, then English (Kay, 17 October 2026).
+const blocks = locales.map((code) => ({ code, t: text(code).notFound, home: getRelativeLocaleUrl(code) }));
+---
+
+<BaseLayout title={text("nl").notFound.title} noindex>
+  <main class="container">
+    {
+      blocks.map(({ code, t, home }) => (
+        <section lang={code}>
+          <h1>{t.heading}</h1>
+          <p>{t.text}</p>
+          <a href={home}>{t.home}</a>
+        </section>
+      ))
+    }
+  </main>
+</BaseLayout>
+
+<style>
+  main {
+    padding-block: 64px;
+  }
+
+  section + section {
+    margin-top: 48px;
+    padding-top: 48px;
+    border-top: 1px solid var(--color-navy-line);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin-top: 12px;
+    color: var(--color-on-navy-muted);
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    margin-top: 8px;
+    color: var(--color-green-on-navy);
+    font-weight: 600;
+  }
+</style>

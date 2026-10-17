@@ -19,6 +19,7 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 ## Way of working
 
 - One branch (`fase-N-<name>`) and one pull request per phase. Kay merges after his own check, with a plain merge.
+- No attribution to Claude in this repo: no Co-Authored-By line in commits and no "Generated with Claude Code" in pull requests (Kay, 17 October 2026). `.claude/settings.json` turns it off for this project only; Coachboard keeps it.
 - Claude Code never deploys. Cloudflare Workers Builds deploys `main` after a merge and gives every branch a preview URL.
 - Texts come word for word from the brief. A new or changed text is agreed with Kay first; a missing text is asked for, never made up.
 - Measurements (sizes, Lighthouse) go in `docs/metingen.md`, per phase. Lighthouse runs twice: simulated and with `--throttling-method=devtools`.

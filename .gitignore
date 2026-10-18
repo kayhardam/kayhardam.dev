@@ -26,3 +26,6 @@ playwright-report/
 # The build brief and the phase plans stay local, like productplan.md in Coachboard.
 docs/kayhardam-dev-brief.md
 docs/plan-fase-*.md
+
+# Screenshots for pull requests stay local; the PR says where they are.
+screenshots/

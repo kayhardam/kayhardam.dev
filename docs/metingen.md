@@ -183,3 +183,58 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 ### Tegen de preview
 
 `E2E_BASE_URL=https://fase-3-beeldtaal-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/icons.spec.ts`: 30 tests groen (Pixel 7 en iPhone 15). Geen CSP-fouten, niets van een ander domein, de security headers kloppen, de drie iconen geven 200 met het goede type (`favicon.ico` als `image/vnd.microsoft.icon`), en geen consolefouten of mislukte verzoeken.
+
+## Fase 4: het speelbord zonder JavaScript (18 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, npm 10.9.7, Astro 7.4, Svelte 5, op een Mac.
+- `npm run verify` groen: `astro check` en `svelte-check` zonder fouten of waarschuwingen, 10 testbestanden met 80 tests, 3 pagina's, 18 interne links.
+- `npm run e2e` groen: 314 tests, en 2 overgeslagen (de test op layout shifts, alleen Chromium). `e2e/board-box.spec.ts` is ongewijzigd.
+
+### Groottes (`dist/`)
+
+Gemeten zoals in de vorige fasen. De kaart is bij de build gerenderd: het veld als SVG (13 spelers, de lijnen, een pijl), de legenda, de knoppen en hun CSS staan in de pagina. Er komt geen JavaScript bij.
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS |
+|---|--:|--:|--:|--:|
+| `/` | 28,8 | 6,76 | 0 | 0 |
+| `/en/` | 28,8 | 6,74 | 0 | 0 |
+| `/404.html` | 4,2 | 2,0 | 0 | 0 |
+
+De kaart kost dus 1,3 KB gzip (van 5,45 naar 6,76 KB). De lettertypen en de iconen zijn ongewijzigd.
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+- HTML van 6,3 naar **7,8 KB** per pagina: 6,76 KB gzip gemeten, plus 15%. De reden: de kaart met het veld en de CSS ervan staan in de pagina.
+- Scripts blijft **0**. Het JS-budget komt in fase 5, met het island.
+
+### Lighthouse (18 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-4-speelbord-kayhardam-site.hardamkay.workers.dev/`, commit `001b5db`. De HTML van `/` en `/en/` op de preview is gelijk aan die van de lokale build (`cmp`). Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| `/en/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,2 s / 0 ms / 0,024 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 0,9 s |
+| `/en/` | 1,2 s / 1,2 s / 0 ms / 0,018 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 0,9 s |
+| 404 (`/404`) | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,9 s |
+
+**SEO blijft 58 / 54**, met dezelfde twee audits als in de vorige fasen: `is-crawlable` (de preview stuurt `X-Robots-Tag: noindex`) en `meta-description` (fase 6).
+
+**CLS:** precies als in fase 3. De enige verschuiving is het statement (`p.statement`, "Web font loaded"): 0,024 en 0,018. De kaart, met zijn nieuwe inhoud, verschuift niet.
+
+### Tegen de preview
+
+`E2E_BASE_URL=https://fase-4-speelbord-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/board.spec.ts`: 68 tests groen (Pixel 7 en iPhone 15). Er zijn geen CSP-fouten en niets komt van een ander domein. De security headers kloppen. De kaart toont stap 1 van de link van de knop, ook zonder JavaScript, en de pagina laadt geen script.
+
+CI (`verify` en `e2e`, op Linux) is groen op dezelfde commit. Daar is `system-ui` een ander lettertype, en ook dan passen alle acht zinnen op 320 px in twee regels.

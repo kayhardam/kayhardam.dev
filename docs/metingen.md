@@ -61,3 +61,36 @@ De 404 scoort 54 in plaats van 58 omdat de `canonical`-audit daar niet meetelt (
 **Best Practices 96:** `errors-in-console`, door een 404 op `/favicon.ico`. Er is nog geen favicon; het logo "KH" komt volgens de brief ook als favicon.
 
 **404 met curl:** Cloudflare geeft de 404-pagina alleen bij een navigatie (`Sec-Fetch-Mode: navigate`, wat een browser stuurt). Zonder die header geeft een ontbrekende URL de tekst "Not found" (9 bytes), ook met status 404. `e2e/notfound.spec.ts` slaagt tegen de preview.
+
+## Fase 2: de pagina (18 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, npm 10.9.7, Astro 7.4, op een Mac.
+- `npm run verify` groen: 4 testbestanden met 23 tests, 3 pagina's, 9 interne links.
+- `npm run e2e` groen: 132 tests (66 per browser, Pixel 7 en iPhone 15).
+
+### Groottes (`dist/`)
+
+Gemeten zoals in fase 1. Alle CSS staat nu in de pagina (`build.inlineStylesheets: "always"`): zonder die instelling zet Astro hem boven 4 KB in een los bestand, met een extra request dat het renderen blokkeert.
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS |
+|---|--:|--:|--:|--:|
+| `/` | 13,5 | 4,1 | 0 | 0 |
+| `/en/` | 13,6 | 4,1 | 0 | 0 |
+| `/404.html` | 3,9 | 1,8 | 0 | 0 |
+
+De lettertypen zijn ongewijzigd: 22,3 KB (600) en 22,4 KB (700, preload).
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+HTML van 2,55 naar **4,8 KB** per pagina: 4,15 KB gemeten plus 15%. De reden: alle teksten van de pagina en de CSS van de vier secties en de kaart komen erbij. De andere budgetten blijven gelijk.
+
+### Het eerste scherm
+
+De onderkant van de hero-knop, gemeten in de e2e-browsers (NL en EN gelijk):
+
+| Toestel | Venster | Kaart | Onderkant knop | Over |
+|---|---|--:|--:|--:|
+| iPhone 15 (WebKit) | 393×659 | 475,8 | 640,8 | 18 |
+| Pixel 7 (Chromium) | 412×839 | 491,1 | 656,1 | 183 |

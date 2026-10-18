@@ -18,10 +18,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
-// Measured in phase 1 (docs/metingen.md) plus about 15%.
+// Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, HTML in phase 2.
 export const BUDGETS = {
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 6_000, // provisional while phase 2 builds the page; set after its measurement
+  html: 4_800, // 4.1 KB for / and /en/, the largest pages, with all texts and CSS
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
 };
 

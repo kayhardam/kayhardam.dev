@@ -32,6 +32,25 @@ for (const { path, lang, label } of pages) {
     await expect(page.locator("html")).toHaveAttribute("lang", other);
   });
 
+  test(`${path}: the language links: 44 by 44 px, the current one green`, async ({ page }) => {
+    await page.goto(path);
+    const links = await page
+      .getByRole("navigation", { name: label })
+      .getByRole("link")
+      .evaluateAll((all) =>
+        all.map((a) => {
+          const { width, height } = a.getBoundingClientRect();
+          return { code: a.textContent, width, height, current: a.getAttribute("aria-current"), background: getComputedStyle(a).backgroundColor };
+        }),
+      );
+    for (const { code, width, height, current, background } of links) {
+      expect(width, code!).toBeGreaterThanOrEqual(44);
+      expect(height, code!).toBeGreaterThanOrEqual(44);
+      if (code === lang.toUpperCase()) expect({ current, background }).toEqual({ current: "page", background: "rgb(21, 128, 61)" });
+      else expect({ current, background }).toEqual({ current: null, background: "rgba(0, 0, 0, 0)" });
+    }
+  });
+
   test(`${path}: the name is the only h1`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("h1")).toHaveText("Kay Hardam");

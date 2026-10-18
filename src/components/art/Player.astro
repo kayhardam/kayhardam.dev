@@ -1,0 +1,29 @@
+---
+// After Court.svelte at commit 4ceafd4 (Coachboard): a player is a circle with
+// a white edge of 1 and a label in system-ui 700 7.5, centred at y = 0.5.
+// Draws a <g> around (0, 0); the caller places it with its viewBox or a transform.
+// Colours are presentation attributes: the CSP blocks style attributes.
+interface Props {
+  label: string;
+  fill?: string;
+  /** The label's colour. */
+  ink?: string;
+  r?: number;
+  transform?: string;
+}
+
+const { label, fill = "#15803D", ink = "#FFFFFF", r = 9, transform } = Astro.props;
+---
+
+<g transform={transform}>
+  <circle r={r} fill={fill} stroke="#FFFFFF" stroke-width="1"></circle>
+  <text
+    y="0.5"
+    fill={ink}
+    font-family="system-ui, sans-serif"
+    font-size="7.5"
+    font-weight="700"
+    text-anchor="middle"
+    dominant-baseline="central">{label}</text
+  >
+</g>

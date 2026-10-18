@@ -1,0 +1,49 @@
+/*
+ * Design tokens: Coachboard's colours (brief, "Kleuren"). Components use these
+ * through scoped <style> blocks.
+ *
+ * Breakpoints are mobile-first and can't be custom properties, so every
+ * media query uses one of these two literally, as in Coachboard:
+ *   @media (min-width: 560px)  — large phone / small tablet
+ *   @media (min-width: 860px)  — tablet landscape and up
+ */
+:root {
+  /* Navy: header, hero, contact */
+  --color-navy: #0f172a;
+  --color-navy-soft: #1e293b; /* surfaces on navy */
+  --color-navy-line: #334155; /* lines on navy */
+
+  /* Light: the Coachboard section */
+  --color-bg: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-small: #64748b; /* small labels */
+
+  /* Text on navy */
+  --color-on-navy: #f8fafc;
+  --color-on-navy-muted: #cbd5e1;
+  --color-on-navy-small: #94a3b8;
+
+  /* Green */
+  --color-green-dark: #15803d; /* behind or as text on light (white on it: 5.0:1) */
+  --color-green: #16a34a; /* fills and icons only */
+  --color-green-on-navy: #4ade80; /* text on navy */
+  --color-green-line: #22c55e; /* lines on navy */
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Barlow Condensed", var(--font-sans);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --gutter: 16px;
+  --container: 1200px;
+  --tap: 44px; /* minimum touch target */
+}
+
+@media (min-width: 560px) {
+  :root {
+    --gutter: 24px;
+  }
+}

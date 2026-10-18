@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "./Header.astro";
+import { defaultLocale, text } from "../i18n";
+
+const t = text(Astro.currentLocale ?? defaultLocale);
+const [lead, rest] = t.statement;
+---
+
+<BaseLayout title={t.title}>
+  <Header />
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>{t.name}</h1>
+        <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: 48px 64px;
+  }
+
+  /* The name: small and green, with a dash before it. */
+  h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-green-on-navy);
+  }
+  h1::before {
+    content: "";
+    width: 32px;
+    height: 3px;
+    background: currentColor;
+  }
+
+  .statement {
+    margin-top: 16px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(30px, 4.6vw, 64px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--color-on-navy);
+  }
+  .lead {
+    color: var(--color-on-navy-muted);
+  }
+</style>

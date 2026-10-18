@@ -18,9 +18,10 @@
     "not_found_handling": "404-page"
   },
   // No "routes" yet: kayhardam.dev still shows the placeholder. The Custom
-  // Domain comes in phase 6, at the launch. Until then the site lives on
-  // workers.dev and on a preview URL per branch.
-  "workers_dev": true,
+  // Domain comes in phase 6, at the launch. Until then the site lives only on
+  // a preview URL per branch: no workers.dev address, since the site's home
+  // is its own domain.
+  "workers_dev": false,
   "preview_urls": true,
   // `wrangler preview` refuses to run without this block. It may stay empty:
   // it only holds preview-specific bindings and vars, and there are none.

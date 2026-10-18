@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "./Header.astro";
 import Board from "./board/Board.astro";
+import FieldLines from "./art/FieldLines.astro";
 import Pass from "./art/Pass.astro";
 import SectionNumber from "./art/SectionNumber.astro";
 import { boards } from "../data/boards";
@@ -19,6 +20,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
   <Header />
   <main>
     <section class="hero">
+      <FieldLines variant="hero" />
       <div class="container hero-grid">
         <div class="hero-text">
           <h1>{t.name}</h1>
@@ -52,6 +54,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     </section>
 
     <section class="about">
+      <FieldLines variant="about" />
       <div class="container about-grid">
         {/* Until the photo of Kay is there. */}
         <div class="photo" aria-hidden="true"></div>
@@ -87,7 +90,14 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
    * 32 px below the statement on the phone, 64 px above the hero's edge from 860 px.
    */
   .hero {
+    position: relative;
     padding-block: 16px 80px;
+  }
+
+  /* Above the field lines (FieldLines.astro), which are absolute too. */
+  .hero > .container,
+  .about > .container {
+    position: relative;
   }
 
   .hero-grid {
@@ -289,6 +299,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   /* About me: on green, white text (5.0:1). */
   .about {
+    position: relative;
     background: var(--color-green-dark);
     color: #fff;
   }

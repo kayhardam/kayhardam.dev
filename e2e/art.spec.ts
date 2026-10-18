@@ -95,3 +95,40 @@ for (const width of [320, 393, 430, 559, 560, 859, 860, 1024, 1280]) {
     }
   });
 }
+
+// The field lines: in the hero only from 860 px, in About me on every width.
+for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
+  test(`${width} px: the field lines`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const lines = await page.locator(".field-lines").evaluateAll((all) =>
+      all.map((wrapper) => {
+        const section = wrapper.parentElement!.getBoundingClientRect();
+        const box = wrapper.getBoundingClientRect();
+        const svg = wrapper.querySelector("svg")!.getBoundingClientRect();
+        return {
+          section: wrapper.parentElement!.className,
+          visible: getComputedStyle(wrapper).display !== "none" && svg.width > 0,
+          sameBox: [box.x - section.x, box.y - section.y, box.width - section.width, box.height - section.height].every((d) => Math.abs(d) < 0.5),
+          overflow: getComputedStyle(wrapper).overflow,
+          hidden: wrapper.getAttribute("aria-hidden"),
+        };
+      }),
+    );
+    expect(lines).toEqual([
+      expect.objectContaining({ section: expect.stringMatching(/hero/), visible: width >= 860, hidden: "true" }),
+      { section: expect.stringMatching(/about/), visible: true, sameBox: true, overflow: "clip", hidden: "true" },
+    ]);
+    if (width >= 860) expect(lines[0]).toMatchObject({ sameBox: true, overflow: "clip" });
+
+    // The lines block no click: the middle of each link gives the link itself.
+    for (const selector of [".hero-button", ".outline-button", ".email"]) {
+      const hit = await page.locator(selector).evaluate((a) => {
+        a.scrollIntoView({ block: "center" });
+        const r = a.getBoundingClientRect();
+        return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest("a") === a;
+      });
+      expect(hit, selector).toBe(true);
+    }
+  });
+}

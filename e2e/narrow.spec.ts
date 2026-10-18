@@ -13,8 +13,10 @@ for (const path of ["/", "/en/"]) {
       await page.evaluate(() => document.fonts.ready);
 
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      // The field lines in About me stick out on purpose; their wrapper clips them and counts.
       const outside = await page.evaluate(() =>
         [...document.body.querySelectorAll("*")]
+          .filter((el) => !el.closest(".field-lines > svg"))
           .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 0.5)
           .map((el) => `${el.tagName.toLowerCase()}.${el.className}`),
       );

@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import svelte from "@astrojs/svelte";
 
 // Port 4322, not Astro's 4321: Coachboard's dev server may run at the same time.
 export default defineConfig({
@@ -23,4 +24,7 @@ export default defineConfig({
     },
   },
   markdown: { syntaxHighlight: false },
+  // The board (src/components/board/) is Svelte, as in Coachboard. Until phase 5 it
+  // only renders at build time: no client: directive, so no JavaScript on the page.
+  integrations: [svelte()],
 });

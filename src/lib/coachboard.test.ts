@@ -20,13 +20,31 @@ const originals: Record<string, string> = {
   "src/lib/board/moves.test.ts": "5c59448404ff27902e800f01257b17c99342b301ce7af3846eb8716dd87d4370",
 };
 
-const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
+/** The one change in Court.svelte, the optional prop viewBox: [in the copy, in the original]. */
+const courtChange: [string, string][] = [
+  ["    label?: string;\n    viewBox?: string;\n", "    label?: string;\n"],
+  ['label = "Handball court", viewBox: crop }', 'label = "Handball court" }'],
+  ["$derived(crop ?? `-8 -14", "$derived(`-8 -14"],
+];
+
+/** A copy as it is here, with the one change in Court.svelte undone. */
+function original(path: string): string {
+  let text = readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
+  if (path.endsWith("Court.svelte")) {
+    for (const [copy, before] of courtChange) {
+      expect(text.split(copy)).toHaveLength(2);
+      text = text.replace(copy, before);
+    }
+  }
+  return text;
+}
+
 const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
 
 describe("the copies from Coachboard", () => {
   for (const [path, hash] of Object.entries(originals)) {
     it(`${path} is the original at 4ceafd4`, () => {
-      const [source, ...rest] = read(path).split("\n");
+      const [source, ...rest] = original(path).split("\n");
       expect(source).toMatch(new RegExp(`^(//|<!--) From Coachboard, ${path} at commit 4ceafd4 \\(15 October 2026\\)`));
       expect(sha256(rest.join("\n"))).toBe(hash);
     });

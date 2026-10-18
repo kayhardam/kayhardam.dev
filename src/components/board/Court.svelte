@@ -26,15 +26,16 @@
     frame?: number;
     selected?: Selection | null;
     label?: string;
+    viewBox?: string;
   }
 
-  let { board, frame = 0, selected = null, label = "Handball court" }: Props = $props();
+  let { board, frame = 0, selected = null, label = "Handball court", viewBox: crop }: Props = $props();
 
   const uid = $props.id();
   const current = $derived(board.frames[frame] ?? board.frames[0]!);
   const length = $derived(board.court === "full" ? 400 : 200);
   const goals = $derived(board.court === "full" ? [0, 400] : [0]);
-  const viewBox = $derived(`-8 -14 ${COURT_WIDTH + 16} ${length + 14 + (length === 400 ? 14 : 8)}`);
+  const viewBox = $derived(crop ?? `-8 -14 ${COURT_WIDTH + 16} ${length + 14 + (length === 400 ? 14 : 8)}`);
 
   const colors = {
     court: "#f1f5f9",

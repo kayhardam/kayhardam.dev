@@ -37,7 +37,7 @@ const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code
   }
 
   /* 16 + 44 + 16, plus the 1 px border: 77 px. The logo (34 px) is lower than the link.
-     At 320 px: 34 + 8 + 134.4 + 12 + 94 = 282.4 of the 288 px. */
+     At 320 px: 34 + 8 + 134.4 + 12 + 94 (2 × 44 + 6) = 282.4 of the 288 px. */
   .bar {
     display: flex;
     align-items: center;
@@ -94,10 +94,11 @@ const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code
     padding: 0;
   }
 
+  /* Always 44 px wide: in the fallback font, before Barlow loads, the text is
+     wider, and the switch would shift when the font arrives. */
   nav a {
     justify-content: center;
-    min-width: var(--tap);
-    padding: 0 12px;
+    width: var(--tap);
     border: 1px solid var(--color-navy-line);
     border-radius: var(--radius-sm);
     font-size: 16px;

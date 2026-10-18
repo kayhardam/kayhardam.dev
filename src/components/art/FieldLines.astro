@@ -48,12 +48,12 @@ const hero = variant === "hero";
     display: none;
   }
 
-  /* About me on the phone and tablet: the goal on the section's top edge,
-     centred above the photo (340 px wide at most). */
+  /* About me on the phone and tablet: the goal at the top right, as from 860 px,
+     with the arcs coming in above the photo (Kay, 18 October 2026). */
   .on-about svg {
     width: 640px;
-    top: calc(-14px * 640 / 216);
-    left: calc(var(--gutter) + min(340px, 100% - 2 * var(--gutter)) / 2 - 108px * 640 / 216);
+    top: -30px;
+    right: -260px;
   }
 
   /* From 860 px as in the mockup: at 1280 px the goal lies behind the card. */
@@ -71,7 +71,6 @@ const hero = variant === "hero";
     .on-about svg {
       width: 960px;
       top: -40px;
-      left: auto;
       right: -300px;
     }
   }

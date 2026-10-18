@@ -15,7 +15,7 @@ for (const path of missingPages) {
     await expect(nl.getByRole("link", { name: "Naar de startpagina" })).toHaveAttribute("href", "/");
 
     const en = page.locator('section[lang="en"]');
-    await expect(en.getByText("The page you were looking for doesn't exist.")).toBeVisible();
+    await expect(en.getByText("The page you were looking for doesn’t exist.")).toBeVisible();
     await expect(en.getByRole("link", { name: "Go to the home page" })).toHaveAttribute("href", "/en/");
   });
 }

@@ -23,5 +23,6 @@ npm-debug.log*
 test-results/
 playwright-report/
 
-# The build brief stays local, like productplan.md in Coachboard.
+# The build brief and the phase plans stay local, like productplan.md in Coachboard.
 docs/kayhardam-dev-brief.md
+docs/plan-fase-*.md

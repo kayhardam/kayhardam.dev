@@ -1,9 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "./Header.astro";
-import { defaultLocale, text } from "../i18n";
+import Board from "./board/Board.astro";
+import { boards } from "../data/boards";
+import { defaultLocale, text, type Locale } from "../i18n";
 
-const t = text(Astro.currentLocale ?? defaultLocale);
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const t = text(locale);
 const [lead, rest] = t.statement;
 ---
 
@@ -11,17 +14,68 @@ const [lead, rest] = t.statement;
   <Header />
   <main>
     <section class="hero">
-      <div class="container">
-        <h1>{t.name}</h1>
-        <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+      <div class="container hero-grid">
+        <div class="hero-text">
+          <h1>{t.name}</h1>
+          <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+        </div>
+        <div class="hero-board">
+          <Board />
+          <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
+        </div>
       </div>
     </section>
   </main>
 </BaseLayout>
 
 <style>
+  /*
+   * Phone and tablet: one column, the board first. Only in CSS: the HTML keeps
+   * the text first, and the text has no links, so the tab order stays logical.
+   * From 860 px: text left, board right, centred; the board sets the row's height.
+   */
   .hero {
-    padding-block: 48px 64px;
+    padding-block: 16px 64px;
+  }
+
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-board {
+    order: -1;
+  }
+
+  .hero-text {
+    margin-top: 32px;
+  }
+
+  @media (min-width: 560px) {
+    .hero-board {
+      max-width: 560px;
+    }
+  }
+
+  @media (min-width: 860px) {
+    .hero {
+      padding-block: 64px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-board {
+      order: 0;
+    }
+
+    .hero-text {
+      margin-top: 0;
+    }
   }
 
   /* The name: small and green, with a dash before it. */
@@ -55,5 +109,27 @@ const [lead, rest] = t.statement;
   }
   .lead {
     color: var(--color-on-navy-muted);
+  }
+
+  /* Always 56 px: one line, or two balanced lines on narrow phones. */
+  .hero-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    margin-top: 16px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    background: var(--color-green-dark);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    text-align: center;
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-decoration: none;
   }
 </style>

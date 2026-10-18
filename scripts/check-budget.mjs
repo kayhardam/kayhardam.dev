@@ -21,7 +21,7 @@ import { gzipSync } from "node:zlib";
 // Measured in phase 1 (docs/metingen.md) plus about 15%.
 export const BUDGETS = {
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 2_550, // 2.2 KB for / and /en/, the largest pages
+  html: 6_000, // provisional while phase 2 builds the page; set after its measurement
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
 };
 

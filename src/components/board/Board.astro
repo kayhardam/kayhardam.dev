@@ -1,0 +1,19 @@
+---
+// The board card in the hero. Phase 2: the card at its exact size, still empty.
+// Phase 4 fills the rows; no row's height depends on its content, so the size
+// stays the same. The styles are in board.css, shared with the island (phase 5),
+// as BoardViewer.css is in Coachboard.
+import "./board.css";
+---
+
+<div class="board" aria-hidden="true">
+  <div class="board-body">
+    <div class="board-head"></div>
+    <div class="board-step"></div>
+    <div class="board-court"></div>
+    <div class="board-foot">
+      <div class="board-legend"></div>
+      <div class="board-controls"></div>
+    </div>
+  </div>
+</div>

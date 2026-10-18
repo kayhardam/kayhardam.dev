@@ -1,0 +1,68 @@
+/*
+ * The board card. Every row has a fixed height, so the card's height depends
+ * only on its width B:
+ *   H = 14 + 24 + 10 + 47.6 + 10 + (B − 28) × 174/216 + 12 + foot + 14
+ * with the foot 44 px from a card width of 420 px, and 24 + 8 + 44 = 76 px below.
+ * e2e/board-box.spec.ts checks this formula.
+ */
+.board {
+  /* The card's own width, for the foot below. */
+  container-type: inline-size;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.35);
+}
+
+.board-body {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+}
+
+/* The mark, the label and the counter. */
+.board-head {
+  height: 24px;
+}
+
+/* The step's sentence: always two lines of 17 px. */
+.board-step {
+  height: calc(2 * 17px * 1.4);
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+/* The viewBox from the brief: -8 -14 216 174. */
+.board-court {
+  aspect-ratio: 216 / 174;
+  margin-top: 10px;
+  background: var(--color-court);
+}
+
+/* The legend and the buttons: two rows on a narrow card, one row from 420 px. */
+.board-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.board-legend {
+  height: 24px;
+}
+
+.board-controls {
+  height: var(--tap);
+}
+
+@container (min-width: 420px) {
+  .board-foot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: var(--tap);
+  }
+}

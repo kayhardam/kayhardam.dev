@@ -74,6 +74,6 @@ for (const { path, t, locale } of pages) {
     const photo = page.locator(".photo");
     await expect(photo).toHaveAttribute("aria-hidden", "true");
     await expect(photo).toHaveText("");
-    await expect(page.locator(".board")).toHaveAttribute("aria-hidden", "true");
+    await expect(page.locator(".board")).not.toHaveAttribute("aria-hidden");
   });
 }

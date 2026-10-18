@@ -1,9 +1,15 @@
 /*
- * The board card. Every row has a fixed height, so the card's height depends
- * only on its width B:
+ * The board card. Every row has a fixed height, except the step's sentence,
+ * which is at least two lines (47.6 px). So with normal text the card's height
+ * depends only on its width B:
  *   H = 14 + 24 + 10 + 47.6 + 10 + (B − 28) × 174/216 + 12 + foot + 14
  * with the foot 44 px from a card width of 420 px, and 24 + 8 + 44 = 76 px below.
+ * Only when the text comes out larger (a larger text size, a wider font) does
+ * the sentence grow, and the card with it: then nothing of it is cut off.
  * e2e/board-box.spec.ts checks this formula.
+ *
+ * Global, every rule under .board, as BoardViewer.css is in Coachboard: the
+ * card is a Svelte component (BoardCard.svelte), the island from phase 5.
  */
 .board {
   /* The card's own width, for the foot below. */
@@ -14,55 +20,168 @@
   box-shadow: 0 24px 48px rgba(2, 6, 23, 0.35);
 }
 
-.board-body {
+.board .board-body {
   display: flex;
   flex-direction: column;
   padding: 14px;
 }
 
+.board :is(.board-label, .board-legend, .board-controls) svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* The mark, the label and the counter. */
-.board-head {
+.board .board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   height: 24px;
 }
 
-/* The step's sentence: always two lines of 17 px. */
-.board-step {
-  height: calc(2 * 17px * 1.4);
-  margin-top: 10px;
-  font-size: 17px;
-  line-height: 1.4;
-  overflow: hidden;
+/* The label on one line, cut off with an ellipsis if it doesn't fit. */
+.board .board-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-/* The viewBox from the brief: -8 -14 216 174. */
-.board-court {
+.board .board-label svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-green-dark);
+}
+
+.board .board-label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 1/4, worked out from the step and the number of steps. #64748B: 4.8:1 on white. */
+.board .board-count {
+  flex: none;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The step's sentence: at least two lines of 17 px; it grows only with larger text. */
+.board .board-step {
+  min-height: 2.8em;
+  margin-top: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* The viewBox from the brief: -8 -14 216 174. The court's SVG sits on top of
+   the box, so nothing in it can change the box's height. Its edge is white. */
+.board .board-court {
+  position: relative;
   aspect-ratio: 216 / 174;
   margin-top: 10px;
-  background: var(--color-court);
+}
+
+.board .board-court > svg {
+  position: absolute;
+  inset: 0;
 }
 
 /* The legend and the buttons: two rows on a narrow card, one row from 420 px. */
-.board-foot {
+.board .board-foot {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
 }
 
-.board-legend {
+/* On one line: about 200 px, and a card of 288 px has 260. */
+.board .board-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.board-controls {
+.board .board-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.board .board-legend svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text);
+}
+
+/* Previous, Play and Next, on the right, also below the legend. */
+.board .board-controls {
+  display: flex;
+  align-self: flex-end;
+  gap: 6px;
   height: var(--tap);
 }
 
+.board .board-controls button {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.board .board-controls .play {
+  border-color: var(--color-green-dark);
+  background: var(--color-green-dark);
+  color: #fff;
+}
+
+/* Without JavaScript all three are off (phase 5 turns them on). */
+.board .board-controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.board .board-controls svg {
+  width: 22px;
+  height: 22px;
+}
+
 @container (min-width: 420px) {
-  .board-foot {
+  .board .board-foot {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     height: var(--tap);
+  }
+
+  .board .board-controls {
+    align-self: auto;
   }
 }

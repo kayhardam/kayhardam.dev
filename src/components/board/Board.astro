@@ -1,19 +1,25 @@
 ---
-// The board card in the hero. Phase 2: the card at its exact size, still empty.
-// Phase 4 fills the rows; no row's height depends on its content, so the size
-// stays the same. The styles are in board.css, shared with the island (phase 5),
-// as BoardViewer.css is in Coachboard.
+// The board card in the hero. Decodes the share link at build time and makes
+// the legend; a broken link or a legend item without a text stops the build.
+// BoardCard.svelte draws the card. It has no client: directive yet, so Astro
+// renders it to HTML only: step 1, without JavaScript (phase 5 adds the island).
+// The styles are in board.css, shared with the island, as BoardViewer.css is in Coachboard.
 import "./board.css";
+import BoardCard from "./BoardCard.svelte";
+import { boardFrom, legendFor } from "../../data/boards";
+import { defaultLocale, type Locale } from "../../i18n";
+import type { Text } from "../../i18n/nl";
+
+interface Props {
+  /** The Coachboard share link, the same as the hero button's. */
+  link: string;
+  t: Text["board"];
+}
+
+const { link, t } = Astro.props;
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const board = await boardFrom(link);
+const legend = legendFor(board, locale);
 ---
 
-<div class="board" aria-hidden="true">
-  <div class="board-body">
-    <div class="board-head"></div>
-    <div class="board-step"></div>
-    <div class="board-court"></div>
-    <div class="board-foot">
-      <div class="board-legend"></div>
-      <div class="board-controls"></div>
-    </div>
-  </div>
-</div>
+<BoardCard board={board} legend={legend} t={t} />

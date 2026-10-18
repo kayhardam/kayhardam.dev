@@ -66,6 +66,19 @@ describe("checkBudget", () => {
     expect(errors).toEqual(["Font /_astro/a.woff2: 0.3 KB is over the budget of 0.2 KB"]);
   });
 
+  it("measures the three icons raw and fails over the budget", () => {
+    const { rows, errors } = build(
+      { "index.html": "", "favicon.svg": "x".repeat(100), "favicon.ico": "x".repeat(200), "apple-touch-icon.png": "x".repeat(300) },
+      { ...BUDGETS, icon: 200 },
+    );
+    expect(rows.filter((r) => r.budget === "Icon").map((r) => [r.item, r.measured])).toEqual([
+      ["/favicon.svg", 100],
+      ["/favicon.ico", 200],
+      ["/apple-touch-icon.png", 300],
+    ]);
+    expect(errors).toEqual(["Icon /apple-touch-icon.png: 0.3 KB is over the budget of 0.2 KB"]);
+  });
+
   it("prints a table with OVER next to a row over its budget", () => {
     const out = table([
       { budget: "HTML (gzip)", item: "/", measured: 3000, limit: 2000, unit: "KB" },

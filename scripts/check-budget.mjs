@@ -9,21 +9,27 @@
 //   also covers the CSS that sits in a <style>; the CSS budget covers the files
 //   from <link rel="stylesheet">.
 // - Every font file (woff2) the site serves.
+// - The icons: favicon.svg, favicon.ico and apple-touch-icon.png.
 //
 // Sizes are in KB of 1000 bytes; CSS and HTML are gzipped (zlib default level),
-// as in docs/metingen.md. Fonts are counted raw: woff2 is compressed already.
+// as in docs/metingen.md. Fonts and icons are counted raw: woff2 and PNG are
+// compressed already, and the SVG is small.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
-// Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, HTML in phase 2.
+// Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, HTML and icons in phase 3.
 export const BUDGETS = {
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 4_800, // 4.1 KB for / and /en/, the largest pages, with all texts and CSS
+  html: 6_300, // 5.45 KB for / and /en/, the largest pages, with all texts, CSS and SVGs
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
+  icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
 };
+
+/** The icons in the root of the site, from scripts/favicons.mjs. */
+export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
 
 const TAG = /<(script|astro-island|link)\b([^>]*)>/gi;
 const ATTR = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
@@ -114,7 +120,13 @@ export function checkBudget(dist, budgets = BUDGETS) {
     measure("Font", url, statSync(file).size, budgets.font);
   }
 
-  const order = ["Scripts", "CSS (gzip)", "HTML (gzip)", "Font"];
+  // Only the icons that are there: scripts/check-links.mjs fails on a missing one.
+  for (const name of ICONS) {
+    const file = join(dist, name);
+    if (existsSync(file)) measure("Icon", `/${name}`, statSync(file).size, budgets.icon);
+  }
+
+  const order = ["Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon"];
   rows.sort((a, b) => order.indexOf(a.budget) - order.indexOf(b.budget));
   return { rows, errors };
 }

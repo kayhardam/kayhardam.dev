@@ -2,6 +2,10 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "./Header.astro";
 import Board from "./board/Board.astro";
+import FieldLines from "./art/FieldLines.astro";
+import Pass from "./art/Pass.astro";
+import SectionNumber from "./art/SectionNumber.astro";
+import Shot from "./art/Shot.astro";
 import { boards } from "../data/boards";
 import { coachboard, email, github, mailto } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
@@ -17,6 +21,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
   <Header />
   <main>
     <section class="hero">
+      <FieldLines variant="hero" />
       <div class="container hero-grid">
         <div class="hero-text">
           <h1>{t.name}</h1>
@@ -31,8 +36,12 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
     <section class="coachboard">
       <div class="container coachboard-grid">
-        <h2>{t.coachboard.heading}</h2>
-        <div>
+        <div class="coachboard-head">
+          <Pass />
+          <SectionNumber n={1} variant="green" ring />
+          <h2>{t.coachboard.heading}</h2>
+        </div>
+        <div class="coachboard-text">
           <p class="intro">{t.coachboard.text[0]}</p>
           <p class="note">{t.coachboard.text[1]}</p>
           <a class="outline-button" href={coachboard[locale]}>
@@ -46,10 +55,12 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     </section>
 
     <section class="about">
+      <FieldLines variant="about" />
       <div class="container about-grid">
         {/* Until the photo of Kay is there. */}
         <div class="photo" aria-hidden="true"></div>
         <div>
+          <SectionNumber n={2} variant="white" />
           <h2 class="small-heading">{t.about.heading}</h2>
           {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
           <p class="example">{t.about.example}</p>
@@ -60,6 +71,8 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   <footer class="contact">
     <div class="container">
+      <Shot />
+      <SectionNumber n={3} variant="green" />
       <h2 class="small-heading">{t.contact.heading}</h2>
       <p class="question">{t.contact.question}</p>
       <p class="mail">{t.contact.mail}</p>
@@ -75,9 +88,18 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
    * Phone and tablet: one column, the board first. Only in CSS: the HTML keeps
    * the text first, and the text has no links, so the tab order stays logical.
    * From 860 px: text left, board right, centred; the board sets the row's height.
+   * The space below makes room for the pass to section 1 (Pass.astro): it starts
+   * 32 px below the statement on the phone, 64 px above the hero's edge from 860 px.
    */
   .hero {
-    padding-block: 16px 64px;
+    position: relative;
+    padding-block: 16px 80px;
+  }
+
+  /* Above the field lines (FieldLines.astro), which are absolute too. */
+  .hero > .container,
+  .about > .container {
+    position: relative;
   }
 
   .hero-grid {
@@ -100,10 +122,9 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
   }
 
   @media (min-width: 860px) {
-    /* 32 px above, as in the mockup: the button stays on a laptop screen of 800 px.
-       The space below stays 64 px until phase 3, for the pass. */
+    /* 32 px above, as in the mockup: the button stays on a laptop screen of 800 px. */
     .hero {
-      padding-top: 32px;
+      padding-block: 32px 112px;
     }
 
     .hero-grid {
@@ -210,12 +231,17 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     color: var(--color-text);
   }
 
+  /* The pass hangs here, above number 1. */
+  .coachboard-head {
+    position: relative;
+  }
+
   .coachboard h2 {
     font-size: clamp(56px, 8vw, 112px);
     line-height: 0.85;
   }
 
-  .coachboard-grid > div {
+  .coachboard-text {
     margin-top: 32px;
   }
 
@@ -226,7 +252,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
       gap: 64px;
     }
 
-    .coachboard-grid > div {
+    .coachboard-text {
       margin-top: 0;
     }
   }
@@ -275,6 +301,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   /* About me: on green, white text (5.0:1). */
   .about {
+    position: relative;
     background: var(--color-green-dark);
     color: #fff;
   }

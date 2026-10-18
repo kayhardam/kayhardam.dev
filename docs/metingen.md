@@ -122,3 +122,64 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 ### Security tegen de preview
 
 `E2E_BASE_URL=https://fase-2-pagina-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts`: 12 tests groen (Pixel 7 en iPhone 15). Geen CSP-fouten, niets van een ander domein, de security headers kloppen en de lettertypen komen van de site zelf.
+
+## Fase 3: de beeldtaal (18 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, npm 10.9.7, Astro 7.4, op een Mac.
+- `npm run verify` groen: 5 testbestanden met 28 tests, 3 pagina's, 18 interne links (de drie iconen erbij, op elke pagina).
+- `npm run e2e` groen: 258 tests, en 2 overgeslagen: de test op layout shifts draait alleen in Chromium (WebKit kent de Layout Instability API niet). `e2e/board-box.spec.ts` is ongewijzigd.
+
+### Groottes (`dist/`)
+
+Gemeten zoals in fase 1 en 2. De SVG's (logo, nummers, pass, veldlijnen, schot) en hun CSS staan in de pagina.
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS |
+|---|--:|--:|--:|--:|
+| `/` | 20,0 | 5,45 | 0 | 0 |
+| `/en/` | 20,0 | 5,45 | 0 | 0 |
+| `/404.html` | 4,1 | 1,9 | 0 | 0 |
+
+| Icoon | Raw (bytes) |
+|---|--:|
+| `favicon.svg` | 388 |
+| `favicon.ico` (16 en 32 px) | 1617 |
+| `apple-touch-icon.png` (180 px) | 4866 |
+
+De lettertypen zijn ongewijzigd: 22,3 KB (600) en 22,4 KB (700, preload).
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+- HTML van 4,8 naar **6,3 KB** per pagina: 5,45 KB gzip gemeten, plus 15%. De reden: de SVG's van de beeldtaal en hun CSS staan in de pagina. Een externe sprite zou een extra request kosten.
+- Nieuw: **Icon 5,6 KB** per bestand (raw), voor de drie iconen: 4,9 KB voor `apple-touch-icon.png`, de grootste, plus 15%.
+
+### Lighthouse (18 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-3-beeldtaal-kayhardam-site.hardamkay.workers.dev/`, commit `29f3600`. De HTML van `/` op de preview is gelijk aan die van de lokale build (`cmp`). Eén run per pagina en methode. De 404 is gemeten op `/404`, net als in fase 1.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| `/en/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 0,9 s / 1,2 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 0,8 s |
+| `/en/` | 1,2 s / 1,3 s / 0 ms / 0 / 1,3 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 0,8 s |
+| 404 (`/404`) | 0,9 s / 1,2 s / 0 ms / 0 / 1,0 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+**Best Practices 100:** de favicon is er, dus de 404 op `/favicon.ico` en de consolefout zijn weg.
+
+**SEO blijft 58 / 54**, met dezelfde twee audits als in fase 1 en 2: `is-crawlable` (de preview stuurt `X-Robots-Tag: noindex`) en `meta-description` (fase 6).
+
+**CLS:** de enige verschuiving is nog steeds het statement (`p.statement`, "Web font loaded"), 0,024 en 0,018. De header, de kaart, de knop, de nummers en de pass verschuiven niet; `e2e/art.spec.ts` test dat met vertraagde lettertypen.
+
+### Tegen de preview
+
+`E2E_BASE_URL=https://fase-3-beeldtaal-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/icons.spec.ts`: 30 tests groen (Pixel 7 en iPhone 15). Geen CSP-fouten, niets van een ander domein, de security headers kloppen, de drie iconen geven 200 met het goede type (`favicon.ico` als `image/vnd.microsoft.icon`), en geen consolefouten of mislukte verzoeken.

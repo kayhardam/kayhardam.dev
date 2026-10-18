@@ -1,0 +1,49 @@
+---
+// The dashed pass from the bottom of the hero to section number 1 (brief,
+// "Beeldtaal"). It hangs above the number, takes no space and sticks up into
+// the hero. Its length differs per breakpoint, so there is no fixed viewBox:
+// the line runs to y2="100%", the point is a marker at its end, and the CSS
+// sets the height. The point is 16 px above the number.
+---
+
+<svg class="pass" width="14" aria-hidden="true">
+  <defs>
+    <marker id="pass-head" markerUnits="userSpaceOnUse" orient="auto" overflow="visible" markerWidth="12" markerHeight="12">
+      <path d="M -6 -5 L 0 0 L -6 5" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+  </defs>
+  <line
+    x1="50%"
+    x2="50%"
+    y1="1"
+    y2="100%"
+    stroke="#16A34A"
+    stroke-width="2"
+    stroke-dasharray="6 5"
+    stroke-linecap="round"
+    marker-end="url(#pass-head)"></line>
+</svg>
+
+<style>
+  /*
+   * Above the middle of the number (36 px, so 18 px in), ending 16 px above it.
+   * Phone and tablet: 48 px in the section (64 − 16) and 48 px in the hero,
+   * starting 32 px below the statement. From 860 px: 88 px in the section
+   * (104 − 16) and 64 px in the hero.
+   */
+  .pass {
+    position: absolute;
+    left: calc(18px - 7px);
+    top: calc(-16px - 96px);
+    height: 96px;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  @media (min-width: 860px) {
+    .pass {
+      top: calc(-16px - 152px);
+      height: 152px;
+    }
+  }
+</style>

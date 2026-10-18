@@ -62,3 +62,36 @@ for (const { path } of pages) {
     ]);
   });
 }
+
+// The pass: from the hero to number 1, its point 16 px above the number.
+for (const width of [320, 393, 430, 559, 560, 859, 860, 1024, 1280]) {
+  test(`${width} px: the pass runs from the hero to number 1`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const box = (selector: string) =>
+      page.locator(selector).first().evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y + window.scrollY, width: r.width, height: r.height, right: r.right, bottom: r.bottom + window.scrollY };
+      });
+    const pass = await box(".pass");
+    const number = await box(".coachboard .section-number");
+    const hero = await box(".hero");
+    const section = await box(".coachboard");
+    const statement = await box(".statement");
+
+    expect(Math.abs(pass.x + pass.width / 2 - (number.x + number.width / 2))).toBeLessThanOrEqual(1);
+    expect(Math.abs(number.y - pass.bottom - 16)).toBeLessThanOrEqual(1);
+    expect(pass.y).toBeGreaterThan(hero.y);
+    expect(pass.y).toBeLessThan(hero.bottom);
+    expect(pass.bottom).toBeGreaterThan(section.y);
+    if (width < 860) expect(Math.abs(pass.y - statement.bottom - 32)).toBeLessThanOrEqual(1);
+
+    for (const selector of [".board", ".hero-button", "h1", ".statement", ".coachboard h2"]) {
+      const other = await box(selector);
+      const overlaps =
+        pass.x < other.right && other.x < pass.right && pass.y < other.bottom && other.y < pass.bottom;
+      expect(overlaps, selector).toBe(false);
+    }
+  });
+}

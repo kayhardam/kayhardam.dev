@@ -1,27 +1,125 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "./Header.astro";
-import { defaultLocale, text } from "../i18n";
+import Board from "./board/Board.astro";
+import { boards } from "../data/boards";
+import { coachboard, email, github, mailto } from "../data/links";
+import { defaultLocale, text, type Locale } from "../i18n";
 
-const t = text(Astro.currentLocale ?? defaultLocale);
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const t = text(locale);
 const [lead, rest] = t.statement;
+const [atName, atDomain] = email.split("@");
+const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 ---
 
 <BaseLayout title={t.title}>
   <Header />
   <main>
     <section class="hero">
-      <div class="container">
-        <h1>{t.name}</h1>
-        <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+      <div class="container hero-grid">
+        <div class="hero-text">
+          <h1>{t.name}</h1>
+          <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+        </div>
+        <div class="hero-board">
+          <Board />
+          <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="coachboard">
+      <div class="container coachboard-grid">
+        <h2>{t.coachboard.heading}</h2>
+        <div>
+          <p class="intro">{t.coachboard.text[0]}</p>
+          <p class="note">{t.coachboard.text[1]}</p>
+          <a class="outline-button" href={coachboard[locale]}>
+            {t.coachboard.button}
+            <svg class="arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M2 8h11M9 3.5 13.5 8 9 12.5" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="about">
+      <div class="container about-grid">
+        {/* Until the photo of Kay is there. */}
+        <div class="photo" aria-hidden="true"></div>
+        <div>
+          <h2 class="small-heading">{t.about.heading}</h2>
+          {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
+          <p class="example">{t.about.example}</p>
+        </div>
       </div>
     </section>
   </main>
+
+  <footer class="contact">
+    <div class="container">
+      <h2 class="small-heading">{t.contact.heading}</h2>
+      <p class="question">{t.contact.question}</p>
+      <p class="mail">{t.contact.mail}</p>
+      {/* On one line; the <wbr> only as a fallback on very narrow screens. */}
+      <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
+      <p class="github">{beforeGithub}<a href={github}>{githubLink}</a>{afterGithub}</p>
+    </div>
+  </footer>
 </BaseLayout>
 
 <style>
+  /*
+   * Phone and tablet: one column, the board first. Only in CSS: the HTML keeps
+   * the text first, and the text has no links, so the tab order stays logical.
+   * From 860 px: text left, board right, centred; the board sets the row's height.
+   */
   .hero {
-    padding-block: 48px 64px;
+    padding-block: 16px 64px;
+  }
+
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-board {
+    order: -1;
+  }
+
+  .hero-text {
+    margin-top: 32px;
+  }
+
+  @media (min-width: 560px) {
+    .hero-board {
+      max-width: 560px;
+    }
+  }
+
+  @media (min-width: 860px) {
+    /* 32 px above, as in the mockup: the button stays on a laptop screen of 800 px.
+       The space below stays 64 px until phase 3, for the pass. */
+    .hero {
+      padding-top: 32px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-board {
+      order: 0;
+    }
+
+    .hero-text {
+      margin-top: 0;
+    }
   }
 
   /* The name: small and green, with a dash before it. */
@@ -55,5 +153,217 @@ const [lead, rest] = t.statement;
   }
   .lead {
     color: var(--color-on-navy-muted);
+  }
+
+  /* Always 56 px: one line, or two balanced lines on narrow phones. */
+  .hero-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    margin-top: 16px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    background: var(--color-green-dark);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    text-align: center;
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-decoration: none;
+  }
+
+  /* The three sections: 64 px on the phone, as in the mockup from 860 px. */
+  .coachboard,
+  .about,
+  .contact {
+    padding-block: 64px;
+  }
+
+  @media (min-width: 860px) {
+    .coachboard,
+    .about,
+    .contact {
+      padding-block: 104px 112px;
+    }
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .small-heading {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+  }
+
+  /* Coachboard: on white, like Coachboard itself. */
+  .coachboard {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .coachboard h2 {
+    font-size: clamp(56px, 8vw, 112px);
+    line-height: 0.85;
+  }
+
+  .coachboard-grid > div {
+    margin-top: 32px;
+  }
+
+  @media (min-width: 860px) {
+    .coachboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+    }
+
+    .coachboard-grid > div {
+      margin-top: 0;
+    }
+  }
+
+  .intro {
+    font-size: 19px;
+  }
+
+  .note {
+    margin-top: 16px;
+    color: var(--color-text-muted);
+  }
+
+  .outline-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    margin-top: 32px;
+    padding: 0 24px;
+    border: 2px solid var(--color-green-dark);
+    border-radius: var(--radius-sm);
+    color: var(--color-green-dark);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .outline-button:hover {
+    background: var(--color-green-dark);
+    color: #fff;
+  }
+
+  .arrow {
+    flex: none;
+    width: 0.9em;
+    height: 0.9em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* About me: on green, white text (5.0:1). */
+  .about {
+    background: var(--color-green-dark);
+    color: #fff;
+  }
+
+  .photo {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 4 / 5;
+    margin-bottom: 40px;
+    border: 2px dashed rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  @media (min-width: 860px) {
+    .about-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .photo {
+      margin-bottom: 0;
+    }
+  }
+
+  .big {
+    margin-top: 20px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(30px, 3.6vw, 48px);
+    line-height: 1.05;
+  }
+
+  .example {
+    max-width: 620px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
+    font-size: 19px;
+  }
+
+  /* Contact: the footer, on navy. */
+  .contact {
+    border-top: 1px solid var(--color-navy-line);
+  }
+
+  .contact h2 {
+    color: var(--color-green-on-navy);
+  }
+
+  .question {
+    margin-top: 16px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .mail {
+    margin-top: 32px;
+    font-size: 19px;
+    color: var(--color-on-navy-muted);
+  }
+
+  /* 8.15em wide: 277 px at 34 px, so one line from 320 px. The padding makes it 44 px high. */
+  .email {
+    display: inline-block;
+    padding-block: 6px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(34px, 7vw, 96px);
+    line-height: 1.1;
+    color: var(--color-on-navy);
+    text-decoration: underline 4px var(--color-green-line);
+    text-underline-offset: 0.12em;
+  }
+
+  .github {
+    margin-top: 32px;
+    color: var(--color-on-navy-muted);
+  }
+
+  /* 17 × 1.6 = 27.2 px of text, plus the padding: 45 px. */
+  .github a {
+    display: inline-block;
+    padding-block: 9px;
+    color: var(--color-on-navy);
   }
 </style>

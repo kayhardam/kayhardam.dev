@@ -31,6 +31,9 @@
   --color-green-on-navy: #4ade80; /* text on navy */
   --color-green-line: #22c55e; /* lines on navy */
 
+  /* The court (Court.svelte) */
+  --color-court: #f1f5f9;
+
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Barlow Condensed", var(--font-sans);
 

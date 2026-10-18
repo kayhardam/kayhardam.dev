@@ -61,3 +61,64 @@ De 404 scoort 54 in plaats van 58 omdat de `canonical`-audit daar niet meetelt (
 **Best Practices 96:** `errors-in-console`, door een 404 op `/favicon.ico`. Er is nog geen favicon; het logo "KH" komt volgens de brief ook als favicon.
 
 **404 met curl:** Cloudflare geeft de 404-pagina alleen bij een navigatie (`Sec-Fetch-Mode: navigate`, wat een browser stuurt). Zonder die header geeft een ontbrekende URL de tekst "Not found" (9 bytes), ook met status 404. `e2e/notfound.spec.ts` slaagt tegen de preview.
+
+## Fase 2: de pagina (18 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, npm 10.9.7, Astro 7.4, op een Mac.
+- `npm run verify` groen: 4 testbestanden met 23 tests, 3 pagina's, 9 interne links.
+- `npm run e2e` groen: 132 tests (66 per browser, Pixel 7 en iPhone 15).
+
+### Groottes (`dist/`)
+
+Gemeten zoals in fase 1. Alle CSS staat nu in de pagina (`build.inlineStylesheets: "always"`): zonder die instelling zet Astro hem boven 4 KB in een los bestand, met een extra request dat het renderen blokkeert.
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS |
+|---|--:|--:|--:|--:|
+| `/` | 13,5 | 4,1 | 0 | 0 |
+| `/en/` | 13,6 | 4,1 | 0 | 0 |
+| `/404.html` | 3,9 | 1,8 | 0 | 0 |
+
+De lettertypen zijn ongewijzigd: 22,3 KB (600) en 22,4 KB (700, preload).
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+HTML van 2,55 naar **4,8 KB** per pagina: 4,15 KB gemeten plus 15%. De reden: alle teksten van de pagina en de CSS van de vier secties en de kaart komen erbij. De andere budgetten blijven gelijk.
+
+### Het eerste scherm
+
+De onderkant van de hero-knop, gemeten in de e2e-browsers (NL en EN gelijk):
+
+| Toestel | Venster | Kaart | Onderkant knop | Over |
+|---|---|--:|--:|--:|
+| iPhone 15 (WebKit) | 393×659 | 475,8 | 640,8 | 18 |
+| Pixel 7 (Chromium) | 412×839 | 491,1 | 656,1 | 183 |
+
+### Lighthouse (18 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-2-pagina-kayhardam-site.hardamkay.workers.dev/`, commit `3e3d849`. De HTML van `/` op de preview is gelijk aan die van de lokale build (gecontroleerd met `cmp`). Eén run per pagina en methode. De 404 is gemeten op `/404`, net als in fase 1.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 96 / 58 | 100 / 100 / 96 / 58 |
+| `/en/` | 100 / 100 / 96 / 58 | 100 / 100 / 96 / 58 |
+| 404 (`/404`) | 100 / 100 / 96 / 54 | 100 / 100 / 96 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,3 s / 0 ms / 0,028 / 1,4 s | 0,8 s / 0,8 s / 0 ms / 0,028 / 0,8 s |
+| `/en/` | 0,9 s / 1,2 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,021 / 0,8 s |
+| 404 (`/404`) | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+**Dezelfde drie audits falen als in fase 1, met dezelfde oorzaak:** `is-crawlable` (de preview stuurt `X-Robots-Tag: noindex`), `meta-description` (fase 6) en `errors-in-console` (een 404 op `/favicon.ico`, fase 3).
+
+**CLS:** de enige verschuiving is het statement onder het bord (`p.statement`, oorzaak "Web font loaded"). Als Barlow Condensed laadt, breekt het statement anders af. Het bord en de knop staan erboven en verschuiven niet (ook getest in `e2e/board-box.spec.ts`). Met 0,028 blijft dit ruim onder de grens van 0,1.
+
+### Security tegen de preview
+
+`E2E_BASE_URL=https://fase-2-pagina-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts`: 12 tests groen (Pixel 7 en iPhone 15). Geen CSP-fouten, niets van een ander domein, de security headers kloppen en de lettertypen komen van de site zelf.

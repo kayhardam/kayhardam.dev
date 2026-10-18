@@ -6,6 +6,9 @@ export default defineConfig({
   site: "https://kayhardam.dev",
   trailingSlash: "always",
   server: { port: 4322 },
+  // All CSS in the page, also above Astro's 4 KB limit: no render-blocking request,
+  // and the HTML budget covers it (scripts/check-budget.mjs).
+  build: { inlineStylesheets: "always" },
   // Dutch on /, English on /en/.
   i18n: {
     locales: ["nl", "en"],

@@ -11,10 +11,10 @@ for (const path of [...allPages(), missingPages[0]!]) {
     expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual([]);
   });
 
-  test(`${path}: every link is at least 44 px high`, async ({ page }) => {
+  test(`${path}: every link and button is at least 44 px high`, async ({ page }) => {
     await page.goto(path);
-    const heights = await page.locator("a").evaluateAll((links) =>
-      links.map((a) => [a.textContent?.trim(), a.getBoundingClientRect().height] as const),
+    const heights = await page.locator("a, button").evaluateAll((all) =>
+      all.map((el) => [el.textContent?.trim() || el.getAttribute("aria-label") || "", el.getBoundingClientRect().height] as const),
     );
     for (const [name, height] of heights) expect(height, name).toBeGreaterThanOrEqual(44);
   });

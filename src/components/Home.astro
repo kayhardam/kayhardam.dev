@@ -28,7 +28,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
           <p class="statement"><span class="lead">{lead}</span> {rest}</p>
         </div>
         <div class="hero-board">
-          <Board />
+          <Board link={boards[locale]} t={t.board} />
           <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
         </div>
       </div>

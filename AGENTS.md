@@ -9,12 +9,12 @@ The build brief (`docs/kayhardam-dev-brief.md`) stays local and is not in the re
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server on port **4322** (not 4321: Coachboard's may run at the same time). |
-| `npm run verify` | What CI runs (`.github/workflows/ci.yml`, on pull requests and pushes to `main`): `astro check` → `vitest run` → `astro build` → `node scripts/check-links.mjs` → `node scripts/check-budget.mjs`. Must be green before every commit. |
+| `npm run verify` | What CI runs (`.github/workflows/ci.yml`, on pull requests and pushes to `main`): `astro check` and `svelte-check --fail-on-warnings` → `vitest run` → `astro build` → `node scripts/check-links.mjs` → `node scripts/check-budget.mjs`. Must be green before every commit. |
 | `npm run budget` | The size budgets against the current `dist/` (run `npm run build` first). |
 | `npm run e2e` | End-to-end tests (Playwright) in mobile Chromium and WebKit. Builds, then serves `dist/` with `wrangler dev` on port **8788** (not 8787: Coachboard's e2e tests may run at the same time). A separate CI job, not part of `verify`. First time: `npx playwright install chromium webkit`. |
 | `E2E_BASE_URL=https://<url> npx playwright test e2e/security.spec.ts` | An e2e file against a deployed site (a preview URL) instead of `wrangler dev`. Run `npm run build` on that commit first: the page list comes from `dist/`. |
 
-Commit only when `npm run verify` exits with code 0. Check the exit code itself, not the output: a pipe through `tail` or `head` hides a failure.
+Commit only when `npm run verify` exits with code 0. Check the exit code itself, not the output: a pipe through `tail` or `head` hides a failure. Always run verify and the commit as one command, joined with `&&`, for example `npm run verify && git commit -m "…"`: then a red verify never makes a commit.
 
 ## Way of working
 
@@ -32,6 +32,10 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - Texts: `src/i18n/nl.ts` and `src/i18n/en.ts` (the type comes from `nl.ts`, so a text missing in English fails `astro check`); `text(locale)` in `src/i18n/index.ts`.
 - `src/layouts/BaseLayout.astro`: `lang`, canonical, hreflang (nl, en, and x-default to `/en/`, Kay's choice), the preload of Barlow Condensed 700.
 - Styles: `src/styles/tokens.css` (Coachboard's colours, the breakpoints 560 and 860 px) and `src/styles/base.css`.
+- The board in the hero (`src/components/board/`):
+  - `src/data/boards.ts` holds the two Coachboard share links, the contract for the board and the hero button. `boardFrom()` decodes a link at build time with Coachboard's `decode()`; a broken link, or a legend item without a text, stops the build.
+  - `Board.astro` decodes the link and makes the legend; `BoardCard.svelte` draws the card; `Court.svelte` draws the court. Svelte renders at build time only (no `client:`) until phase 5 gives `BoardCard.svelte` `client:visible`.
+  - The styles are in `board.css`, global, every rule under `.board`. Its formula for the card's height is checked by `e2e/board-box.spec.ts`.
 
 ## Rules
 
@@ -42,3 +46,4 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - **Touch targets:** links and buttons at least 44 px high (`e2e/a11y.spec.ts`), a visible focus ring, contrast WCAG AA (axe).
 - **Hosting:** `wrangler.jsonc` serves `dist/` as static assets. No `routes` until the launch (phase 6): `kayhardam.dev` still shows the placeholder. The site runs on its own Worker, `kayhardam-site`; the placeholder on `kayhardam.dev` and `www` is Worker `kayhardam-dev`. In phase 6 the domain moves from Worker `kayhardam-dev` to `kayhardam-site`.
 - Code taken from Coachboard says so in a comment at the top, with the commit. Take it with `git show <commit>:<path>` in the Coachboard repo, never from its working tree: another session may be working there.
+- **The copies from Coachboard stay unchanged** (commit `4ceafd4`): `Court.svelte` (one change: the optional prop `viewBox`), `src/lib/board/{format,geometry,moves,play,viewer}.ts`, `src/lib/viewerIcons.ts`, the tests `geometry.test.ts` and `moves.test.ts`, and `svelte.config.js`. `src/lib/board/edit.ts` has only the type `Selection`. `src/lib/coachboard.test.ts` compares each copy's SHA-256 with the original. To take a newer version, copy it again with `git show` and update the hash and the commit.

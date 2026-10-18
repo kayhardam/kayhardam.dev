@@ -11,6 +11,22 @@ export const nl = {
   hero: {
     button: "Bewerk deze aanval in Coachboard",
   },
+  board: {
+    // Above the court: the share link has no title, on purpose.
+    label: "Kruising MO–LO",
+    court: "Handbalveld",
+    // For screen readers, after the visible "1/4"; {n} and {count} as in Coachboard's viewer.step.
+    step: "Stap {n} van {count}",
+    legend: "Legenda",
+    // One text per kind of arrow in the legend; a kind without a text stops the build.
+    kinds: { run: "Loop", pass: "Pass", shot: "Schot" },
+    // The buttons are icons only, with these as aria-label and title.
+    prev: "Vorige",
+    play: "Afspelen",
+    // From phase 5, when the board plays.
+    stop: "Stoppen",
+    next: "Volgende",
+  },
   coachboard: {
     heading: "Coachboard",
     text: [

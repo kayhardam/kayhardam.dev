@@ -30,6 +30,12 @@ describe("texts", () => {
         expect(list.filter(([, value]) => /\b(gratis|free)\b/i.test(value))).toEqual([]);
       });
 
+      it("has the places {n} and {count} in the board's counter", () => {
+        const step = list.find(([key]) => key === "board.step")![1];
+        expect(step).toContain("{n}");
+        expect(step).toContain("{count}");
+      });
+
       it("has no arrow: the arrow is an SVG", () => {
         expect(list.filter(([, value]) => value.includes("→"))).toEqual([]);
       });

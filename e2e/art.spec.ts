@@ -4,6 +4,7 @@ import { expect, test } from "./helpers";
 
 // The images from Coachboard (phase 3): the KH logo, the section numbers, the
 // pass, the field lines and the shot. All decoration: hidden, and nothing to click.
+// The one exception is the board's court (phase 4): an image with its label.
 
 const pages = [
   { path: "/", t: nl },
@@ -11,16 +12,20 @@ const pages = [
 ];
 
 for (const { path, t } of pages) {
-  test(`${path}: every SVG is hidden and has nothing to click`, async ({ page }) => {
+  test(`${path}: every SVG but the court is hidden, and none has anything to click`, async ({ page }) => {
     await page.goto(path);
     const svgs = await page.locator("svg").evaluateAll((all) =>
       all.map((svg) => ({
         hidden: svg.closest('[aria-hidden="true"]') !== null,
         focusable: svg.querySelector("a, button, [tabindex]") !== null,
+        role: svg.getAttribute("role"),
+        label: svg.getAttribute("aria-label"),
       })),
     );
     expect(svgs.length).toBeGreaterThan(0);
-    for (const svg of svgs) expect(svg).toEqual({ hidden: true, focusable: false });
+    const shown = svgs.filter((svg) => !svg.hidden);
+    expect(shown).toEqual([{ hidden: false, focusable: false, role: "img", label: t.board.court }]);
+    for (const svg of svgs.filter((svg) => svg.hidden)) expect(svg.focusable).toBe(false);
   });
 
   test(`${path}: the logo: 34 px, in the link kayhardam.dev, with the label KH`, async ({ page }) => {

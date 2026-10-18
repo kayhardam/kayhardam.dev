@@ -11,6 +11,17 @@ export const en: Text = {
   hero: {
     button: "Edit this play in Coachboard",
   },
+  board: {
+    label: "Crossing CB–LB",
+    court: "Handball court",
+    step: "Step {n} of {count}",
+    legend: "Legend",
+    kinds: { run: "Run", pass: "Pass", shot: "Shot" },
+    prev: "Previous",
+    play: "Play",
+    stop: "Stop",
+    next: "Next",
+  },
   coachboard: {
     heading: "Coachboard",
     text: [

@@ -14,7 +14,7 @@ The build brief (`docs/kayhardam-dev-brief.md`) stays local and is not in the re
 | `npm run e2e` | End-to-end tests (Playwright) in mobile Chromium and WebKit. Builds, then serves `dist/` with `wrangler dev` on port **8788** (not 8787: Coachboard's e2e tests may run at the same time). A separate CI job, not part of `verify`. First time: `npx playwright install chromium webkit`. |
 | `E2E_BASE_URL=https://<url> npx playwright test e2e/security.spec.ts` | An e2e file against a deployed site (a preview URL) instead of `wrangler dev`. Run `npm run build` on that commit first: the page list comes from `dist/`. |
 
-Commit only when `npm run verify` exits with code 0. Check the exit code itself, not the output: a pipe through `tail` or `head` hides a failure.
+Commit only when `npm run verify` exits with code 0. Check the exit code itself, not the output: a pipe through `tail` or `head` hides a failure. Always run verify and the commit as one command, joined with `&&`, for example `npm run verify && git commit -m "…"`: then a red verify never makes a commit.
 
 ## Way of working
 

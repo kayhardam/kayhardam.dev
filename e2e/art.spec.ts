@@ -132,3 +132,50 @@ for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
     }
   });
 }
+
+for (const width of [320, 393, 1280]) {
+  test(`${width} px: the shot on goal, in the footer before number 3`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const shot = await page.locator(".shot").evaluate((svg) => ({
+      inFooter: svg.closest("footer") !== null,
+      beforeNumber: (svg.compareDocumentPosition(document.querySelector("footer .section-number")!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+      label: svg.querySelector("text")?.textContent,
+      width: svg.getBoundingClientRect().width,
+    }));
+    expect(shot).toMatchObject({ inFooter: true, beforeNumber: true, label: "KH" });
+    expect(shot.width).toBeLessThanOrEqual(420);
+    expect(shot.width).toBeCloseTo(Math.min(420, width - 2 * (width < 560 ? 16 : 24)), 0);
+  });
+}
+
+// Layout shifts while loading, with the fonts arriving late. Only Chromium:
+// WebKit has no Layout Instability API. The statement may still shift (phase 2,
+// CLS 0.028); the header, the card, the button, the numbers and the pass may not.
+for (const width of [393, 1280]) {
+  test(`${width} px: no layout shift in the header, the card, the numbers or the pass`, async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(() => {
+      const sources: string[] = [];
+      (window as unknown as { shifts: string[] }).shifts = sources;
+      const protectedParts = "header, .board, .hero-button, .section-number, .pass";
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as unknown as { sources: { node?: Node }[] }[]) {
+          for (const { node } of entry.sources) {
+            const el = node instanceof Element ? node : node?.parentElement;
+            if (el?.closest(protectedParts) || el?.querySelector(protectedParts)) sources.push(el.outerHTML.slice(0, 80));
+          }
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.route("**/*.woff2", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await route.continue();
+    });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => (window as unknown as { shifts: string[] }).shifts)).toEqual([]);
+  });
+}

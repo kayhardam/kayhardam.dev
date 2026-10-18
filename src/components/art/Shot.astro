@@ -1,0 +1,37 @@
+---
+import Player from "./Player.astro";
+
+// Contact is the shot on goal (brief, "Beeldtaal"): the goal, the 6-metre area
+// and the dashed 9-metre line, with a shot from the KH player. The paths are
+// those of Court.svelte at commit 4ceafd4 (Coachboard), the rest as in the
+// mockup, with a viewBox 8 units higher: the whole player and the 9-metre line
+// are in it. A shot is a double line, as in Coachboard, but turned around for
+// navy: green, with a navy core and a green point.
+---
+
+<svg class="shot" viewBox="-8 -14 216 112" aria-hidden="true">
+  <defs>
+    <marker id="shot-head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#22C55E"></path>
+    </marker>
+  </defs>
+  <line x1="0" x2="200" y1="0" y2="0" stroke="#334155" stroke-width="1.2"></line>
+  <path d="M 25 0 A 60 60 0 0 0 85 60 L 115 60 A 60 60 0 0 0 175 0" fill="#1E293B" stroke="#334155" stroke-width="1"></path>
+  <path d="M -5 0 A 90 90 0 0 0 85 90 L 115 90 A 90 90 0 0 0 205 0" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="4 3"></path>
+  <rect x="85" y="-10" width="30" height="10" fill="#0F172A" stroke="#CBD5E1" stroke-width="1.2"></rect>
+  <path d="M 48 80 L 98 4" stroke="#22C55E" stroke-width="4.2"></path>
+  <path d="M 48 80 L 98 4" stroke="#0F172A" stroke-width="1.6" stroke-linecap="round" marker-end="url(#shot-head)"></path>
+  <Player label="KH" transform="translate(40 86)" />
+</svg>
+
+<style>
+  /* The height follows from the viewBox: 288 × 149 px at 320 px, 420 × 218 px at most. */
+  .shot {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    margin-bottom: 40px;
+    pointer-events: none;
+  }
+</style>

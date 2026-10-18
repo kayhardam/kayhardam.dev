@@ -94,3 +94,31 @@ De onderkant van de hero-knop, gemeten in de e2e-browsers (NL en EN gelijk):
 |---|---|--:|--:|--:|
 | iPhone 15 (WebKit) | 393×659 | 475,8 | 640,8 | 18 |
 | Pixel 7 (Chromium) | 412×839 | 491,1 | 656,1 | 183 |
+
+### Lighthouse (18 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-2-pagina-kayhardam-site.hardamkay.workers.dev/`, commit `3e3d849`. De HTML van `/` op de preview is gelijk aan die van de lokale build (gecontroleerd met `cmp`). Eén run per pagina en methode. De 404 is gemeten op `/404`, net als in fase 1.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 96 / 58 | 100 / 100 / 96 / 58 |
+| `/en/` | 100 / 100 / 96 / 58 | 100 / 100 / 96 / 58 |
+| 404 (`/404`) | 100 / 100 / 96 / 54 | 100 / 100 / 96 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,3 s / 0 ms / 0,028 / 1,4 s | 0,8 s / 0,8 s / 0 ms / 0,028 / 0,8 s |
+| `/en/` | 0,9 s / 1,2 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,021 / 0,8 s |
+| 404 (`/404`) | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+**Dezelfde drie audits falen als in fase 1, met dezelfde oorzaak:** `is-crawlable` (de preview stuurt `X-Robots-Tag: noindex`), `meta-description` (fase 6) en `errors-in-console` (een 404 op `/favicon.ico`, fase 3).
+
+**CLS:** de enige verschuiving is het statement onder het bord (`p.statement`, oorzaak "Web font loaded"). Als Barlow Condensed laadt, breekt het statement anders af. Het bord en de knop staan erboven en verschuiven niet (ook getest in `e2e/board-box.spec.ts`). Met 0,028 blijft dit ruim onder de grens van 0,1.
+
+### Security tegen de preview
+
+`E2E_BASE_URL=https://fase-2-pagina-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts`: 12 tests groen (Pixel 7 en iPhone 15). Geen CSP-fouten, niets van een ander domein, de security headers kloppen en de lettertypen komen van de site zelf.

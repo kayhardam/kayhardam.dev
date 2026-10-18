@@ -100,8 +100,10 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
   }
 
   @media (min-width: 860px) {
+    /* 32 px above, as in the mockup: the button stays on a laptop screen of 800 px.
+       The space below stays 64 px until phase 3, for the pass. */
     .hero {
-      padding-block: 64px;
+      padding-top: 32px;
     }
 
     .hero-grid {

@@ -73,6 +73,14 @@ for (const screen of [393, 1280]) {
   });
 }
 
+test("1280×800: the whole button is on a laptop's first screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  const { button } = await boxes(page);
+  expect(button.y + button.height).toBeLessThanOrEqual(800);
+});
+
 test("the whole card and the button are on the first screen", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);

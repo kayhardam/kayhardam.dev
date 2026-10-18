@@ -151,7 +151,8 @@ for (const width of [320, 393, 1280]) {
 
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
 // WebKit has no Layout Instability API. The statement may still shift (phase 2,
-// CLS 0.028); the header, the card, the button, the numbers and the pass may not.
+// CLS 0.028), and what is below it moves along; the header, the card, the button,
+// the numbers and the pass may not shift on their own.
 for (const width of [393, 1280]) {
   test(`${width} px: no layout shift in the header, the card, the numbers or the pass`, async ({ page, browserName }) => {
     test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
@@ -164,7 +165,9 @@ for (const width of [393, 1280]) {
         for (const entry of list.getEntries() as unknown as { sources: { node?: Node }[] }[]) {
           for (const { node } of entry.sources) {
             const el = node instanceof Element ? node : node?.parentElement;
-            if (el?.closest(protectedParts) || el?.querySelector(protectedParts)) sources.push(el.outerHTML.slice(0, 80));
+            // Only a shift of these parts themselves: the Coachboard section may move as a
+            // whole with the statement (plan, chapter 7), the pass and number 1 with it.
+            if (el?.closest(protectedParts)) sources.push(el.outerHTML.slice(0, 80));
           }
         }
       }).observe({ type: "layout-shift", buffered: true });

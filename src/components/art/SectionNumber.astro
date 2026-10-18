@@ -1,0 +1,32 @@
+---
+import Player from "./Player.astro";
+
+// A section number as a player: 36 px, an edge of 2 px and a digit of 15 px,
+// as in the mockup. That is a circle of radius 8.5 with an edge of 1, at scale 2:
+// smaller than Court.svelte's 9, so the whole player is 36 px.
+interface Props {
+  n: number;
+  /** Green with a white digit, or white with a green digit (About me). */
+  variant: "green" | "white";
+  /** A thin ring around it, on white: a white edge on white doesn't show. */
+  ring?: boolean;
+}
+
+const { n, variant, ring = false } = Astro.props;
+const green = "#15803D";
+---
+
+<svg class="section-number" viewBox="-9 -9 18 18" width="36" height="36" aria-hidden="true">
+  {ring && <circle r="9.25" fill="none" stroke="#E2E8F0" stroke-width="0.5" />}
+  <Player label={String(n)} r={8.5} fill={variant === "green" ? green : "#FFFFFF"} ink={variant === "green" ? "#FFFFFF" : green} />
+</svg>
+
+<style>
+  /* 16 px to the heading below it. The ring sticks out 1 px, on purpose. */
+  .section-number {
+    display: block;
+    margin-bottom: 16px;
+    overflow: visible;
+    pointer-events: none;
+  }
+</style>

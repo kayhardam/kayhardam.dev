@@ -35,3 +35,30 @@ for (const { path, t } of pages) {
     expect(box.height).toBeCloseTo(34, 0);
   });
 }
+
+for (const { path } of pages) {
+  test(`${path}: three section numbers, 36 px, above the heading of their section`, async ({ page }) => {
+    await page.goto(path);
+    await page.evaluate(() => document.fonts.ready);
+    const numbers = await page.locator(".section-number").evaluateAll((all) =>
+      all.map((svg) => {
+        const box = svg.getBoundingClientRect();
+        const section = svg.closest("section, footer")!;
+        const h2 = section.querySelector("h2")!.getBoundingClientRect();
+        return {
+          label: svg.querySelector("text")!.textContent,
+          section: section.className,
+          width: box.width,
+          height: box.height,
+          gap: Math.round(h2.top - box.bottom),
+          fill: svg.querySelectorAll("circle")[svg.querySelectorAll("circle").length - 1]!.getAttribute("fill"),
+        };
+      }),
+    );
+    expect(numbers).toEqual([
+      { label: "1", section: expect.stringMatching(/coachboard/), width: 36, height: 36, gap: 16, fill: "#15803D" },
+      { label: "2", section: expect.stringMatching(/about/), width: 36, height: 36, gap: 16, fill: "#FFFFFF" },
+      { label: "3", section: expect.stringMatching(/contact/), width: 36, height: 36, gap: 16, fill: "#15803D" },
+    ]);
+  });
+}

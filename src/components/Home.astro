@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "./Header.astro";
 import Board from "./board/Board.astro";
+import SectionNumber from "./art/SectionNumber.astro";
 import { boards } from "../data/boards";
 import { coachboard, email, github, mailto } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
@@ -31,8 +32,11 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
     <section class="coachboard">
       <div class="container coachboard-grid">
-        <h2>{t.coachboard.heading}</h2>
         <div>
+          <SectionNumber n={1} variant="green" ring />
+          <h2>{t.coachboard.heading}</h2>
+        </div>
+        <div class="coachboard-text">
           <p class="intro">{t.coachboard.text[0]}</p>
           <p class="note">{t.coachboard.text[1]}</p>
           <a class="outline-button" href={coachboard[locale]}>
@@ -50,6 +54,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
         {/* Until the photo of Kay is there. */}
         <div class="photo" aria-hidden="true"></div>
         <div>
+          <SectionNumber n={2} variant="white" />
           <h2 class="small-heading">{t.about.heading}</h2>
           {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
           <p class="example">{t.about.example}</p>
@@ -60,6 +65,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   <footer class="contact">
     <div class="container">
+      <SectionNumber n={3} variant="green" />
       <h2 class="small-heading">{t.contact.heading}</h2>
       <p class="question">{t.contact.question}</p>
       <p class="mail">{t.contact.mail}</p>
@@ -215,7 +221,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     line-height: 0.85;
   }
 
-  .coachboard-grid > div {
+  .coachboard-text {
     margin-top: 32px;
   }
 
@@ -226,7 +232,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
       gap: 64px;
     }
 
-    .coachboard-grid > div {
+    .coachboard-text {
       margin-top: 0;
     }
   }

@@ -4,7 +4,9 @@
 // no adapter. Without it, Wrangler reconfigures the project on every deploy.
 // After Coachboard's wrangler.jsonc (commit 4ceafd4).
 {
-  "name": "kayhardam-dev",
+  // Not "kayhardam-dev": that Worker serves the placeholder on kayhardam.dev
+  // and www. This one gets the domain in phase 6.
+  "name": "kayhardam-site",
   // Keep this in the past: Cloudflare rejects a date newer than its runtime.
   // Nothing here depends on it; the Worker only serves files.
   "compatibility_date": "2026-09-01",

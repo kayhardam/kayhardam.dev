@@ -39,5 +39,5 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - **CSP:** everything `'self'`. Astro writes the `<meta>` with hashes for its inline styles (`security.csp` in `astro.config.mjs`); `public/_headers` has `frame-ancestors 'none'` and the other security headers. Nothing loads from another origin: `e2e/security.spec.ts` checks every page.
 - **Fonts:** Barlow Condensed 600 and 700, Latin only, self-hosted through `@fontsource/barlow-condensed`. Running text is `system-ui`.
 - **Touch targets:** links and buttons at least 44 px high (`e2e/a11y.spec.ts`), a visible focus ring, contrast WCAG AA (axe).
-- **Hosting:** `wrangler.jsonc` serves `dist/` as static assets. No `routes` until the launch (phase 6): `kayhardam.dev` still shows the placeholder.
+- **Hosting:** `wrangler.jsonc` serves `dist/` as static assets. No `routes` until the launch (phase 6): `kayhardam.dev` still shows the placeholder. The site runs on its own Worker, `kayhardam-site`; the placeholder on `kayhardam.dev` and `www` is Worker `kayhardam-dev`. In phase 6 the domain moves from Worker `kayhardam-dev` to `kayhardam-site`.
 - Code taken from Coachboard says so in a comment at the top, with the commit. Take it with `git show <commit>:<path>` in the Coachboard repo, never from its working tree: another session may be working there.

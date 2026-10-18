@@ -12,7 +12,7 @@ const { variant } = Astro.props;
 const hero = variant === "hero";
 ---
 
-<div class:list={["field-lines", variant]} aria-hidden="true">
+<div class:list={["field-lines", `on-${variant}`]} aria-hidden="true">
   <svg viewBox="-8 -14 216 120" fill="none" stroke-width="0.8">
     {hero && <rect x="85" y="-10" width="30" height="10" stroke="#1E293B" />}
     <path
@@ -44,13 +44,13 @@ const hero = variant === "hero";
   }
 
   /* The hero: none on the phone and tablet, where the board is the court. */
-  .hero {
+  .on-hero {
     display: none;
   }
 
   /* About me on the phone and tablet: the goal on the section's top edge,
      centred above the photo (340 px wide at most). */
-  .about svg {
+  .on-about svg {
     width: 640px;
     top: calc(-14px * 640 / 216);
     left: calc(var(--gutter) + min(340px, 100% - 2 * var(--gutter)) / 2 - 108px * 640 / 216);
@@ -58,17 +58,17 @@ const hero = variant === "hero";
 
   /* From 860 px as in the mockup: at 1280 px the goal lies behind the card. */
   @media (min-width: 860px) {
-    .hero {
+    .on-hero {
       display: block;
     }
 
-    .hero svg {
+    .on-hero svg {
       width: 1040px;
       top: -60px;
       right: -220px;
     }
 
-    .about svg {
+    .on-about svg {
       width: 960px;
       top: -40px;
       left: auto;

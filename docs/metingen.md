@@ -238,3 +238,100 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 `E2E_BASE_URL=https://fase-4-speelbord-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/board.spec.ts`: 68 tests groen (Pixel 7 en iPhone 15). Er zijn geen CSP-fouten en niets komt van een ander domein. De security headers kloppen. De kaart toont stap 1 van de link van de knop, ook zonder JavaScript, en de pagina laadt geen script.
 
 CI (`verify` en `e2e`, op Linux) is groen op dezelfde commit. Daar is `system-ui` een ander lettertype, en ook dan passen alle acht zinnen op 320 px in twee regels.
+
+## Fase 5: het speelbord speelt af (19 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, Astro 7.4, Svelte 5.57, `@astrojs/svelte` 9.1, Vite 8.3 (Rolldown), op een Mac.
+- `npm run verify` groen: `astro check` en `svelte-check` zonder fouten of waarschuwingen, 11 testbestanden met 95 tests, 3 pagina's.
+- `npm run e2e` groen: 407 tests, en 3 overgeslagen (de tests op layout shifts, alleen Chromium). `e2e/board-box.spec.ts` is ongewijzigd en groen terwijl het bord speelt.
+
+### Groottes (`dist/`)
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS (gzip) |
+|---|--:|--:|--:|--:|
+| `/` | 41,7 | 9,62 | 0 | 21,24 |
+| `/en/` | 41,6 | 9,58 | 0 | 21,24 |
+| `/404.html` | 4,2 | 2,0 | 0 | 0 |
+
+De HTML van `.board` is byte voor byte die van fase 4. De HTML groeit met 2,86 KB gzip. Dat komt van:
+- de twee inline scripts van Astro (2,1 KB);
+- de props van het island: het bord, de legenda en de teksten, 0,57 KB;
+- de `<astro-island>`-tag en de `<style>` met `display: contents`.
+
+**De JS-bestanden** (alle drie uit `/_astro/`; er zijn geen andere):
+
+| Bestand | Wat | Raw | Gzip |
+|---|---|--:|--:|
+| `BoardCard.Cp5cfyet.js` (`component-url`) | de kaart, met `Court.svelte`, `play.ts`, `moves.ts`, `geometry.ts`, `viewer.ts` en `viewerIcons.ts` | 15,80 KB | 6,34 KB |
+| `client.Bx5JppYJ.js` (gedeeld) | de runtime van Svelte | 37,39 KB | 14,40 KB |
+| `client.svelte.CiYiP-Fg.js` (`renderer-url`) | de Svelte-renderer van Astro | 0,89 KB | 0,50 KB |
+| **Samen** | | 54,07 KB | **21,24 KB** |
+
+Lazy JS: 0. De lettertypen en de iconen zijn ongewijzigd.
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+- **JS per pagina: 24,4 KB** (21,24 KB plus 15%). Het budget telt de bestanden uit `component-url` en `renderer-url` plus alles wat die statisch importeren.
+- **Lazy JS: 0.**
+- **All JS** (elke `.js` in `/_astro/`): 24,4 KB.
+- **HTML van 7,8 naar 11,1 KB** per pagina (9,62 KB plus 15%). De reden: de scripts van Astro en de props van het island.
+- **Scripts: 0 fouten.** De regels:
+  - hoogstens één island per pagina, en dat is `BoardCard` met `client="visible"`;
+  - geen island op de 404-pagina;
+  - een inline script alleen met het island, hoogstens twee;
+  - geen `<script src>` en geen `modulepreload`.
+
+### Lighthouse (19 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-5-afspelen-kayhardam-site.hardamkay.workers.dev/`, commit `a16abf9`. De HTML op de preview is gelijk aan die van de lokale build, op de `uid` van het island na: die maakt Astro bij elke build opnieuw. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| `/en/` | 100 / 100 / 100 / 58 | 100 / 100 / 100 / 58 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 1,1 s / 1,1 s / 0 ms / 0,018 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO blijft 58 / 54**, met dezelfde twee audits als in fase 4: `is-crawlable` (de preview stuurt `X-Robots-Tag: noindex`) en `meta-description` (fase 6).
+- **CLS:**
+  - de enige verschuiving is, net als in fase 4, het statement (`p.statement`, "Web font loaded");
+  - de kaart verschuift niet, ook niet terwijl hij speelt;
+  - in de simulated run van `/` was het lettertype er op tijd: CLS 0.
+- **Speed Index (devtools): van 0,9 naar 1,1 s.** Het bord blijft bewegen, dus het beeld is pas later "af". FCP en LCP blijven gelijk.
+- **Main thread (devtools):**
+  - van 0,2 naar 1,1 s. Dat is vooral het afspelen tijdens de meting;
+  - één lange taak: 75 ms op 678 ms (`/`) en 66 ms op 704 ms (`/en/`);
+  - TBT blijft 0 ms.
+
+**De waterval** (devtools, `/`, ms na de start):
+
+| Bestand | Begint | Klaar | Over de lijn |
+|---|--:|--:|--:|
+| `BoardCard.….js` | 794 | 1472 | 7,6 KB |
+| `client.svelte.….js` (renderer) | 794 | 1386 | 1,2 KB |
+| `client.….js` (runtime) | 1390 | 2037 | 15,9 KB |
+
+- De kaart en de renderer beginnen tegelijk, na de eerste paint (0,8 s).
+- De runtime begint pas als de renderer binnen is: twee lagen, zoals het plan voorspelde.
+- Zonder `modulepreload` (hoofdstuk 8 van het plan). Tot de JS er is, staat stap 1 er al, compleet, met de knoppen uit.
+
+### Tegen de preview
+
+`E2E_BASE_URL=https://fase-5-afspelen-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/board.spec.ts e2e/play.spec.ts`: 161 tests groen en 1 overgeslagen (layout shifts, alleen Chromium), in Pixel 7 en iPhone 15. Wat dat bevestigt:
+- geen CSP-fouten, ook niet met het island en zijn drie scripts, en niets komt van een ander domein;
+- de pagina laadt alleen de scripts van het island;
+- het bord speelt, stopt en pauzeert zoals lokaal;
+- de volgorde van `aria-live` en de zin klopt.
+
+CI (`verify` en `e2e`, op Linux) is groen op dezelfde commit.

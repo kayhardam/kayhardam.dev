@@ -24,7 +24,8 @@ export default defineConfig({
     },
   },
   markdown: { syntaxHighlight: false },
-  // The board (src/components/board/) is Svelte, as in Coachboard. Until phase 5 it
-  // only renders at build time: no client: directive, so no JavaScript on the page.
+  // The board (src/components/board/) is Svelte, as in Coachboard: the one island,
+  // BoardCard with client:visible (scripts/check-budget.mjs). Astro's inline scripts
+  // for it are covered by the hashes in the CSP above.
   integrations: [svelte()],
 });

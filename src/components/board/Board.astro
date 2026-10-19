@@ -1,8 +1,9 @@
 ---
 // The board card in the hero. Decodes the share link at build time and makes
 // the legend; a broken link or a legend item without a text stops the build.
-// BoardCard.svelte draws the card. It has no client: directive yet, so Astro
-// renders it to HTML only: step 1, without JavaScript (phase 5 adds the island).
+// BoardCard.svelte draws the card: an island with client:visible, which gets the
+// decoded board as props, so the browser never decodes the link. Its HTML from
+// the server is the card without JavaScript: step 1, with the buttons off.
 // The styles are in board.css, shared with the island, as BoardViewer.css is in Coachboard.
 import "./board.css";
 import BoardCard from "./BoardCard.svelte";
@@ -22,4 +23,4 @@ const board = await boardFrom(link);
 const legend = legendFor(board, locale);
 ---
 
-<BoardCard board={board} legend={legend} t={t} />
+<BoardCard client:visible board={board} legend={legend} t={t} />

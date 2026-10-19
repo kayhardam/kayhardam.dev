@@ -5,9 +5,12 @@ import { nl } from "../src/i18n/nl";
 import { arrowPath } from "../src/lib/board/geometry";
 import { expect, test } from "./helpers";
 
-// The board card without JavaScript (phase 4): step 1 of the share link, rendered
-// at build time, with the label, the counter, the sentence, the court, the legend
-// and the three buttons, which are off until phase 5.
+// The board card (phase 4): step 1 of the share link, rendered at build time,
+// with the label, the counter, the sentence, the court, the legend and the three
+// buttons. With reduced motion, so the island (phase 5) plays nothing and step 1
+// stays; e2e/play.spec.ts tests the playing.
+
+test.use({ reducedMotion: "reduce" });
 
 const pages = [
   { path: "/", t: nl, locale: "nl" as const },
@@ -103,49 +106,6 @@ for (const { path, t, locale } of pages) {
     expect(new Set(tops).size).toBe(1);
   });
 
-  test(`${path}: three buttons, off, 44 × 44 px, on the right; Play is green`, async ({ page }) => {
-    await page.goto(path);
-    const buttons = page.getByRole("button");
-    await expect(buttons).toHaveCount(3);
-    const names = [t.board.prev, t.board.play, t.board.next];
-    for (const [i, name] of names.entries()) {
-      const button = buttons.nth(i);
-      await expect(button).toHaveAccessibleName(name);
-      await expect(button).toHaveAttribute("title", name);
-      await expect(button).toBeDisabled();
-      const b = (await button.boundingBox())!;
-      expect([b.width, b.height]).toEqual([44, 44]);
-    }
-    const card = await box(page, ".board-body");
-    const last = (await buttons.nth(2).boundingBox())!;
-    expect(last.x + last.width).toBeCloseTo(card.right - 14, 0);
-    await expect(page.getByRole("button", { name: t.board.play })).toHaveCSS("background-color", "rgb(21, 128, 61)");
-  });
-
-  // The narrowest card (288 px); a wider one only makes it easier.
-  test(`${path} at 320 px: every sentence of the board fits in two lines`, async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 800 });
-    await page.goto(path);
-    await page.evaluate(() => document.fonts.ready);
-    const sentences = (await boardFrom(boards[locale])).frames.map((f) => f.text!);
-    for (const sentence of sentences) {
-      const fit = await page.locator(".board-step").evaluate((p, text) => {
-        p.textContent = text;
-        const range = document.createRange();
-        range.selectNodeContents(p);
-        const rects = [...range.getClientRects()];
-        const box = p.getBoundingClientRect();
-        return {
-          lines: new Set(rects.map((r) => Math.round(r.top))).size,
-          inside: Math.max(...rects.map((r) => r.bottom)) <= box.bottom + 0.5,
-          height: Math.round(box.height * 10) / 10,
-        };
-      }, sentence);
-      expect(fit.lines, sentence).toBeLessThanOrEqual(2);
-      expect(fit, sentence).toMatchObject({ inside: true, height: 47.6 });
-    }
-  });
-
   test(`${path} at 320 px: the label is not cut off`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await page.goto(path);
@@ -178,15 +138,22 @@ for (const { path, t, locale } of pages) {
     });
   }
 
-  test(`${path}: loads no script`, async ({ page }) => {
+  test(`${path}: loads only the island's scripts: the card, the renderer and Svelte's runtime`, async ({ page }) => {
     const scripts: string[] = [];
     page.on("request", (request) => {
-      if (request.resourceType() === "script") scripts.push(request.url());
+      if (request.resourceType() === "script") scripts.push(new URL(request.url()).pathname);
     });
     await page.goto(path);
     await page.waitForLoadState("networkidle");
-    expect(scripts).toEqual([]);
-    await expect(page.locator("script, astro-island")).toHaveCount(0);
+    const island = page.locator("astro-island");
+    await expect(island).toHaveCount(1);
+    await expect(island).toHaveAttribute("client", "visible");
+    await expect(page.locator("script[src]")).toHaveCount(0);
+    const card = (await island.getAttribute("component-url"))!;
+    const renderer = (await island.getAttribute("renderer-url"))!;
+    expect(scripts).toHaveLength(3);
+    expect(scripts).toEqual(expect.arrayContaining([card, renderer]));
+    for (const src of scripts) expect(src).toMatch(/^\/_astro\/[^/]+\.js$/);
   });
 
   test(`${path}: every id is unique, and every url(#…) points to one`, async ({ page }) => {
@@ -204,6 +171,33 @@ for (const { path, t, locale } of pages) {
   });
 }
 
+test.describe("with JavaScript, playing", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  for (const { path, t } of pages) {
+    test(`${path}: three buttons, on: Previous, Stop and Next, 44 × 44 px, on the right; Play is green`, async ({ page }) => {
+      await page.goto(path);
+      const buttons = page.getByRole("button");
+      await expect(buttons).toHaveCount(3);
+      const names = [t.board.prev, t.board.stop, t.board.next];
+      for (const [i, name] of names.entries()) {
+        const button = buttons.nth(i);
+        await expect(button).toHaveAccessibleName(name);
+        await expect(button).toHaveAttribute("title", name);
+        await expect(button).toBeEnabled();
+        await expect(button).not.toHaveAttribute("aria-disabled");
+        await expect(button).toHaveCSS("opacity", "1");
+        const b = (await button.boundingBox())!;
+        expect([b.width, b.height]).toEqual([44, 44]);
+      }
+      const card = await box(page, ".board-body");
+      const last = (await buttons.nth(2).boundingBox())!;
+      expect(last.x + last.width).toBeCloseTo(card.right - 14, 0);
+      await expect(buttons.nth(1)).toHaveCSS("background-color", "rgb(21, 128, 61)");
+    });
+  }
+});
+
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
@@ -217,6 +211,50 @@ test.describe("without JavaScript", () => {
       await expect(page.getByRole("list", { name: t.board.legend }).getByRole("listitem")).toHaveCount(3);
       for (const button of await page.getByRole("button").all()) await expect(button).toBeDisabled();
       await expect(page.getByRole("button")).toHaveCount(3);
+    });
+
+    // The narrowest card (288 px); a wider one only makes it easier. Without JavaScript,
+    // so Svelte doesn't put the sentence back.
+    test(`${path} at 320 px: every sentence of the board fits in two lines`, async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 800 });
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const sentences = (await boardFrom(boards[locale])).frames.map((f) => f.text!);
+      for (const sentence of sentences) {
+        const fit = await page.locator(".board-step").evaluate((p, text) => {
+          p.textContent = text;
+          const range = document.createRange();
+          range.selectNodeContents(p);
+          const rects = [...range.getClientRects()];
+          const box = p.getBoundingClientRect();
+          return {
+            lines: new Set(rects.map((r) => Math.round(r.top))).size,
+            inside: Math.max(...rects.map((r) => r.bottom)) <= box.bottom + 0.5,
+            height: Math.round(box.height * 10) / 10,
+          };
+        }, sentence);
+        expect(fit.lines, sentence).toBeLessThanOrEqual(2);
+        expect(fit, sentence).toMatchObject({ inside: true, height: 47.6 });
+      }
+    });
+
+    test(`${path}: three buttons, off, 44 × 44 px, on the right; Play is green`, async ({ page }) => {
+      await page.goto(path);
+      const buttons = page.getByRole("button");
+      await expect(buttons).toHaveCount(3);
+      const names = [t.board.prev, t.board.play, t.board.next];
+      for (const [i, name] of names.entries()) {
+        const button = buttons.nth(i);
+        await expect(button).toHaveAccessibleName(name);
+        await expect(button).toHaveAttribute("title", name);
+        await expect(button).toBeDisabled();
+        const b = (await button.boundingBox())!;
+        expect([b.width, b.height]).toEqual([44, 44]);
+      }
+      const card = await box(page, ".board-body");
+      const last = (await buttons.nth(2).boundingBox())!;
+      expect(last.x + last.width).toBeCloseTo(card.right - 14, 0);
+      await expect(page.getByRole("button", { name: t.board.play })).toHaveCSS("background-color", "rgb(21, 128, 61)");
     });
   }
 });

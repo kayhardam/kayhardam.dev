@@ -1,29 +1,37 @@
 // Checks the built site against size budgets. Run after `astro build`:
 //   node scripts/check-budget.mjs
 // After Coachboard's scripts/check-budget.mjs (commit 4ceafd4), cut down to
-// what this site has. Phase 5 adds the board's island and its JS budget.
+// what this site has: one island, the board card (phase 5).
 //
-// - No page ships JavaScript: no <script> other than JSON-LD, no
-//   <astro-island>, no modulepreload.
+// - The only JavaScript is the board's island: at most one <astro-island> per
+//   page, and it is BoardCard with client="visible". The 404 page has none.
+//   An inline <script> only on a page with the island: Astro's own, at most
+//   two. No <script src> and no modulepreload. JSON-LD is allowed.
+// - The island's JS: the files from its component-url and renderer-url plus
+//   everything they import statically. Dynamic imports count as lazy JS.
+// - All JS: every .js file in _astro/, so code moved into a lazy chunk still counts.
 // - CSS and HTML per page. Astro inlines small stylesheets, so the HTML budget
 //   also covers the CSS that sits in a <style>; the CSS budget covers the files
 //   from <link rel="stylesheet">.
 // - Every font file (woff2) the site serves.
 // - The icons: favicon.svg, favicon.ico and apple-touch-icon.png.
 //
-// Sizes are in KB of 1000 bytes; CSS and HTML are gzipped (zlib default level),
+// Sizes are in KB of 1000 bytes; JS, CSS and HTML are gzipped (zlib default level),
 // as in docs/metingen.md. Fonts and icons are counted raw: woff2 and PNG are
 // compressed already, and the SVG is small.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
-// Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, HTML in phase 4.
+// Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, JS and HTML in phase 5.
 export const BUDGETS = {
+  js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
+  lazyJs: 0, // 0 KB: no dynamic imports
+  allJs: 24_400, // 21.24 KB: the island's three files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 7_800, // 6.76 KB for /, the largest page, with all texts, CSS and SVGs, and the board's step 1
+  html: 11_100, // 9.62 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
 };
@@ -31,8 +39,17 @@ export const BUDGETS = {
 /** The icons in the root of the site, from scripts/favicons.mjs. */
 export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
 
+/** The one island: the board card, hydrated when it comes into view. */
+export const ISLAND = { name: "BoardCard", client: "visible" };
+/** Astro's inline scripts on a page with an island: its loader and the one for client:visible. */
+export const ISLAND_SCRIPTS = 2;
+
 const TAG = /<(script|astro-island|link)\b([^>]*)>/gi;
 const ATTR = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
+const STATIC_IMPORT = /(?:\bfrom|\bimport)\s*["']([^"']+\.js)["']/g;
+// Vite writes dynamic imports with backticks: import(`./chunk.js`).
+const DYNAMIC_IMPORT = /\bimport\s*\(\s*["'`]([^"'`]+\.js)["'`]\s*\)/g;
+const ENTITIES = { "&quot;": '"', "&#39;": "'", "&lt;": "<", "&gt;": ">", "&amp;": "&" };
 
 function* files(dir, ext) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -51,6 +68,15 @@ function attrs(source) {
 }
 
 const gzipped = (path) => gzipSync(readFileSync(path)).length;
+
+/** The name in an island's opts attribute, or undefined when it has none. */
+function islandName(opts) {
+  try {
+    return JSON.parse((opts ?? "").replace(/&(?:quot|#39|lt|gt|amp);/g, (e) => ENTITIES[e])).name;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * @param {string} dist     directory with the built site
@@ -78,6 +104,31 @@ export function checkBudget(dist, budgets = BUDGETS) {
     return null;
   }
 
+  /** The .js files a set of entry files imports, statically and dynamically. */
+  function importGraph(entries, where) {
+    const eager = new Set();
+    const lazy = new Set();
+    const visit = (file, set) => {
+      if (eager.has(file) || set.has(file)) return;
+      set.add(file);
+      const code = readFileSync(file, "utf8");
+      for (const [pattern, target] of [
+        [STATIC_IMPORT, set],
+        [DYNAMIC_IMPORT, lazy],
+      ]) {
+        for (const [, spec] of code.matchAll(pattern)) {
+          if (!spec.startsWith(".")) continue;
+          const path = join(dirname(file), spec);
+          if (existsSync(path)) visit(path, target);
+          else errors.push(`${where}: ${relative(dist, file)} imports missing ${spec}`);
+        }
+      }
+    };
+    for (const entry of entries) visit(entry, eager);
+    for (const file of eager) lazy.delete(file);
+    return { eager, lazy };
+  }
+
   const sum = (paths) => [...paths].reduce((total, path) => total + gzipped(path), 0);
 
   const pages = [...files(dist, ".html")].map((file) => relative(dist, file).split(sep).join("/")).sort();
@@ -88,23 +139,52 @@ export function checkBudget(dist, budgets = BUDGETS) {
     const url = `/${page.replace(/(^|\/)index\.html$/, "$1")}`;
     const html = readFileSync(file, "utf8");
     const stylesheets = [];
-    const forbid = (found) => {
+    const islands = [];
+    const inline = [];
+    const forbid = (found, why = "the only JS is the board's island") => {
       scripts++;
-      errors.push(`${url}: pages ship no JS, found ${found}`);
+      errors.push(`${url}: ${why}, found ${found}`);
     };
 
     for (const [, tag, source] of html.matchAll(TAG)) {
       const a = attrs(source);
       const name = tag.toLowerCase();
       if (name === "script") {
-        if (a.type?.toLowerCase() !== "application/ld+json") forbid(`<script${source}>`);
+        if (a.type?.toLowerCase() === "application/ld+json") continue;
+        if (a.src) forbid(`<script${source}>`);
+        else inline.push(`<script${source}>`);
       } else if (name === "astro-island") {
-        forbid("<astro-island>");
+        islands.push(a);
       } else {
         const rel = (a.rel ?? "").toLowerCase().split(/\s+/);
         if (rel.includes("modulepreload")) forbid(`<link rel="modulepreload">`);
         if (rel.includes("stylesheet") && a.href) stylesheets.push(a.href);
       }
+    }
+
+    if (page === "404.html") {
+      if (islands.length > 0) forbid("<astro-island>", "the 404 page ships no JS");
+    } else {
+      if (islands.length > 1) forbid(`${islands.length} <astro-island>s`, "a page has at most one island");
+      for (const island of islands) {
+        const name = islandName(island.opts);
+        if (name !== ISLAND.name || island.client !== ISLAND.client) {
+          forbid(`<astro-island> ${name ?? "without a name"} with client="${island.client ?? ""}"`, `the island is ${ISLAND.name} with client="${ISLAND.client}"`);
+        }
+      }
+    }
+    if (islands.length === 0) {
+      for (const tag of inline) forbid(tag, "an inline script only with the island");
+    } else {
+      for (const tag of inline.slice(ISLAND_SCRIPTS)) forbid(tag, `at most ${ISLAND_SCRIPTS} inline scripts with the island`);
+      const entries = islands
+        .flatMap((a) => [a["component-url"], a["renderer-url"]])
+        .filter(Boolean)
+        .map((src) => resolve(src, url))
+        .filter(Boolean);
+      const { eager, lazy } = importGraph(new Set(entries), url);
+      measure("JS (gzip)", url, sum(eager), budgets.js);
+      measure("Lazy JS (gzip)", url, sum(lazy), budgets.lazyJs);
     }
 
     const css = stylesheets.map((href) => resolve(href, url)).filter(Boolean);
@@ -114,6 +194,9 @@ export function checkBudget(dist, budgets = BUDGETS) {
 
   // Each script found is already an error with its page; this row is the summary.
   rows.push({ budget: "Scripts", item: `${pages.length} pages`, measured: scripts, limit: 0, unit: "" });
+
+  const astro = join(dist, "_astro");
+  measure("All JS (gzip)", "/_astro/", existsSync(astro) ? sum(files(astro, ".js")) : 0, budgets.allJs);
 
   for (const file of [...files(dist, ".woff2")].sort()) {
     const url = `/${relative(dist, file).split(sep).join("/")}`;
@@ -126,7 +209,7 @@ export function checkBudget(dist, budgets = BUDGETS) {
     if (existsSync(file)) measure("Icon", `/${name}`, statSync(file).size, budgets.icon);
   }
 
-  const order = ["Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon"];
+  const order = ["JS (gzip)", "Lazy JS (gzip)", "All JS (gzip)", "Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon"];
   rows.sort((a, b) => order.indexOf(a.budget) - order.indexOf(b.budget));
   return { rows, errors };
 }

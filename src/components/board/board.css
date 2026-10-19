@@ -9,7 +9,7 @@
  * e2e/board-box.spec.ts checks this formula.
  *
  * Global, every rule under .board, as BoardViewer.css is in Coachboard: the
- * card is a Svelte component (BoardCard.svelte), the island from phase 5.
+ * card is a Svelte component (BoardCard.svelte), an island since phase 5.
  */
 .board {
   /* The card's own width, for the foot below. */
@@ -161,8 +161,9 @@
   color: #fff;
 }
 
-/* Without JavaScript all three are off (phase 5 turns them on). */
-.board .board-controls button:disabled {
+/* Off: all three without JavaScript (disabled); once mounted, a button with
+   nothing to do (aria-disabled, so the focus stays on it). */
+.board .board-controls button:is(:disabled, [aria-disabled="true"]) {
   opacity: 0.4;
   cursor: default;
 }

@@ -20,6 +20,18 @@ function build(files, budgets = BUDGETS) {
 const gz = (text) => gzipSync(text).length;
 const row = (rows, budget, item) => rows.find((r) => r.budget === budget && (item === undefined || r.item === item));
 
+/** An island as Astro writes it, with its opts HTML-escaped. */
+const island = ({ name = "BoardCard", client = "visible" } = {}) =>
+  `<astro-island component-url="/_astro/Card.js" renderer-url="/_astro/renderer.js" client="${client}" ` +
+  `opts="{&quot;name&quot;:&quot;${name}&quot;,&quot;value&quot;:true}"></astro-island>`;
+
+/** The island's files: the card and the renderer both import the shared runtime. */
+const islandFiles = {
+  "_astro/Card.js": `import{a as b}from"./shared.js";export default function Card(){return b}`,
+  "_astro/renderer.js": `import{a}from"./shared.js";export default a`,
+  "_astro/shared.js": "export const a = 1;",
+};
+
 afterEach(() => rmSync(dist, { recursive: true, force: true }));
 
 describe("checkBudget", () => {
@@ -33,14 +45,57 @@ describe("checkBudget", () => {
   });
 
   it.each([
-    ["an inline script", "<script>console.log(1)</script>"],
-    ["a script file", `<script type="module" src="/_astro/x.js"></script>`],
-    ["an island", `<astro-island component-url="/_astro/x.js"></astro-island>`],
-    ["a modulepreload", `<link rel="modulepreload" href="/_astro/x.js">`],
-  ])("fails on %s", (_, html) => {
-    const { rows, errors } = build({ "en/index.html": html, "_astro/x.js": "" });
-    expect(errors).toEqual([expect.stringMatching(/^\/en\/: pages ship no JS/)]);
+    ["an inline script without the island", "<script>console.log(1)</script>", /an inline script only with the island/],
+    ["a script file", `<script type="module" src="/_astro/x.js"></script>`, /the only JS is the board's island/],
+    ["a script file next to the island", `${island()}<script src="/_astro/x.js"></script>`, /the only JS is the board's island/],
+    ["a modulepreload", `<link rel="modulepreload" href="/_astro/x.js">`, /the only JS is the board's island/],
+    ["a second island", `${island()}${island()}`, /a page has at most one island/],
+    ["another island", island({ name: "Other" }), /the island is BoardCard with client="visible"/],
+    ["the island with client:load", island({ client: "load" }), /the island is BoardCard with client="visible"/],
+    ["a third inline script", `${island()}<script>1</script><script>2</script><script>3</script>`, /at most 2 inline scripts/],
+  ])("fails on %s", (_, html, why) => {
+    const { rows, errors } = build({ "en/index.html": html, ...islandFiles });
+    expect(errors).toEqual([expect.stringMatching(why)]);
+    expect(errors[0]).toMatch(/^\/en\/: /);
     expect(row(rows, "Scripts").measured).toBe(1);
+  });
+
+  it("allows the board's island with Astro's two inline scripts", () => {
+    const html = `<script>a</script><script>b</script>${island()}`;
+    const { rows, errors } = build({ "index.html": html, ...islandFiles });
+    expect(errors).toEqual([]);
+    expect(row(rows, "Scripts").measured).toBe(0);
+  });
+
+  it("fails on the island on the 404 page", () => {
+    const { errors } = build({ "404.html": island(), ...islandFiles });
+    expect(errors).toEqual([expect.stringMatching(/^\/404\.html: the 404 page ships no JS/)]);
+  });
+
+  it("measures the island's JS gzipped: its two files and what they import statically", () => {
+    const { rows, errors } = build({ "index.html": island(), ...islandFiles });
+    expect(errors).toEqual([]);
+    const all = Object.values(islandFiles).reduce((total, code) => total + gz(code), 0);
+    expect(row(rows, "JS (gzip)", "/").measured).toBe(all);
+    expect(row(rows, "Lazy JS (gzip)", "/").measured).toBe(0);
+    expect(row(rows, "All JS (gzip)").measured).toBe(all);
+  });
+
+  it("counts a dynamic import as lazy JS, over its budget of 0", () => {
+    const files = { ...islandFiles, "_astro/Card.js": "import(`./lazy.js`);", "_astro/lazy.js": "export const late = 1;" };
+    const { rows, errors } = build({ "index.html": island(), ...files });
+    expect(row(rows, "Lazy JS (gzip)", "/").measured).toBe(gz(files["_astro/lazy.js"]));
+    expect(errors).toEqual([expect.stringMatching(/^Lazy JS \(gzip\) \/: .* is over the budget of 0\.0 KB$/)]);
+  });
+
+  it("fails on JS over its budget, and on a missing import", () => {
+    const files = { ...islandFiles, "_astro/renderer.js": `import "./gone.js";` };
+    const { errors } = build({ "index.html": island(), ...files }, { ...BUDGETS, js: 10, allJs: 10 });
+    expect(errors).toEqual([
+      "/: _astro/renderer.js imports missing ./gone.js",
+      expect.stringMatching(/^JS \(gzip\) \/: /),
+      expect.stringMatching(/^All JS \(gzip\) \/_astro\/: /),
+    ]);
   });
 
   it("measures HTML and linked CSS gzipped, per page", () => {

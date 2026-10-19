@@ -27,11 +27,11 @@ import { gzipSync } from "node:zlib";
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, JS and HTML in phase 5.
 export const BUDGETS = {
-  js: 24_300, // 21.1 KB: the island, Svelte's runtime and Astro's renderer
+  js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
   lazyJs: 0, // 0 KB: no dynamic imports
-  allJs: 24_300, // 21.1 KB: the island's files are all there is
+  allJs: 24_400, // 21.24 KB: the island's three files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 11_100, // 9.61 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
+  html: 11_100, // 9.62 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
 };

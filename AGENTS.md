@@ -1,6 +1,6 @@
 # kayhardam.dev
 
-Kay Hardam's personal landing page: a static Astro 7 site in Dutch (`/`) and English (`/en/`). The products come first: the hero will be Coachboard's board, playing a shared board. `CLAUDE.md` is a symlink to this file.
+Kay Hardam's personal landing page: a static Astro 7 site in Dutch (`/`) and English (`/en/`). The products come first: the hero is Coachboard's board, playing a shared board. `CLAUDE.md` is a symlink to this file.
 
 The build brief (`docs/kayhardam-dev-brief.md`) stays local and is not in the repo (`.gitignore`). It holds the agreed texts, the design and the phases.
 
@@ -34,14 +34,15 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - Styles: `src/styles/tokens.css` (Coachboard's colours, the breakpoints 560 and 860 px) and `src/styles/base.css`.
 - The board in the hero (`src/components/board/`):
   - `src/data/boards.ts` holds the two Coachboard share links, the contract for the board and the hero button. `boardFrom()` decodes a link at build time with Coachboard's `decode()`; a broken link, or a legend item without a text, stops the build.
-  - `Board.astro` decodes the link and makes the legend; `BoardCard.svelte` draws the card; `Court.svelte` draws the court. Svelte renders at build time only (no `client:`) until phase 5 gives `BoardCard.svelte` `client:visible`.
+  - `Board.astro` decodes the link and makes the legend; `BoardCard.svelte` draws the card; `Court.svelte` draws the court.
+  - `BoardCard.svelte` is the one island (`client:visible`). It gets the decoded board as props, so the browser never decodes the link. On the server and in its first render it is the card without JavaScript (step 1, the buttons `disabled`), so hydrating changes no element. Once mounted it plays by itself in a loop, except with reduced motion; it pauses out of view and in a hidden tab. `aria-live` on the sentence is `off` while it plays by itself and `polite` once it stands still (Kay's decision, phase 5); Previous and Next set it before the sentence changes, with Svelte's `tick()` in between. A button with nothing to do is `aria-disabled`. `e2e/play.spec.ts` tests all of it with Playwright's clock.
   - The styles are in `board.css`, global, every rule under `.board`. Its formula for the card's height is checked by `e2e/board-box.spec.ts`.
 
 ## Rules
 
 - **Trailing slash everywhere** (`trailingSlash: "always"`). Build links with `getRelativeLocaleUrl()` from `astro:i18n`.
-- **No JavaScript on the page**, except (from phase 5) the board: one Svelte 5 island. `scripts/check-budget.mjs` fails on any `<script>`, `<astro-island>` or modulepreload.
-- **CSP:** everything `'self'`. Astro writes the `<meta>` with hashes for its inline styles (`security.csp` in `astro.config.mjs`); `public/_headers` has `frame-ancestors 'none'` and the other security headers. Nothing loads from another origin: `e2e/security.spec.ts` checks every page.
+- **No JavaScript on the page**, except the board: one Svelte 5 island, `BoardCard` with `client:visible`, and Astro's two inline scripts for it. `scripts/check-budget.mjs` fails on a second island, another island or directive, an island on the 404 page, an inline `<script>` without the island, any `<script src>` and any modulepreload. Its JS budget counts the island's files and what they import (gzip); lazy JS has a budget of 0.
+- **CSP:** everything `'self'`. Astro writes the `<meta>` with hashes for its inline scripts and styles (`security.csp` in `astro.config.mjs`); `public/_headers` has `frame-ancestors 'none'` and the other security headers. Nothing loads from another origin: `e2e/security.spec.ts` checks every page.
 - **Fonts:** Barlow Condensed 600 and 700, Latin only, self-hosted through `@fontsource/barlow-condensed`. Running text is `system-ui`.
 - **Touch targets:** links and buttons at least 44 px high (`e2e/a11y.spec.ts`), a visible focus ring, contrast WCAG AA (axe).
 - **Hosting:** `wrangler.jsonc` serves `dist/` as static assets. No `routes` until the launch (phase 6): `kayhardam.dev` still shows the placeholder. The site runs on its own Worker, `kayhardam-site`; the placeholder on `kayhardam.dev` and `www` is Worker `kayhardam-dev`. In phase 6 the domain moves from Worker `kayhardam-dev` to `kayhardam-site`.

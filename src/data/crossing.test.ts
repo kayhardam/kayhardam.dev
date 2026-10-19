@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { HOLD } from "../components/board/BoardCard.svelte";
 import { locales, text, type Locale } from "../i18n";
 import type { Board, Frame } from "../lib/board/format";
 import { moment } from "../lib/board/play";
@@ -13,6 +14,9 @@ const still: Record<Locale, number[]> = {
   nl: [2220, 1560, 1500, 1200],
   en: [2280, 1260, 1200, 1200],
 };
+
+/** One round of playing on the hero (ms): every step still and moving, and the hold after the shot. */
+const round: Record<Locale, number> = { nl: 13_080, en: 12_540 };
 
 const places = (frame: Frame) => ({ players: frame.players.map((p) => p.at), balls: frame.balls });
 
@@ -52,6 +56,13 @@ for (const code of locales) {
       const board = decoded[code];
       expect(board.frames.map(stillFor)).toEqual(still[code]);
       expect(board.frames.map(moveFor)).toEqual([1000, 1000, 1000, 1000]);
+    });
+
+    it("plays a round in the time of the phase 5 plan, with 2.6 s after the shot", () => {
+      const board = decoded[code];
+      const steps = board.frames.map((f, s) => stillFor(f) + (moves(board, s) ? moveFor(f) : 0));
+      expect(HOLD).toBe(2600);
+      expect(steps.reduce((a, b) => a + b) + HOLD).toBe(round[code]);
     });
 
     it("moves from every step", () => {

@@ -206,8 +206,9 @@
     motion.addEventListener("change", onMotion);
 
     // Astro's observer for client:visible disconnects after the first time, so the card has its own.
-    const observer = new IntersectionObserver(([entry]) => {
-      inView = entry!.isIntersecting;
+    // Out of view and back quickly gives one callback two entries: the last is the one that holds.
+    const observer = new IntersectionObserver((entries) => {
+      inView = entries.at(-1)!.isIntersecting;
       sync();
     });
     observer.observe(card);

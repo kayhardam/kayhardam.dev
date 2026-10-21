@@ -8,7 +8,8 @@ export const nl = {
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
-  // The first sentence light grey, the second white.
+  // The first sentence light grey, the second white. Also on the share images:
+  // after a change, run scripts/og-image.mjs again (as for the board's label).
   statement: ["Gymleraar en handbaltrainer.", "Ik bouw tools voor sport en onderwijs."],
   hero: {
     button: "Bewerk deze aanval in Coachboard",

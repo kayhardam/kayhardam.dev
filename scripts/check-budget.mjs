@@ -36,7 +36,7 @@ export const BUDGETS = {
   html: 11_100, // 9.62 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
-  shareImage: 56_100, // 48.7 KB for og-nl.png in the plan, the largest
+  shareImage: 56_100, // 48.75 KB for og-nl.png, the largest
 };
 
 /** The icons in the root of the site, from scripts/favicons.mjs. */

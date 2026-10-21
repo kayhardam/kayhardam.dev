@@ -15,11 +15,11 @@
 //   from <link rel="stylesheet">.
 // - Every font file (woff2) the site serves.
 // - The icons: favicon.svg, favicon.ico and apple-touch-icon.png.
-// - The share images: every og-*.png in the root, from scripts/og-image.mjs.
+// - The share image: og.png in the root, from scripts/og-image.mjs.
 //
 // Sizes are in KB of 1000 bytes; JS, CSS and HTML are gzipped (zlib default level),
 // as in docs/metingen.md. Fonts and icons are counted raw: woff2 and PNG are
-// compressed already, and the SVG is small. So are the share images.
+// compressed already, and the SVG is small. So is the share image.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -27,7 +27,7 @@ import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, JS and HTML in phase 5,
-// the share images in phase 6.
+// the share image in phase 6 (details).
 export const BUDGETS = {
   js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
   lazyJs: 0, // 0 KB: no dynamic imports
@@ -36,14 +36,14 @@ export const BUDGETS = {
   html: 11_100, // 9.62 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
-  shareImage: 56_100, // 48.75 KB for og-nl.png, the largest
+  shareImage: 19_300, // 16.74 KB for og.png, the logo and kayhardam.dev
 };
 
 /** The icons in the root of the site, from scripts/favicons.mjs. */
 export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
 
-/** The share images in the root of the site, one per language: og-nl.png and og-en.png. */
-export const SHARE_IMAGE = /^og-[a-z]+\.png$/;
+/** The share image in the root of the site, one for both languages. */
+export const SHARE_IMAGE = "og.png";
 
 /** The one island: the board card, hydrated when it comes into view. */
 export const ISLAND = { name: "BoardCard", client: "visible" };
@@ -215,10 +215,9 @@ export function checkBudget(dist, budgets = BUDGETS) {
     if (existsSync(file)) measure("Icon", `/${name}`, statSync(file).size, budgets.icon);
   }
 
-  // Only the images that are there: scripts/check-links.mjs fails when og:image points to a missing one.
-  for (const name of readdirSync(dist).filter((name) => SHARE_IMAGE.test(name)).sort()) {
-    measure("Share image", `/${name}`, statSync(join(dist, name)).size, budgets.shareImage);
-  }
+  // Only when it is there: scripts/check-links.mjs fails when og:image points to a missing file.
+  const shareImage = join(dist, SHARE_IMAGE);
+  if (existsSync(shareImage)) measure("Share image", `/${SHARE_IMAGE}`, statSync(shareImage).size, budgets.shareImage);
 
   const order = ["JS (gzip)", "Lazy JS (gzip)", "All JS (gzip)", "Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon", "Share image"];
   rows.sort((a, b) => order.indexOf(a.budget) - order.indexOf(b.budget));

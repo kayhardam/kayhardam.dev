@@ -6,11 +6,11 @@ import { expect, missingPages, site, test } from "./helpers";
 // Open Graph per language, robots.txt and the sitemap. The 404 page has none of it.
 
 const pages = [
-  { path: "/", t: nl, lang: "nl", ogLocale: "nl_NL" },
-  { path: "/en/", t: en, lang: "en", ogLocale: "en_US" },
+  { path: "/", t: nl, ogLocale: "nl_NL" },
+  { path: "/en/", t: en, ogLocale: "en_US" },
 ];
 
-for (const { path, t, lang, ogLocale } of pages) {
+for (const { path, t, ogLocale } of pages) {
   test(`${path}: the title, the description and Open Graph`, async ({ page }) => {
     await page.goto(path);
     await expect(page).toHaveTitle(t.title);
@@ -25,7 +25,7 @@ for (const { path, t, lang, ogLocale } of pages) {
       "og:url": canonical!,
       "og:title": t.title,
       "og:description": t.description,
-      "og:image": `${site}/og-${lang}.png`,
+      "og:image": `${site}/og.png`,
       "og:image:width": "1200",
       "og:image:height": "630",
       "twitter:card": "summary_large_image",

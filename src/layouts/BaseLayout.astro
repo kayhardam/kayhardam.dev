@@ -18,10 +18,10 @@ const { title, description, noindex = false } = Astro.props;
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 // After Coachboard's BaseLayout.astro (commit 88a58a4): og:title and og:description
-// are the title and the description. The image per language is from
-// scripts/og-image.mjs; scripts/check-links.mjs fails on a missing one.
+// are the title and the description. One image for both languages, from
+// scripts/og-image.mjs; scripts/check-links.mjs fails when it is missing.
 const ogLocale: Record<Locale, string> = { nl: "nl_NL", en: "en_US" };
-const ogImage = new URL(`/og-${locale}.png`, Astro.site).href;
+const ogImage = new URL("/og.png", Astro.site).href;
 // The home page in each language, and x-default to the English one (Kay, 17 October 2026).
 const alternates = noindex ? [] : locales.map((code) => [code, getAbsoluteLocaleUrl(code)] as const);
 const xDefault = getAbsoluteLocaleUrl("en");

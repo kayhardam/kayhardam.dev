@@ -522,3 +522,31 @@ Eén afbeelding voor `/` en `/en/` in plaats van `og-nl.png` en `og-en.png`: het
 | Budget (`scripts/check-budget.mjs`) | 19,3 KB: gemeten plus 15%, was 56,1 KB |
 
 Alles valt binnen het vierkant x 285–915: links 103 px en rechts 104 px ruimte.
+
+## Fase 6: teksten (21 oktober 2026)
+
+Nieuwe teksten voor Coachboard (de tweede alinea) en Over mij, in `src/i18n/nl.ts` en `src/i18n/en.ts`. De veldlijnen in Over mij en de passes staan op dezelfde plek ten opzichte van hun sectie; alleen de hoogte van de secties verandert met de tekst.
+
+### Lighthouse (21 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-6-teksten-kayhardam-site.hardamkay.workers.dev/`, commit `eefd2a2`. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| `/en/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,2 s / 0 ms / 0,024 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 0,9 s / 1,1 s / 0 ms / 0 / 1,3 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,9 s / 1,2 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt, omdat de preview `X-Robots-Tag: noindex` stuurt (zoals bij fase 6: details).
+- **De 404 blijft 54:** `is-crawlable` en `meta-description` falen, zo bedoeld (afwijking 3).
+- Performance, Accessibility en Best Practices blijven 100; de metrics zijn die van fase 6: details.

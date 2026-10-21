@@ -48,11 +48,13 @@ const hero = variant === "hero";
     display: none;
   }
 
-  /* About me on the phone and tablet: the goal at the top right, as from 860 px,
-     with the arcs coming in above the photo (Kay, 18 October 2026). */
+  /* About me on the phone and tablet: the goal at the top right, as from 860 px.
+     Without the photo 120 px higher (variant B2, Kay, 21 October 2026): the arcs
+     end above the large text. When the photo comes, back to top: -30px, with the
+     arcs coming in above the photo (variant B, Kay, 18 October 2026). */
   .on-about svg {
     width: 640px;
-    top: -30px;
+    top: -150px;
     right: -260px;
   }
 

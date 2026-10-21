@@ -508,3 +508,17 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt, omdat de preview `X-Robots-Tag: noindex` stuurt (zoals op de preview van fase 6; productie gaf 100).
 - **De 404 blijft 54:** `is-crawlable` en `meta-description` falen, zo bedoeld (afwijking 3).
 - Performance, Accessibility en Best Practices blijven 100; de metrics zijn die van fase 6.
+
+### De deelafbeelding (`public/og.png`)
+
+Eén afbeelding voor `/` en `/en/` in plaats van `og-nl.png` en `og-en.png`: het KH-logo (210 px) en 34 px daaronder KAYHARDAM.DEV (64 px), gestapeld in het midden. 1200 × 630, RGB zonder alfakanaal en zonder palet. De pagina laadt hem niet (alleen `og:image` verandert), dus Lighthouse is niet opnieuw gedraaid.
+
+| | |
+|---|---|
+| Grootte | 16 735 bytes (16,7 KB); was 48,75 KB (`og-nl.png`) en 48,58 KB (`og-en.png`) |
+| Pixels die niet navy zijn | x 388–811, y 170–460 |
+| Marges | links 388, rechts 388, boven 170, onder 169 px |
+| Logo / tussenruimte / tekst | y 170–379 (210 px), 380–413 (34 px), 414–460 (47 px, de hoofdletters) |
+| Budget (`scripts/check-budget.mjs`) | 19,3 KB: gemeten plus 15%, was 56,1 KB |
+
+Alles valt binnen het vierkant x 285–915: links 103 px en rechts 104 px ruimte.

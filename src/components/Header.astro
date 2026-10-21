@@ -73,8 +73,11 @@ const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code
     }
   }
 
+  /* The label KH would inherit the link's letter-spacing (1.2 px, scaled with
+     the logo): 0, as in public/favicon.svg. e2e/art.spec.ts checks every label. */
   .logo svg {
     flex: none;
+    letter-spacing: 0;
     pointer-events: none;
   }
 

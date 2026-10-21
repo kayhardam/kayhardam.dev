@@ -3,7 +3,9 @@ import type { Text } from "./nl";
 // English texts, word for word from the brief, with the typographic apostrophe ’.
 // Change a text only after Kay agrees.
 export const en: Text = {
-  title: "kayhardam.dev",
+  title: "Kay Hardam | PE teacher and handball coach",
+  description:
+    "I build tools for sports and education, like Coachboard: a digital tactics board for handball. Watch a play on the board and edit it yourself.",
   site: "kayhardam.dev",
   languages: "Language",
   name: "Kay Hardam",

@@ -1,8 +1,10 @@
 // Dutch texts, word for word from the brief. Change a text only after Kay agrees.
 // Addresses are in src/data/links.ts and src/data/boards.ts, not here.
 export const nl = {
-  // Until phase 6, when every page gets its own title and description.
-  title: "kayhardam.dev",
+  // The <title> and og:title of the home page; the description also goes in og:description.
+  title: "Kay Hardam | Gymleraar en handbaltrainer",
+  description:
+    "Ik bouw tools voor sport en onderwijs, zoals Coachboard: een digitaal tactiekbord voor handbal. Bekijk een aanval op het bord en bewerk hem zelf.",
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",

@@ -36,6 +36,13 @@ describe("texts", () => {
         expect(step).toContain("{count}");
       });
 
+      // What a search result shows without cutting it off.
+      it("has a title of at most 60 characters and a description of at most 160", () => {
+        const t = code === "nl" ? nl : en;
+        expect(t.title.length).toBeLessThanOrEqual(60);
+        expect(t.description.length).toBeLessThanOrEqual(160);
+      });
+
       it("has no arrow: the arrow is an SVG", () => {
         expect(list.filter(([, value]) => value.includes("→"))).toEqual([]);
       });

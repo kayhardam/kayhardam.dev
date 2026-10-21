@@ -405,3 +405,58 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - `robots.txt` en de sitemap.
 
 Content-Type op de preview: `robots.txt` `text/plain` (zonder `charset`; `wrangler dev` stuurt `text/plain; charset=utf-8`, en de tekst is ASCII), de sitemaps `application/xml`, de PNG's `image/png`, alle met de security headers.
+
+## Fase 6: na de livegang (21 oktober 2026)
+
+Gemeten op `https://kayhardam.dev`, na de merge van PR #7 (commit `bac26e0` op `main`). `dist/` is `npm run build` op die commit. Node 22.22.2, Lighthouse 13.5.0, headless Chrome 154, op een Mac.
+
+### Met `curl`
+
+| Controle | Verwacht | Gemeten |
+|---|---|---|
+| `curl -sI https://kayhardam.dev/` en `/en/` | 200; HSTS en de zes andere headers; geen `x-robots-tag` | **Klopt.** 200, `strict-transport-security: max-age=31536000` en de zes andere headers uit `_headers`, geen `x-robots-tag` |
+| `curl -sI http://kayhardam.dev/en/` | 301 → `https://kayhardam.dev/en/` | **Wijkt af: 200**, de pagina over HTTP, met de headers. Ook `http://kayhardam.dev/` en `/robots.txt` geven 200. Always Use HTTPS werkt niet |
+| `curl -sI 'https://www.kayhardam.dev/en/?x=1'` | 301 → `https://kayhardam.dev/en/?x=1` | **Klopt** |
+| `curl -sI http://www.kayhardam.dev/en/` | 301 → `https://www.…`, dan 301 → het kale domein | **Wijkt af, maar goed:** één 301, meteen naar `https://kayhardam.dev/en/`. De Redirect Rule vangt ook HTTP; dat past bij Always Use HTTPS uit |
+| `curl -sI https://kayhardam.dev/en` | 307 → `/en/` | **Klopt** |
+| De 404 met `Sec-Fetch-Mode: navigate` (`/bestaat-niet/`) | 404, met de 404-pagina | **Klopt.** 404, de HTML gelijk aan `dist/404.html` (`cmp`) |
+| De 404 zonder die header | "Not found" (fase 1) | **Wijkt af, maar goed:** ook 404 mét de 404-pagina (4241 B, `<title>Pagina niet gevonden \| Kay Hardam</title>`, `noindex`) |
+| `/robots.txt` | `Allow: /` en de Sitemap-regel | **Klopt.** 200, `text/plain`, 73 B, met de security headers |
+| `/sitemap-index.xml` → `/sitemap-0.xml` | precies `/` en `/en/`, met hreflang | **Klopt.** Beide 200, `application/xml`; `/` en `/en/`, elk met hreflang `nl` en `en` |
+| `og:image` van `/` en `/en/` | absoluut op `https://kayhardam.dev`; 200, `image/png` | **Klopt.** `https://kayhardam.dev/og-nl.png` (48.750 B) en `og-en.png` (48.578 B): 200, `image/png`, byte voor byte gelijk aan `dist/` |
+| canonical en `og:url` | absoluut, met `/` aan het eind | **Klopt.** `https://kayhardam.dev/` en `https://kayhardam.dev/en/`; hreflang `nl`, `en` en `x-default` (→ `/en/`) ook |
+
+- `/404` geeft 200 en dezelfde HTML als `dist/404.html` (`cmp`); daarop meet Lighthouse.
+- Cloudflare stuurt op elke response ook `report-to` en `nel` (Network Error Logging, `success_fraction` 0). Dat zijn headers, niets in de HTML.
+
+### De HTML op productie is gelijk aan `dist/`
+
+Met het commando uit het plan (de `uid` van het island weggelaten): `/ gelijk`, `/en/ gelijk`. Geen `cdn-cgi`, geen beacon, geen `email-protection`; `mailto:hallo@kayhardam.dev` staat er onveranderd op beide pagina's.
+
+### E2E tegen productie
+
+`E2E_BASE_URL=https://kayhardam.dev npx playwright test e2e/security.spec.ts e2e/seo.spec.ts e2e/board.spec.ts e2e/play.spec.ts`: 177 tests groen en 1 overgeslagen (layout shifts, alleen Chromium), in Pixel 7 en iPhone 15. Gelijk aan de preview.
+
+### Lighthouse (21 oktober 2026)
+
+Mobiel (standaard), één run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+| `/en/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 0,9 s / 0,9 s / 0 ms / 0,018 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 100 op `/` en `/en/`,** zoals verwacht: geen `X-Robots-Tag` meer, en een description.
+- **De 404 blijft 54:** `is-crawlable` (`noindex`) en `meta-description` falen, zo bedoeld (afwijking 3).
+- Simulated `/en/` heeft deze keer CLS 0,018 (op de preview 0), gelijk aan devtools. Eén run; ruim onder 0,1.

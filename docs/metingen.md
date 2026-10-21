@@ -427,6 +427,7 @@ Gemeten op `https://kayhardam.dev`, na de merge van PR #7 (commit `bac26e0` op `
 | canonical en `og:url` | absoluut, met `/` aan het eind | **Klopt.** `https://kayhardam.dev/` en `https://kayhardam.dev/en/`; hreflang `nl`, `en` en `x-default` (→ `/en/`) ook |
 
 - `/404` geeft 200 en dezelfde HTML als `dist/404.html` (`cmp`); daarop meet Lighthouse.
+- Cloudflare stuurt op elke response ook `report-to` en `nel` (Network Error Logging, `success_fraction` 0). Dat zijn headers, niets in de HTML.
 
 ### Van HTTP naar HTTPS
 
@@ -447,7 +448,6 @@ Bij de eerste meting gaf HTTP op het kale domein 200, de pagina zelf: Always Use
 ### De placeholder-Worker
 
 Worker `kayhardam-dev` is weg: Kay heeft hem verwijderd na de controles op productie.
-- Cloudflare stuurt op elke response ook `report-to` en `nel` (Network Error Logging, `success_fraction` 0). Dat zijn headers, niets in de HTML.
 
 ### De HTML op productie is gelijk aan `dist/`
 

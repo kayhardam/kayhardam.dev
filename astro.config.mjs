@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 
 // Port 4322, not Astro's 4321: Coachboard's dev server may run at the same time.
@@ -27,5 +28,7 @@ export default defineConfig({
   // The board (src/components/board/) is Svelte, as in Coachboard: the one island,
   // BoardCard with client:visible (scripts/check-budget.mjs). Astro's inline scripts
   // for it are covered by the hashes in the CSP above.
-  integrations: [svelte()],
+  // The sitemap with hreflang nl and en, as in Coachboard (commit 88a58a4). It leaves
+  // the 404 page out by itself; x-default (/en/) is only in the HTML of each page.
+  integrations: [sitemap({ i18n: { defaultLocale: "nl", locales: { nl: "nl", en: "en" } } }), svelte()],
 });

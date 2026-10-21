@@ -21,6 +21,7 @@
     "esbuild": true
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/svelte": "^9.0.1",
     "@fontsource/barlow-condensed": "^5.3.0",
     "astro": "^7.4.0",

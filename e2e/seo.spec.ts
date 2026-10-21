@@ -3,7 +3,7 @@ import { nl } from "../src/i18n/nl";
 import { expect, missingPages, site, test } from "./helpers";
 
 // What search engines and link previews read: the title, the description and
-// Open Graph per language. The 404 page has none of it.
+// Open Graph per language, robots.txt and the sitemap. The 404 page has none of it.
 
 const pages = [
   { path: "/", t: nl, lang: "nl", ogLocale: "nl_NL" },
@@ -30,6 +30,7 @@ for (const { path, t, lang, ogLocale } of pages) {
       "og:image:height": "630",
       "twitter:card": "summary_large_image",
     };
+    await expect(page.locator('link[rel="sitemap"]')).toHaveAttribute("href", "/sitemap-index.xml");
     for (const [key, value] of Object.entries(expected)) {
       await expect(meta(key), key).toHaveCount(1);
       await expect(meta(key), key).toHaveAttribute("content", value);
@@ -56,6 +57,7 @@ for (const path of missingPages) {
     for (const selector of [
       'link[rel="canonical"]',
       'link[rel="alternate"]',
+      'link[rel="sitemap"]',
       'meta[name="description"]',
       'meta[property^="og:"]',
       'meta[name^="twitter:"]',
@@ -64,3 +66,30 @@ for (const path of missingPages) {
     }
   });
 }
+
+test("robots.txt allows everything and names the sitemap", async ({ request }) => {
+  const response = await request.get("/robots.txt");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toMatch(/^text\/plain/);
+  expect(await response.text()).toBe(`User-agent: *\nAllow: /\n\nSitemap: ${site}/sitemap-index.xml\n`);
+});
+
+// The sitemap's URLs are on the real domain; the test fetches their paths.
+test("the sitemap has exactly / and /en/, each with hreflang nl and en", async ({ request }) => {
+  const index = await (await request.get("/sitemap-index.xml")).text();
+  const sitemaps = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(sitemaps).toEqual([`${site}/sitemap-0.xml`]);
+
+  const response = await request.get(new URL(sitemaps[0]).pathname);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toMatch(/xml/);
+  const urls = [...(await response.text()).matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, url]) => ({
+    loc: url.match(/<loc>([^<]+)<\/loc>/)![1],
+    alternates: [...url.matchAll(/<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"\/>/g)].map((m) => `${m[1]} ${m[2]}`),
+  }));
+  const alternates = [`nl ${site}/`, `en ${site}/en/`];
+  expect(urls).toEqual([
+    { loc: `${site}/`, alternates },
+    { loc: `${site}/en/`, alternates },
+  ]);
+});

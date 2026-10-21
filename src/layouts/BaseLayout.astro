@@ -45,6 +45,7 @@ const xDefault = getAbsoluteLocaleUrl("en");
     {
       !noindex && (
         <>
+          <link rel="sitemap" href="/sitemap-index.xml" />
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content={text(locale).site} />
           <meta property="og:locale" content={ogLocale[locale]} />

@@ -480,3 +480,31 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **SEO 100 op `/` en `/en/`,** zoals verwacht: geen `X-Robots-Tag` meer, en een description.
 - **De 404 blijft 54:** `is-crawlable` (`noindex`) en `meta-description` falen, zo bedoeld (afwijking 3).
 - Simulated `/en/` heeft deze keer CLS 0,018 (op de preview 0), gelijk aan devtools. Eén run; ruim onder 0,1.
+
+## Fase 6: details (21 oktober 2026)
+
+Het schot op doel bij Contact (`src/components/art/Shot.astro`): de lijn vanaf het midden van de KH-speler, een eigen groene driehoek als punt en de bal in het doel (variant B).
+
+### Lighthouse (21 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-6-details-kayhardam-site.hardamkay.workers.dev/`, commit `0711158`. Eén run per pagina en methode; de eerste simulated run van `/` gaf `NO_NAVSTART` (geen trace) en is overgedaan. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| `/en/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,2 s / 0 ms / 0,024 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 0,9 s / 1,1 s / 0 ms / 0,018 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt, omdat de preview `X-Robots-Tag: noindex` stuurt (zoals op de preview van fase 6; productie gaf 100).
+- **De 404 blijft 54:** `is-crawlable` en `meta-description` falen, zo bedoeld (afwijking 3).
+- Performance, Accessibility en Best Practices blijven 100; de metrics zijn die van fase 6.

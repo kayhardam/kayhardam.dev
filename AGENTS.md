@@ -52,7 +52,7 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
   - Its `routes` entry attaches `kayhardam.dev` as a Custom Domain (phase 6). Keep it there and don't manage the domain only in the dashboard: a deploy whose config lacks it removes the domain again.
   - The deploy takes a domain over from another Worker without asking: Workers Builds runs wrangler without a terminal. That is how `kayhardam.dev` moved from Worker `kayhardam-dev` (the placeholder) at the launch. `wrangler preview` publishes no routes, so a branch never touches the domain.
   - `workers_dev` stays `false` and `preview_urls` `true`: no workers.dev address, a preview URL per branch.
-  - Worker `kayhardam-dev`, the placeholder, stays as the way back until the production checks after the launch are green (the PR with the measurements); then Kay deletes it.
+  - Worker `kayhardam-dev`, the placeholder, is gone: Kay deleted it after the production checks of phase 6 (21 October 2026). There is no way back to it.
   - **Set in the Cloudflare dashboard**, not in this repo:
     - Always Use HTTPS on;
     - Email Address Obfuscation off, so Cloudflare doesn't rewrite the email address or inject a script the CSP would block;

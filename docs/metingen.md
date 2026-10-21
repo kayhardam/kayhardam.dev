@@ -335,3 +335,73 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - de volgorde van `aria-live` en de zin klopt.
 
 CI (`verify` en `e2e`, op Linux) is groen op dezelfde commit.
+
+## Fase 6: de livegang (21 oktober 2026)
+
+### Meetomgeving
+
+- Node 22.22.2, Astro 7.4, `@astrojs/sitemap` 3.7.4, sharp 0.35, Playwright (Chromium en WebKit), Wrangler 4.151.1, op een Mac.
+- `npm run verify` groen bij elke commit: `astro check` en `svelte-check` zonder fouten of waarschuwingen, 12 testbestanden met 103 tests, 3 pagina's.
+- `npm run e2e` groen: 419 tests, en 3 overgeslagen (de tests op layout shifts, alleen Chromium).
+- `npx wrangler deploy --dry-run` slaagt met `routes` (`kayhardam.dev` als Custom Domain).
+
+### Groottes (`dist/`)
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS (gzip) |
+|---|--:|--:|--:|--:|
+| `/` | 42,2 | 9,80 | 0 | 21,24 |
+| `/en/` | 42,2 | 9,75 | 0 | 21,24 |
+| `/404.html` | 4,2 | 2,0 | 0 | 0 |
+
+- De HTML groeit met 0,18 KB gzip (`/`): de description en de Open Graph-tags. Het fotovak dat weg is, scheelt een paar regels CSS. Dat is wat het prototype mat.
+- **De deelafbeeldingen** (raw, 1200 × 630, RGB zonder alfakanaal, geen palet): `og-nl.png` 48,75 KB, `og-en.png` 48,58 KB. Het logo en de kaart staan in het midden van de hoogte: 65 px boven (de eerste lichte pixel van het logo) en 65 px onder (de onderkant van de kaart, zonder de schaduw).
+- `robots.txt` 73 B, `sitemap-index.xml` 184 B, `sitemap-0.xml` 723 B.
+- JS, lettertypen en iconen zijn ongewijzigd.
+
+### Budgetten (`scripts/check-budget.mjs`)
+
+- **Nieuw: Share image, 56,1 KB** (48,75 KB plus 15%), raw, voor elke `og-*.png` in de root.
+- **HTML blijft 11,1 KB.** De rest is ongewijzigd.
+
+### Over mij zonder fotovak
+
+De hoogte van de sectie (px, NL, met reduced motion), gelijk aan "Na2" in het plan:
+
+| iPhone 15 | Pixel 7 | 360 | 768 | 1280 |
+|--:|--:|--:|--:|--:|
+| 615 (EN 614) | 584 | 615 | 459 | 694 |
+
+Met het fotovak (fase 5) was dat 1080, 1049, 1065, 924 en 694.
+
+### Lighthouse (21 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-6-livegang-kayhardam-site.hardamkay.workers.dev/`, commit `6a19ea5`. De HTML op de preview is gelijk aan die van de lokale build, op de `uid` van het island na. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| `/en/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO van 58 naar 66** op `/` en `/en/`: `meta-description` slaagt nu. Alleen `is-crawlable` faalt nog, omdat de preview `X-Robots-Tag: noindex` stuurt. Het plan verwachtte hier 58; dat was te laag, want het rekende `meta-description` nog als fout. De echte meting (verwacht 100) is op productie.
+- **De 404 blijft 54:** `noindex` en geen description, zo bedoeld (afwijking 3).
+- Performance, Accessibility en Best Practices blijven 100; de metrics zijn die van fase 5.
+
+### Tegen de preview
+
+`E2E_BASE_URL=https://fase-6-livegang-kayhardam-site.hardamkay.workers.dev npx playwright test e2e/security.spec.ts e2e/seo.spec.ts e2e/board.spec.ts e2e/play.spec.ts`: 177 tests groen en 1 overgeslagen (layout shifts, alleen Chromium), in Pixel 7 en iPhone 15. Wat dat bevestigt:
+- geen CSP-fouten, niets van een ander domein;
+- de meta-tags per taal, `og:image` als PNG van 1200 × 630, de 404 zonder description en Open Graph;
+- `robots.txt` en de sitemap.
+
+Content-Type op de preview: `robots.txt` `text/plain` (zonder `charset`; `wrangler dev` stuurt `text/plain; charset=utf-8`, en de tekst is ASCII), de sitemaps `application/xml`, de PNG's `image/png`, alle met de security headers.

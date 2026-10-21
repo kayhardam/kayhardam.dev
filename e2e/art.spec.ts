@@ -28,6 +28,24 @@ for (const { path, t } of pages) {
     for (const svg of svgs.filter((svg) => svg.hidden)) expect(svg.focusable).toBe(false);
   });
 
+  // A label in an SVG is in user units, scaled with its SVG: an inherited
+  // letter-spacing (the header's 0.06em) pulls it apart, "K H" instead of "KH".
+  test(`${path}: no label in an SVG inherits letter-spacing`, async ({ page }) => {
+    await page.goto(path);
+    const labels = await page.locator("svg text").evaluateAll((all) =>
+      all.map((text) => {
+        const where = text.closest(".site-header") ? "header" : text.closest(".board") ? "board" : text.closest(".contact") ? "contact" : "section";
+        return { where, text: text.textContent, letterSpacing: getComputedStyle(text).letterSpacing };
+      }),
+    );
+    // The logo, the seven players on the board, the numbers 1 and 2, and at Contact the KH player and number 3.
+    expect(labels.filter((l) => l.where === "header").map((l) => l.text)).toEqual(["KH"]);
+    expect(labels.filter((l) => l.where === "board")).toHaveLength(7);
+    expect(labels.filter((l) => l.where === "section").map((l) => l.text)).toEqual(["1", "2"]);
+    expect(labels.filter((l) => l.where === "contact").map((l) => l.text).sort()).toEqual(["3", "KH"]);
+    expect(labels.filter((l) => !["normal", "0px"].includes(l.letterSpacing))).toEqual([]);
+  });
+
   test(`${path}: the logo: 34 px, in the link kayhardam.dev, with the label KH`, async ({ page }) => {
     await page.goto(path);
     const link = page.getByRole("link", { name: t.site, exact: true });

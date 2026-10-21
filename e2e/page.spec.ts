@@ -68,12 +68,4 @@ for (const { path, t, locale } of pages) {
     await expect(link.locator("svg")).toHaveAttribute("aria-hidden", "true");
     await expect(link).toHaveText(t.coachboard.button);
   });
-
-  test(`${path}: the photo placeholder is decoration`, async ({ page }) => {
-    await page.goto(path);
-    const photo = page.locator(".photo");
-    await expect(photo).toHaveAttribute("aria-hidden", "true");
-    await expect(photo).toHaveText("");
-    await expect(page.locator(".board")).not.toHaveAttribute("aria-hidden");
-  });
 }

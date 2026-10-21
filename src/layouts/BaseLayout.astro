@@ -5,17 +5,23 @@ import bold from "@fontsource/barlow-condensed/files/barlow-condensed-latin-700-
 import "../styles/tokens.css";
 import "../styles/base.css";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
-import { defaultLocale, locales } from "../i18n";
+import { defaultLocale, locales, text, type Locale } from "../i18n";
 
-interface Props {
-  title: string;
-  /** Keep the page out of search results (404): no canonical and no hreflang. */
-  noindex?: boolean;
-}
+/**
+ * A page with a description, which is also its og:description; or one kept out
+ * of search results (404): no canonical, no hreflang, no description and no Open
+ * Graph (phase 6: nobody shares a 404).
+ */
+type Props = { title: string } & ({ description: string; noindex?: false } | { description?: never; noindex: true });
 
-const { title, noindex = false } = Astro.props;
-const locale = Astro.currentLocale ?? defaultLocale;
+const { title, description, noindex = false } = Astro.props;
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
+// After Coachboard's BaseLayout.astro (commit 88a58a4): og:title and og:description
+// are the title and the description. The image per language is from
+// scripts/og-image.mjs; scripts/check-links.mjs fails on a missing one.
+const ogLocale: Record<Locale, string> = { nl: "nl_NL", en: "en_US" };
+const ogImage = new URL(`/og-${locale}.png`, Astro.site).href;
 // The home page in each language, and x-default to the English one (Kay, 17 October 2026).
 const alternates = noindex ? [] : locales.map((code) => [code, getAbsoluteLocaleUrl(code)] as const);
 const xDefault = getAbsoluteLocaleUrl("en");
@@ -27,6 +33,7 @@ const xDefault = getAbsoluteLocaleUrl("en");
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    {description && <meta name="description" content={description} />}
     <link rel="preload" href={bold} as="font" type="font/woff2" crossorigin />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
@@ -35,6 +42,23 @@ const xDefault = getAbsoluteLocaleUrl("en");
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {
+      !noindex && (
+        <>
+          <link rel="sitemap" href="/sitemap-index.xml" />
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content={text(locale).site} />
+          <meta property="og:locale" content={ogLocale[locale]} />
+          <meta property="og:url" content={canonical} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:image" content={ogImage} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta name="twitter:card" content="summary_large_image" />
+        </>
+      )
+    }
   </head>
   <body>
     <slot />

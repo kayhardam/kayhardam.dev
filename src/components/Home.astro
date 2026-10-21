@@ -17,7 +17,7 @@ const [atName, atDomain] = email.split("@");
 const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 ---
 
-<BaseLayout title={t.title}>
+<BaseLayout title={t.title} description={t.description}>
   <Header />
   <main>
     <section class="hero">
@@ -56,10 +56,9 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
     <section class="about">
       <FieldLines variant="about" />
-      <div class="container about-grid">
-        {/* Until the photo of Kay is there. */}
-        <div class="photo" aria-hidden="true"></div>
-        <div>
+      <div class="container">
+        {/* Without the photo for now (Kay, phase 6): it comes in its own PR, and the grid with it. */}
+        <div class="about-text">
           <SectionNumber n={2} variant="white" />
           <h2 class="small-heading">{t.about.heading}</h2>
           {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
@@ -306,27 +305,10 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     color: #fff;
   }
 
-  .photo {
-    width: 100%;
-    max-width: 340px;
-    aspect-ratio: 4 / 5;
-    margin-bottom: 40px;
-    border: 2px dashed rgba(255, 255, 255, 0.6);
-    border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  @media (min-width: 860px) {
-    .about-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
-      gap: 64px;
-      align-items: center;
-    }
-
-    .photo {
-      margin-bottom: 0;
-    }
+  /* Without the photo: one column, as wide as the text column was beside it.
+     When the photo comes, the grid comes back: photo 340 px, gap 64 px. */
+  .about-text {
+    max-width: 760px;
   }
 
   .big {

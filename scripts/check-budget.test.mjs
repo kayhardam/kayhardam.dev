@@ -134,6 +134,24 @@ describe("checkBudget", () => {
     expect(errors).toEqual(["Icon /apple-touch-icon.png: 0.3 KB is over the budget of 0.2 KB"]);
   });
 
+  it("measures every share image raw and fails over the budget", () => {
+    const { rows, errors } = build(
+      { "index.html": "", "og-en.png": "x".repeat(300), "og-nl.png": "x".repeat(100), "og.png": "x", "_astro/og-nl.png": "x" },
+      { ...BUDGETS, shareImage: 200 },
+    );
+    expect(rows.filter((r) => r.budget === "Share image").map((r) => [r.item, r.measured])).toEqual([
+      ["/og-en.png", 300],
+      ["/og-nl.png", 100],
+    ]);
+    expect(errors).toEqual(["Share image /og-en.png: 0.3 KB is over the budget of 0.2 KB"]);
+  });
+
+  it("has no share image row without the images", () => {
+    const { rows, errors } = build({ "index.html": "" });
+    expect(row(rows, "Share image")).toBeUndefined();
+    expect(errors).toEqual([]);
+  });
+
   it("prints a table with OVER next to a row over its budget", () => {
     const out = table([
       { budget: "HTML (gzip)", item: "/", measured: 3000, limit: 2000, unit: "KB" },

@@ -1,6 +1,6 @@
 # kayhardam.dev
 
-Kay Hardam's personal landing page: a static Astro 7 site in Dutch (`/`) and English (`/en/`). The products come first: the hero is Coachboard's board, playing a shared board. `CLAUDE.md` is a symlink to this file.
+Kay Hardam's personal landing page, https://kayhardam.dev: a static Astro 7 site in Dutch (`/`) and English (`/en/`). The products come first: the hero is Coachboard's board, playing a shared board. `CLAUDE.md` is a symlink to this file.
 
 The build brief (`docs/kayhardam-dev-brief.md`) stays local and is not in the repo (`.gitignore`). It holds the agreed texts, the design and the phases.
 
@@ -12,7 +12,8 @@ The build brief (`docs/kayhardam-dev-brief.md`) stays local and is not in the re
 | `npm run verify` | What CI runs (`.github/workflows/ci.yml`, on pull requests and pushes to `main`): `astro check` and `svelte-check --fail-on-warnings` → `vitest run` → `astro build` → `node scripts/check-links.mjs` → `node scripts/check-budget.mjs`. Must be green before every commit. |
 | `npm run budget` | The size budgets against the current `dist/` (run `npm run build` first). |
 | `npm run e2e` | End-to-end tests (Playwright) in mobile Chromium and WebKit. Builds, then serves `dist/` with `wrangler dev` on port **8788** (not 8787: Coachboard's e2e tests may run at the same time). A separate CI job, not part of `verify`. First time: `npx playwright install chromium webkit`. |
-| `E2E_BASE_URL=https://<url> npx playwright test e2e/security.spec.ts` | An e2e file against a deployed site (a preview URL) instead of `wrangler dev`. Run `npm run build` on that commit first: the page list comes from `dist/`. |
+| `E2E_BASE_URL=https://<url> npx playwright test e2e/security.spec.ts` | An e2e file against a deployed site (a preview URL, or production: `https://kayhardam.dev`) instead of `wrangler dev`. Run `npm run build` on that commit first: the page list comes from `dist/`. |
+| `npm run build && node scripts/og-image.mjs` | The share images `public/og-nl.png` and `public/og-en.png`, on the Mac; then commit them. Run it again when a share link in `src/data/boards.ts`, the board's label, the statement or the colours change. |
 
 Commit only when `npm run verify` exits with code 0. Check the exit code itself, not the output: a pipe through `tail` or `head` hides a failure. Always run verify and the commit as one command, joined with `&&`, for example `npm run verify && git commit -m "…"`: then a red verify never makes a commit.
 
@@ -30,7 +31,9 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - `src/pages/index.astro` (Dutch) and `src/pages/en/index.astro` render `src/components/Home.astro`; the language comes from `Astro.currentLocale`.
 - `src/pages/404.astro` is one page for every missing URL, Dutch first, then English, with the Dutch title. `wrangler.jsonc` serves it with status 404.
 - Texts: `src/i18n/nl.ts` and `src/i18n/en.ts` (the type comes from `nl.ts`, so a text missing in English fails `astro check`); `text(locale)` in `src/i18n/index.ts`.
-- `src/layouts/BaseLayout.astro`: `lang`, canonical, hreflang (nl, en, and x-default to `/en/`, Kay's choice), the preload of Barlow Condensed 700.
+- `src/layouts/BaseLayout.astro`: `lang`, canonical, hreflang (nl, en, and x-default to `/en/`, Kay's choice), the preload of Barlow Condensed 700, the description and Open Graph (`og:title` and `og:description` are the title and the description; `og:image` is `/og-<lang>.png`). The 404 page is `noindex`, without canonical, hreflang, description or Open Graph. The texts are `title` and `description` in `nl.ts` and `en.ts`.
+- `@astrojs/sitemap` (`astro.config.mjs`) writes `sitemap-index.xml` and `sitemap-0.xml` with `/` and `/en/`, each with hreflang nl and en; it leaves the 404 out by itself. `src/pages/robots.txt.ts` points to it. Both after Coachboard (commit `88a58a4`).
+- The share images, `public/og-nl.png` and `public/og-en.png` (1200 × 630), come from `scripts/og-image.mjs`: the KH logo with `kayhardam.dev` and the card at step 1 in the middle square (x 285–915, what WhatsApp shows compactly), the statement beside it. It reads `dist/` with Playwright, without a server. Not part of the build: Workers Builds has no Chromium, and `system-ui` differs per machine. `check-budget.mjs` has a budget for them, raw.
 - Styles: `src/styles/tokens.css` (Coachboard's colours, the breakpoints 560 and 860 px) and `src/styles/base.css`.
 - The board in the hero (`src/components/board/`):
   - `src/data/boards.ts` holds the two Coachboard share links, the contract for the board and the hero button. `boardFrom()` decodes a link at build time with Coachboard's `decode()`; a broken link, or a legend item without a text, stops the build.
@@ -45,6 +48,17 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 - **CSP:** everything `'self'`. Astro writes the `<meta>` with hashes for its inline scripts and styles (`security.csp` in `astro.config.mjs`); `public/_headers` has `frame-ancestors 'none'` and the other security headers. Nothing loads from another origin: `e2e/security.spec.ts` checks every page.
 - **Fonts:** Barlow Condensed 600 and 700, Latin only, self-hosted through `@fontsource/barlow-condensed`. Running text is `system-ui`.
 - **Touch targets:** links and buttons at least 44 px high (`e2e/a11y.spec.ts`), a visible focus ring, contrast WCAG AA (axe).
-- **Hosting:** `wrangler.jsonc` serves `dist/` as static assets. No `routes` until the launch (phase 6): `kayhardam.dev` still shows the placeholder. The site runs on its own Worker, `kayhardam-site`; the placeholder on `kayhardam.dev` and `www` is Worker `kayhardam-dev`. In phase 6 the domain moves from Worker `kayhardam-dev` to `kayhardam-site`.
+- **Hosting:** `wrangler.jsonc` serves `dist/` as static assets, on Worker `kayhardam-site`.
+  - Its `routes` entry attaches `kayhardam.dev` as a Custom Domain (phase 6). Keep it there and don't manage the domain only in the dashboard: a deploy whose config lacks it removes the domain again.
+  - The deploy takes a domain over from another Worker without asking: Workers Builds runs wrangler without a terminal. That is how `kayhardam.dev` moved from Worker `kayhardam-dev` (the placeholder) at the launch. `wrangler preview` publishes no routes, so a branch never touches the domain.
+  - `workers_dev` stays `false` and `preview_urls` `true`: no workers.dev address, a preview URL per branch.
+  - Worker `kayhardam-dev`, the placeholder, stays as the way back until the production checks after the launch are green (the PR with the measurements); then Kay deletes it.
+  - **Set in the Cloudflare dashboard**, not in this repo:
+    - Always Use HTTPS on;
+    - Email Address Obfuscation off, so Cloudflare doesn't rewrite the email address or inject a script the CSP would block;
+    - Web Analytics off: no statistics (Kay), and an injected beacon would land above the CSP `<meta>`;
+    - www: a DNS record `AAAA www 100::` (proxied) and a Redirect Rule to the bare domain, keeping the path and the query (a Custom Domain matches one exact hostname);
+    - Email Routing forwards `hallo@kayhardam.dev` to Kay's own address;
+    - if Kay turns on Google Search Console: leave its TXT record, or the verification lapses.
 - Code taken from Coachboard says so in a comment at the top, with the commit. Take it with `git show <commit>:<path>` in the Coachboard repo, never from its working tree: another session may be working there.
 - **The copies from Coachboard stay unchanged** (commit `4ceafd4`): `Court.svelte` (one change: the optional prop `viewBox`), `src/lib/board/{format,geometry,moves,play,viewer}.ts`, `src/lib/viewerIcons.ts`, the tests `geometry.test.ts` and `moves.test.ts`, and `svelte.config.js`. `src/lib/board/edit.ts` has only the type `Selection`. `src/lib/coachboard.test.ts` compares each copy's SHA-256 with the original. To take a newer version, copy it again with `git show` and update the hash and the commit.

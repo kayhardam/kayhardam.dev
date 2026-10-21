@@ -172,6 +172,29 @@ for (const width of [320, 393, 1280]) {
   });
 }
 
+// The ball is in the goal (stroke included), and the point is at least twice as
+// wide as the double line: its base, the side opposite the tip.
+test("the shot: the ball in the goal, the point twice as wide as the line", async ({ page }) => {
+  await page.goto("/");
+  const shot = await page.locator(".shot").evaluate((svg) => {
+    const goal = svg.querySelector("rect")!.getBBox();
+    const ball = svg.querySelector<SVGCircleElement>(".shot-ball")!;
+    const r = ball.r.baseVal.value + Number(ball.getAttribute("stroke-width")) / 2;
+    const [, [x1, y1], [x2, y2]] = svg.querySelector(".shot-head")!.getAttribute("d")!.match(/-?[\d.]+ -?[\d.]+/g)!.map((p) => p.split(" ").map(Number));
+    return {
+      inGoal:
+        ball.cx.baseVal.value - r >= goal.x &&
+        ball.cx.baseVal.value + r <= goal.x + goal.width &&
+        ball.cy.baseVal.value - r >= goal.y &&
+        ball.cy.baseVal.value + r <= goal.y + goal.height,
+      head: Math.hypot(x2! - x1!, y2! - y1!),
+      line: Number(svg.querySelector('path[stroke="#22C55E"]')!.getAttribute("stroke-width")),
+    };
+  });
+  expect(shot.inGoal).toBe(true);
+  expect(shot.head).toBeGreaterThanOrEqual(2 * shot.line);
+});
+
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
 // WebKit has no Layout Instability API. The statement may still shift (phase 2,
 // CLS 0.028), and what is below it moves along; the header, the card, the button,

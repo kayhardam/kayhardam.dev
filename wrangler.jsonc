@@ -4,8 +4,8 @@
 // no adapter. Without it, Wrangler reconfigures the project on every deploy.
 // After Coachboard's wrangler.jsonc (commit 4ceafd4).
 {
-  // Not "kayhardam-dev": that Worker serves the placeholder on kayhardam.dev
-  // and www. This one gets the domain in phase 6.
+  // Not "kayhardam-dev": that Worker served the placeholder on kayhardam.dev
+  // and www. This one took the domain over in phase 6.
   "name": "kayhardam-site",
   // Keep this in the past: Cloudflare rejects a date newer than its runtime.
   // Nothing here depends on it; the Worker only serves files.
@@ -17,10 +17,16 @@
     // Serve dist/404.html, with status 404, for anything that doesn't exist.
     "not_found_handling": "404-page"
   },
-  // No "routes" yet: kayhardam.dev still shows the placeholder. The Custom
-  // Domain comes in phase 6, at the launch. Until then the site lives only on
-  // a preview URL per branch: no workers.dev address, since the site's home
-  // is its own domain.
+  // The production domain (phase 6). It lives here, not only in the dashboard:
+  // a deploy whose config lacks it removes it again. Workers Builds runs
+  // wrangler without a terminal, so the deploy after the merge takes the domain
+  // over from Worker kayhardam-dev (the placeholder) without asking.
+  // www redirects to it with a Redirect Rule in the dashboard: a Custom Domain
+  // matches one exact hostname.
+  "routes": [{ "pattern": "kayhardam.dev", "custom_domain": true }],
+  // No workers.dev address: the site's home is its own domain. A preview URL
+  // per branch; `wrangler preview` publishes no routes, so a branch never
+  // touches the domain.
   "workers_dev": false,
   "preview_urls": true,
   // `wrangler preview` refuses to run without this block. It may stay empty:

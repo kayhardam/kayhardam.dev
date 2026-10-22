@@ -1,5 +1,7 @@
 ---
+import { Picture } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import portrait from "../assets/kay-hardam.jpg";
 import Header from "./Header.astro";
 import Board from "./board/Board.astro";
 import FieldLines from "./art/FieldLines.astro";
@@ -55,8 +57,19 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
     <section class="about">
       <FieldLines variant="about" />
-      <div class="container">
-        {/* Without the photo for now (Kay, phase 6): it comes in its own PR, and the grid with it. */}
+      <div class="container about-grid">
+        <Picture
+          src={portrait}
+          alt={t.about.photo}
+          formats={["avif", "webp"]}
+          widths={[300, 600, 900]}
+          sizes="min(300px, 70vw)"
+          width={300}
+          height={300}
+          loading="lazy"
+          decoding="async"
+          class="photo"
+        />
         <div class="about-text">
           <SectionNumber n={2} variant="white" />
           <h2 class="small-heading">{t.about.heading}</h2>
@@ -303,10 +316,35 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     color: #fff;
   }
 
-  /* Without the photo: one column, as wide as the text column was beside it.
-     When the photo comes, the grid comes back: photo 340 px, gap 64 px. */
+  /* One column on the phone and tablet: the photo above the text, at most 760 px wide. */
   .about-text {
     max-width: 760px;
+  }
+
+  /* Round, like a player in Coachboard: a white edge, like the logo and the numbers.
+     aspect-ratio keeps the square while it loads, and in WebKit also when it fails. */
+  .photo {
+    width: min(300px, 70vw);
+    aspect-ratio: 1;
+    object-fit: cover;
+    margin-bottom: 40px;
+    border: 5px solid #fff;
+    border-radius: 50%;
+  }
+
+  /* From 860 px: the photo left, the text right, centred on each other. */
+  @media (min-width: 860px) {
+    .about-grid {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 760px);
+      gap: 64px;
+      align-items: center;
+    }
+
+    .photo {
+      width: 300px;
+      margin-bottom: 0;
+    }
   }
 
   .big {

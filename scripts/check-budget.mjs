@@ -36,7 +36,7 @@ export const BUDGETS = {
   lazyJs: 0, // 0 KB: no dynamic imports
   allJs: 24_400, // 21.24 KB: the island's three files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 11_100, // 9.62 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props and Astro's two scripts
+  html: 11_100, // 9.93 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props, Astro's two scripts and the photo's <picture>
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
   shareImage: 19_300, // 16.74 KB for og.png, the logo and kayhardam.dev

@@ -3,7 +3,7 @@ import { nl } from "../src/i18n/nl";
 import { expect, test } from "./helpers";
 
 // The images from Coachboard (phase 3): the KH logo, the section numbers, the
-// pass, the field lines and the shot. All decoration: hidden, and nothing to click.
+// pass and the field lines. All decoration: hidden, and nothing to click.
 // The one exception is the board's court (phase 4): an image with its label.
 
 const pages = [
@@ -38,11 +38,11 @@ for (const { path, t } of pages) {
         return { where, text: text.textContent, letterSpacing: getComputedStyle(text).letterSpacing };
       }),
     );
-    // The logo, the seven players on the board, the numbers 1 and 2, and at Contact the KH player and number 3.
+    // The logo, the seven players on the board, the numbers 1 and 2, and at Contact number 3.
     expect(labels.filter((l) => l.where === "header").map((l) => l.text)).toEqual(["KH"]);
     expect(labels.filter((l) => l.where === "board")).toHaveLength(7);
     expect(labels.filter((l) => l.where === "section").map((l) => l.text)).toEqual(["1", "2"]);
-    expect(labels.filter((l) => l.where === "contact").map((l) => l.text).sort()).toEqual(["3", "KH"]);
+    expect(labels.filter((l) => l.where === "contact").map((l) => l.text)).toEqual(["3"]);
     expect(labels.filter((l) => !["normal", "0px"].includes(l.letterSpacing))).toEqual([]);
   });
 
@@ -155,45 +155,6 @@ for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
     }
   });
 }
-
-for (const width of [320, 393, 1280]) {
-  test(`${width} px: the shot on goal, in the footer before number 3`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
-    const shot = await page.locator(".shot").evaluate((svg) => ({
-      inFooter: svg.closest("footer") !== null,
-      beforeNumber: (svg.compareDocumentPosition(document.querySelector("footer .section-number")!) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
-      label: svg.querySelector("text")?.textContent,
-      width: svg.getBoundingClientRect().width,
-    }));
-    expect(shot).toMatchObject({ inFooter: true, beforeNumber: true, label: "KH" });
-    expect(shot.width).toBeLessThanOrEqual(420);
-    expect(shot.width).toBeCloseTo(Math.min(420, width - 2 * (width < 560 ? 16 : 24)), 0);
-  });
-}
-
-// The ball is in the goal (stroke included), and the point is at least twice as
-// wide as the double line: its base, the side opposite the tip.
-test("the shot: the ball in the goal, the point twice as wide as the line", async ({ page }) => {
-  await page.goto("/");
-  const shot = await page.locator(".shot").evaluate((svg) => {
-    const goal = svg.querySelector("rect")!.getBBox();
-    const ball = svg.querySelector<SVGCircleElement>(".shot-ball")!;
-    const r = ball.r.baseVal.value + Number(ball.getAttribute("stroke-width")) / 2;
-    const [, [x1, y1], [x2, y2]] = svg.querySelector(".shot-head")!.getAttribute("d")!.match(/-?[\d.]+ -?[\d.]+/g)!.map((p) => p.split(" ").map(Number));
-    return {
-      inGoal:
-        ball.cx.baseVal.value - r >= goal.x &&
-        ball.cx.baseVal.value + r <= goal.x + goal.width &&
-        ball.cy.baseVal.value - r >= goal.y &&
-        ball.cy.baseVal.value + r <= goal.y + goal.height,
-      head: Math.hypot(x2! - x1!, y2! - y1!),
-      line: Number(svg.querySelector('path[stroke="#22C55E"]')!.getAttribute("stroke-width")),
-    };
-  });
-  expect(shot.inGoal).toBe(true);
-  expect(shot.head).toBeGreaterThanOrEqual(2 * shot.line);
-});
 
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
 // WebKit has no Layout Instability API. The statement may still shift (phase 2,

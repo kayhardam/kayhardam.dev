@@ -672,3 +672,49 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **De CLS** is die van het lettertype in de hero (0,024 en 0,018, zoals bij `eefd2a2`), niet van de foto. Simulated gaf deze keer dezelfde waarden als devtools.
 - **Lighthouse laadt de 600w AVIF** (18,0 KB over het netwerk): een telefoon van 412 px met DPR 1,75, dus een foto van 288 px en 504 px nodig. "Improve image delivery" is daarom 0,5 bij devtools (1 bij simulated), zonder invloed op de score. Geen tussenmaat van 450 px (K5).
 - Na de merge volgt de meting op productie (SEO 100 verwacht), in een eigen kleine PR.
+
+## Fase 7: op productie (22 oktober 2026)
+
+Gemeten op `https://kayhardam.dev`, na de merge van PR #11 (commit `8a8000f` op `main`, 18:15 UTC). Workers Builds was om 18:27 UTC klaar; tot dan gaf productie nog de pagina zonder foto, en de bestanden 404. `dist/` is `npm run build` op `8a8000f`. Node 22.22.2, Lighthouse 13.5.0, headless Chrome 154, op een Mac.
+
+### De bestanden met `curl`
+
+Alle 9 bestanden geven 200 met het juiste Content-Type en `Cache-Control: public, max-age=31536000, immutable`. De drie van 799 px:
+
+| Bestand | Content-Type | Bytes op productie | Bytes in `dist/` (Mac) |
+|---|---|--:|--:|
+| `kay-hardam.Wcf1GJew_Z2ozGy1.avif` | `image/avif` | 29 145 | 29 608 |
+| `kay-hardam.Wcf1GJew_Z15bGW7.webp` | `image/webp` | 59 092 | 59 092 |
+| `kay-hardam.Wcf1GJew_19YYq5.jpg` | `image/jpeg` | 92 690 | 92 690 |
+
+- **De AVIF komt van de Linux-build,** zoals op de preview: 29 145 bytes (799 px), 17 280 (600) en 6 336 (300). WebP en JPEG zijn byte voor byte even groot als op de Mac.
+
+### De HTML op productie is gelijk aan `dist/`
+
+Met het commando van fase 6 (de `uid` van het island weggelaten): `/ gelijk`, `/en/ gelijk`. Geen `cdn-cgi`, geen beacon, geen `email-protection`; `mailto:hallo@kayhardam.dev` staat er onveranderd op beide pagina's. Geen `X-Robots-Tag`.
+
+### E2E tegen productie
+
+`E2E_BASE_URL=https://kayhardam.dev npx playwright test e2e/photo.spec.ts e2e/security.spec.ts`: 52 tests groen, in Pixel 7 en iPhone 15. Gelijk aan de preview.
+
+### Lighthouse (22 oktober 2026)
+
+Mobiel (standaard), één run per pagina en methode.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+| `/en/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,2 s / 1,2 s / 0 ms / 0 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+
+- **SEO 100 op `/` en `/en/`,** zoals verwacht: `is-crawlable` slaagt (geen `X-Robots-Tag`), en `image-alt` slaagt.
+- **De CLS** bij devtools is die van het lettertype in de hero (0,024 en 0,018), gelijk aan de preview. Simulated gaf deze keer 0.
+- **Lighthouse laadt de 600w AVIF** (17,9 KB over het netwerk), zoals op de preview. "Improve image delivery" is 0,5 bij devtools en 1 bij simulated, zonder invloed op de score.

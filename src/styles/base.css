@@ -30,6 +30,10 @@ h3 {
   text-wrap: balance;
 }
 
+p {
+  text-wrap: pretty;
+}
+
 img,
 svg {
   max-width: 100%;

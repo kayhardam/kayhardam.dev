@@ -33,7 +33,7 @@ export const nl = {
     heading: "Coachboard",
     text: [
       "Een digitaal tactiekbord voor handbal. Teken een spelsituatie in een paar tikken en deel hem via een link of QR-code. Je spelers hebben geen app of account nodig.",
-      "Gebouwd vanuit de praktijk als handbaltrainer. Ik werk er actief aan.",
+      "Gebouwd vanuit de praktijk als handbaltrainer. Ik werk nu aan een bibliotheek waar trainers hun kennis delen.",
     ],
     // The arrow after it is an SVG: U+2192 isn't in Barlow's Latin subset.
     button: "Naar Coachboard",
@@ -41,10 +41,10 @@ export const nl = {
   about: {
     heading: "Over mij",
     text: [
-      "Ik ben gaan bouwen omdat ik het leuk vind. Ideeën genoeg: in de gymzaal en langs de lijn zie ik vaak wat handiger kan.",
-      "Wat ik belangrijk vind: dat het klopt voor degene die het gebruikt.",
+      "Hoi, ik ben Kay. Overdag sta ik in de gymzaal, in het weekend langs de lijn.",
+      "De rest van de tijd bouw ik dingen. Gewoon omdat ik het leuk vind.",
     ],
-    example: "Daarom tel ik in Coachboard elke tik. Een aanval tegen een 6-0? Drie pijlen trekken en delen. Meer is het niet.",
+    example: "Wat ik bouw, moet je snappen zonder uitleg. Een aanval tegen een 6-0 in Coachboard? Drie pijlen, en je spelers snappen wat je bedoelt.",
   },
   contact: {
     heading: "Contact",

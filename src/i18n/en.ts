@@ -28,17 +28,17 @@ export const en: Text = {
     heading: "Coachboard",
     text: [
       "A digital tactics board for handball. Draw a play in a few taps and share it with a link or QR code. Your players don’t need an app or account.",
-      "Built from my own experience as a handball coach. I’m actively working on it.",
+      "Built from my own experience as a handball coach. I’m now working on a library where coaches share what they know.",
     ],
     button: "Go to Coachboard",
   },
   about: {
     heading: "About me",
     text: [
-      "I started building because I enjoy it. Plenty of ideas: in the gym and on the sideline, I often see what could work better.",
-      "What matters to me: that it works for the person using it.",
+      "Hi, I’m Kay. By day I’m in the gym, on weekends I’m on the sideline.",
+      "The rest of the time I build things. Just because I enjoy it.",
     ],
-    example: "That’s why I count every tap in Coachboard. A play against a 6-0 defense? Draw three arrows and share. That’s it.",
+    example: "What I build should make sense without explaining. A play against a 6-0 defense in Coachboard? Three arrows, and your players get what you mean.",
   },
   contact: {
     heading: "Contact",

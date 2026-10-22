@@ -5,7 +5,6 @@ import Board from "./board/Board.astro";
 import FieldLines from "./art/FieldLines.astro";
 import Pass from "./art/Pass.astro";
 import SectionNumber from "./art/SectionNumber.astro";
-import Shot from "./art/Shot.astro";
 import { boards } from "../data/boards";
 import { coachboard, email, github, mailto } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
@@ -70,7 +69,6 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   <footer class="contact">
     <div class="container">
-      <Shot />
       <SectionNumber n={3} variant="green" />
       <h2 class="small-heading">{t.contact.heading}</h2>
       <p class="question">{t.contact.question}</p>

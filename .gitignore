@@ -23,9 +23,10 @@ npm-debug.log*
 test-results/
 playwright-report/
 
-# The build brief and the phase plans stay local, like productplan.md in Coachboard.
-docs/kayhardam-dev-brief.md
-docs/plan-fase-*.md
+# Everything in docs/ stays local (the brief, the phase plans, the status),
+# like productplan.md in Coachboard. Only the measurements are in the repo.
+docs/*
+!docs/metingen.md
 
 # Screenshots for pull requests stay local; the PR says where they are.
 screenshots/

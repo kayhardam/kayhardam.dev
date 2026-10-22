@@ -585,3 +585,61 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 
 - **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt (de preview stuurt `X-Robots-Tag: noindex`). **De 404 blijft 54:** `is-crawlable` en `meta-description`, zo bedoeld.
 - Performance, Accessibility en Best Practices blijven 100. De CLS met devtools is dezelfde als bij `eefd2a2` (0,024 en 0,018).
+
+## Fase 7: de foto (22 oktober 2026)
+
+De foto in Over mij, rond met een witte rand van 5 px, via `<Picture>` uit `astro:assets`. Het grid en veldlijnen B zijn terug.
+
+### Het origineel en de schone kopie
+
+- **Het origineel** (`screenshots/foto/`, buiten git): 799 × 799, JPEG. EXIF (140 bytes) met de maat, `Orientation` 1, `DateTime` 2025:09:28 09:54:14 en `DateTimeOriginal` 2025:09:28 09:52:10; geen GPS, geen camera, geen software. Een ICC-profiel sRGB ("Google Inc. 2016", 472 bytes). Geen XMP, IPTC of commentaar.
+- **De kopie** (`src/assets/kay-hardam.jpg`, van `scripts/clean-photo.mjs`): 799 × 799, 134 048 bytes, alleen JFIF en de beelddata. Geen EXIF, ICC, XMP, IPTC of commentaar. Niet opnieuw gecomprimeerd: de pixels zijn gelijk aan het origineel (maximaal verschil 0).
+
+### De bestanden
+
+Astro maakt 9 bestanden (900 wordt 799: niet groter dan het origineel), zonder EXIF of ICC (`e2e/photo.spec.ts`). Raw, in bytes:
+
+| Breedte | AVIF (Mac) | AVIF (CI, Linux) | WebP | JPEG |
+|--:|--:|--:|--:|--:|
+| 300 | 6 496 | 6,3 KB | 10 454 | 15 209 |
+| 600 | 17 499 | 17,3 KB | 31 342 | 47 099 |
+| 799 | 29 608 | 29,1 KB | 59 092 | 92 690 |
+
+- **De AVIF verschilt per platform:** de build in CI (`ubuntu-24.04`) maakt iets kleinere AVIF-bestanden, met dezelfde naam (de hash komt van de bron en de opties). WebP en JPEG zijn gelijk.
+- **Budget "Photo"**, het grootste bestand plus 15%: AVIF 34,1 KB, WebP 68,0 KB, JPEG 106,6 KB.
+
+### Wat een bezoeker laadt
+
+Eén bestand, AVIF in Chromium en WebKit, met `sizes="min(300px, 70vw)"` (`e2e/photo.spec.ts`):
+
+| Scherm | Foto (css px) | Bestand | Grootte |
+|---|--:|---|--:|
+| 1280 px, DPR 1 | 300 | 300w | 6,5 KB |
+| 1280 px, DPR 2 | 300 | 600w | 17,5 KB |
+| iPhone 15 (393 px, DPR 3) | 275 | 799w | 29,6 KB |
+| Pixel 7 (412 px, DPR 2,625) | 288 | 799w | 29,6 KB |
+
+`naturalWidth` is de breedte op het scherm (275, 288, 300): beide browsers rekenen `min()` in `sizes` echt uit.
+
+### De HTML
+
+| Pagina | HTML raw | HTML gzip | Was (fase 6) |
+|---|--:|--:|--:|
+| `/` | 41,91 | 9,93 | 9,62 |
+| `/en/` | 41,89 | 9,88 | 9,56 |
+
++0,32 KB gzip: de `<picture>` met drie `srcset`s en de CSS van het grid en de foto. Het HTML-budget blijft 11,1 KB. Geen JavaScript erbij (Scripts 0, één island) en geen inline style.
+
+### Layout shift
+
+- **De foto komt laat** (vastgehouden tot na de meting, minstens 1,5 s; 1280 px): de maat van de foto (300 × 300) en de plek van nummer 2 zijn vóór en na het laden gelijk, in Chromium en WebKit. Chromium meldt geen verschuiving in `.about`.
+- **De foto laadt niet** (`route.abort()`): het vak blijft 300 × 300. Zonder `aspect-ratio: 1` faalt die test in WebKit (nagegaan).
+
+### Over mij per breedte
+
+Gelijk aan het plan, op elke breedte en in beide talen (`screenshots/fase-7/metingen.json`, lokaal): de sectie is op 1280 px even hoog als op `main` (646 px NL, 676 px EN), de grote zinnen blijven vanaf 860 px op 2 + 2 regels, en het midden van de foto en van de tekst verschillen 0 px op 860, 1024 en 1280 px.
+
+### Workers Builds
+
+- **CI** (`npm ci && npm run verify` op `ubuntu-24.04`) bouwt de foto met sharp op Linux x64: "generating optimized images", 9 bestanden.
+- **Workers Builds:** na de eerste push van de branch (commit `d7b82fc`, 22 oktober, 16:44 UTC) kwam er na ruim 30 minuten geen build: geen check "Workers Builds: kayhardam-site" op de commit, en de preview-URL gaf 404 (`x-preview-user-error: true`). De commits van fase 6 kregen die check wel. Een build die faalt op sharp zou als mislukte check verschijnen; hier is geen build gestart.

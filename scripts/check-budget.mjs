@@ -16,18 +16,21 @@
 // - Every font file (woff2) the site serves.
 // - The icons: favicon.svg, favicon.ico and apple-touch-icon.png.
 // - The share image: og.png in the root, from scripts/og-image.mjs.
+// - Every image a page shows: each file in the src and srcset of an <img> and
+//   in the srcset of a <source>, with a budget per format (AVIF, WebP, JPEG).
+//   A missing file is an error: scripts/check-links.mjs doesn't read srcset.
 //
 // Sizes are in KB of 1000 bytes; JS, CSS and HTML are gzipped (zlib default level),
 // as in docs/metingen.md. Fonts and icons are counted raw: woff2 and PNG are
-// compressed already, and the SVG is small. So is the share image.
+// compressed already, and the SVG is small. So are the share image and the photo.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, relative, sep } from "node:path";
+import { dirname, extname, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, JS and HTML in phase 5,
-// the share image in phase 6 (details).
+// the share image in phase 6 (details), the photo in phase 7.
 export const BUDGETS = {
   js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
   lazyJs: 0, // 0 KB: no dynamic imports
@@ -37,7 +40,16 @@ export const BUDGETS = {
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
   shareImage: 19_300, // 16.74 KB for og.png, the logo and kayhardam.dev
+  // The largest file per format: the photo in About me at 799 px, from an original of 799 px.
+  photo: {
+    avif: 34_100, // 29.61 KB
+    webp: 68_000, // 59.09 KB
+    jpeg: 106_600, // 92.69 KB
+  },
 };
+
+/** The format of an image file, by its extension, as in the keys of BUDGETS.photo. */
+export const IMAGE_FORMATS = { ".avif": "avif", ".webp": "webp", ".jpg": "jpeg", ".jpeg": "jpeg" };
 
 /** The icons in the root of the site, from scripts/favicons.mjs. */
 export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
@@ -50,7 +62,7 @@ export const ISLAND = { name: "BoardCard", client: "visible" };
 /** Astro's inline scripts on a page with an island: its loader and the one for client:visible. */
 export const ISLAND_SCRIPTS = 2;
 
-const TAG = /<(script|astro-island|link)\b([^>]*)>/gi;
+const TAG = /<(script|astro-island|link|img|source)\b([^>]*)>/gi;
 const ATTR = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
 const STATIC_IMPORT = /(?:\bfrom|\bimport)\s*["']([^"']+\.js)["']/g;
 // Vite writes dynamic imports with backticks: import(`./chunk.js`).
@@ -139,6 +151,8 @@ export function checkBudget(dist, budgets = BUDGETS) {
 
   const pages = [...files(dist, ".html")].map((file) => relative(dist, file).split(sep).join("/")).sort();
   let scripts = 0;
+  // A file that is on two pages is measured once.
+  const images = new Set();
 
   for (const page of pages) {
     const file = join(dist, page);
@@ -161,6 +175,16 @@ export function checkBudget(dist, budgets = BUDGETS) {
         else inline.push(`<script${source}>`);
       } else if (name === "astro-island") {
         islands.push(a);
+      } else if (name === "img" || name === "source") {
+        const urls = (a.srcset ?? "").split(",").map((candidate) => candidate.trim().split(/\s+/)[0]);
+        for (const src of [a.src, ...urls].filter(Boolean)) {
+          const path = resolve(src.replace(/&amp;/g, "&"), url);
+          if (!path || images.has(path)) continue;
+          images.add(path);
+          const format = IMAGE_FORMATS[extname(path).toLowerCase()];
+          if (format) measure("Photo", src, statSync(path).size, budgets.photo[format]);
+          else errors.push(`${url}: ${src} has no image budget (only AVIF, WebP and JPEG)`);
+        }
       } else {
         const rel = (a.rel ?? "").toLowerCase().split(/\s+/);
         if (rel.includes("modulepreload")) forbid(`<link rel="modulepreload">`);
@@ -219,7 +243,7 @@ export function checkBudget(dist, budgets = BUDGETS) {
   const shareImage = join(dist, SHARE_IMAGE);
   if (existsSync(shareImage)) measure("Share image", `/${SHARE_IMAGE}`, statSync(shareImage).size, budgets.shareImage);
 
-  const order = ["JS (gzip)", "Lazy JS (gzip)", "All JS (gzip)", "Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon", "Share image"];
+  const order = ["JS (gzip)", "Lazy JS (gzip)", "All JS (gzip)", "Scripts", "CSS (gzip)", "HTML (gzip)", "Font", "Icon", "Share image", "Photo"];
   rows.sort((a, b) => order.indexOf(a.budget) - order.indexOf(b.budget));
   return { rows, errors };
 }

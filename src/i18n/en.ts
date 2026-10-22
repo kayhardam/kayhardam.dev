@@ -34,6 +34,7 @@ export const en: Text = {
   },
   about: {
     heading: "About me",
+    photo: "Portrait of Kay Hardam.",
     text: [
       "Hi, I’m Kay. By day I’m in the gym, on weekends I’m on the sideline.",
       "The rest of the time I build things. Just because I enjoy it.",

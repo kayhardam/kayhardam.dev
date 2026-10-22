@@ -40,6 +40,7 @@ export const nl = {
   },
   about: {
     heading: "Over mij",
+    photo: "Portret van Kay Hardam.",
     text: [
       "Hoi, ik ben Kay. Overdag sta ik in de gymzaal, in het weekend langs de lijn.",
       "De rest van de tijd bouw ik dingen. Gewoon omdat ik het leuk vind.",

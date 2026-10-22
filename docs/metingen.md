@@ -639,7 +639,36 @@ Eén bestand, AVIF in Chromium en WebKit, met `sizes="min(300px, 70vw)"` (`e2e/p
 
 Gelijk aan het plan, op elke breedte en in beide talen (`screenshots/fase-7/metingen.json`, lokaal): de sectie is op 1280 px even hoog als op `main` (646 px NL, 676 px EN), de grote zinnen blijven vanaf 860 px op 2 + 2 regels, en het midden van de foto en van de tekst verschillen 0 px op 860, 1024 en 1280 px.
 
-### Workers Builds
+### Workers Builds en de preview
 
 - **CI** (`npm ci && npm run verify` op `ubuntu-24.04`) bouwt de foto met sharp op Linux x64: "generating optimized images", 9 bestanden.
-- **Workers Builds:** na de eerste push van de branch (commit `d7b82fc`, 22 oktober, 16:44 UTC) kwam er na ruim 30 minuten geen build: geen check "Workers Builds: kayhardam-site" op de commit, en de preview-URL gaf 404 (`x-preview-user-error: true`). De commits van fase 6 kregen die check wel. Een build die faalt op sharp zou als mislukte check verschijnen; hier is geen build gestart.
+- **Workers Builds kwam pas laat:** na de eerste push (commit `d7b82fc`, 22 oktober, 16:44 UTC) kwam er ruim 30 minuten geen build, en de preview gaf 404 (`x-preview-user-error: true`). Oorzaak: een storing bij GitHub (Pull Requests en Actions verminderd, incident van 17:16 UTC). De webhooks kwamen niet aan; ook de PR zag de tweede push eerst niet. Daarna bouwde Workers Builds `67e9cb7`: check "Workers Builds: kayhardam-site" geslaagd. sharp werkt dus bij Workers Builds; er hoefde niets veranderd te worden.
+- **Op de preview** (`https://fase-7-foto-kayhardam-site.hardamkay.workers.dev/`, commit `67e9cb7`):
+  - de HTML van `/` en `/en/` is gelijk aan `dist/` (op de `uid` van het island na);
+  - de 9 bestanden geven 200 met `image/avif`, `image/webp` of `image/jpeg`, en `Cache-Control: public, max-age=31536000, immutable`. De AVIF van 799 px is 29 145 bytes, die van 300 px 6 336: de grootte van de Linux-build, zoals in CI;
+  - `E2E_BASE_URL=<preview> npx playwright test e2e/photo.spec.ts e2e/security.spec.ts`: 52 tests groen, in Pixel 7 en iPhone 15.
+
+### Lighthouse (22 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-7-foto-kayhardam-site.hardamkay.workers.dev/`, commit `67e9cb7`. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| `/en/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,1 s / 1,1 s / 0 ms / 0,024 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 1,2 s / 1,2 s / 0 ms / 0,018 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 69 op `/` en `/en/`** (was 66): alleen `is-crawlable` faalt (de preview stuurt `X-Robots-Tag: noindex`). Met de foto telt `image-alt` mee, en die slaagt: (13,04 − 4,04) / 13,04 = 69%. **De 404 blijft 54:** daar is geen foto.
+- **De CLS** is die van het lettertype in de hero (0,024 en 0,018, zoals bij `eefd2a2`), niet van de foto. Simulated gaf deze keer dezelfde waarden als devtools.
+- **Lighthouse laadt de 600w AVIF** (18,0 KB over het netwerk): een telefoon van 412 px met DPR 1,75, dus een foto van 288 px en 504 px nodig. "Improve image delivery" is daarom 0,5 bij devtools (1 bij simulated), zonder invloed op de score. Geen tussenmaat van 450 px (K5).
+- Na de merge volgt de meting op productie (SEO 100 verwacht), in een eigen kleine PR.

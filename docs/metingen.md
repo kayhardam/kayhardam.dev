@@ -562,3 +562,26 @@ Twee commits: het schot op doel bij Contact is weg (`src/components/art/Shot.ast
 
 - De HTML wordt 0,25 KB gzip kleiner (`/`: van 9,88 bij commit `1fef84c`): de SVG van het schot en zijn CSS. `text-wrap: pretty` voegt een paar bytes toe.
 - De budgetten blijven: HTML 11,1 KB.
+
+### Lighthouse, zonder schot (22 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-6-teksten-kayhardam-site.hardamkay.workers.dev/`, commit `9fd8115` (de site is die van `0ba2fc2`). Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| `/en/` | 100 / 100 / 100 / 66 | 100 / 100 / 100 / 66 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt (de preview stuurt `X-Robots-Tag: noindex`). **De 404 blijft 54:** `is-crawlable` en `meta-description`, zo bedoeld.
+- Performance, Accessibility en Best Practices blijven 100. De CLS met devtools is dezelfde als bij `eefd2a2` (0,024 en 0,018).

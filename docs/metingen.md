@@ -550,3 +550,15 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt, omdat de preview `X-Robots-Tag: noindex` stuurt (zoals bij fase 6: details).
 - **De 404 blijft 54:** `is-crawlable` en `meta-description` falen, zo bedoeld (afwijking 3).
 - Performance, Accessibility en Best Practices blijven 100; de metrics zijn die van fase 6: details.
+
+### Zonder schot, en `text-wrap: pretty` (22 oktober 2026)
+
+Twee commits: het schot op doel bij Contact is weg (`src/components/art/Shot.astro`, Kay), en `p { text-wrap: pretty; }` in `src/styles/base.css`, zodat er geen los woord op de laatste regel van een alinea staat. Het aantal regels verandert nergens op 320, 393 en 1280 px (NL en EN, Chromium en WebKit); alleen het laatste woord krijgt een of meer woorden mee.
+
+| Pagina | HTML raw | HTML gzip | CSS-bestanden | JS (gzip) |
+|---|--:|--:|--:|--:|
+| `/` | 40,75 | 9,63 | 0 | 21,24 |
+| `/en/` | 40,73 | 9,57 | 0 | 21,24 |
+
+- De HTML wordt 0,25 KB gzip kleiner (`/`: van 9,88 bij commit `1fef84c`): de SVG van het schot en zijn CSS. `text-wrap: pretty` voegt een paar bytes toe.
+- De budgetten blijven: HTML 11,1 KB.

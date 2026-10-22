@@ -585,3 +585,90 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 
 - **SEO 66 op `/` en `/en/`:** alleen `is-crawlable` faalt (de preview stuurt `X-Robots-Tag: noindex`). **De 404 blijft 54:** `is-crawlable` en `meta-description`, zo bedoeld.
 - Performance, Accessibility en Best Practices blijven 100. De CLS met devtools is dezelfde als bij `eefd2a2` (0,024 en 0,018).
+
+## Fase 7: de foto (22 oktober 2026)
+
+De foto in Over mij, rond met een witte rand van 5 px, via `<Picture>` uit `astro:assets`. Het grid en veldlijnen B zijn terug.
+
+### Het origineel en de schone kopie
+
+- **Het origineel** (`screenshots/foto/`, buiten git): 799 × 799, JPEG. EXIF (140 bytes) met de maat, `Orientation` 1, `DateTime` 2025:09:28 09:54:14 en `DateTimeOriginal` 2025:09:28 09:52:10; geen GPS, geen camera, geen software. Een ICC-profiel sRGB ("Google Inc. 2016", 472 bytes). Geen XMP, IPTC of commentaar.
+- **De kopie** (`src/assets/kay-hardam.jpg`, van `scripts/clean-photo.mjs`): 799 × 799, 134 048 bytes, alleen JFIF en de beelddata. Geen EXIF, ICC, XMP, IPTC of commentaar. Niet opnieuw gecomprimeerd: de pixels zijn gelijk aan het origineel (maximaal verschil 0).
+
+### De bestanden
+
+Astro maakt 9 bestanden (900 wordt 799: niet groter dan het origineel), zonder EXIF of ICC (`e2e/photo.spec.ts`). Raw, in bytes:
+
+| Breedte | AVIF (Mac) | AVIF (CI, Linux) | WebP | JPEG |
+|--:|--:|--:|--:|--:|
+| 300 | 6 496 | 6,3 KB | 10 454 | 15 209 |
+| 600 | 17 499 | 17,3 KB | 31 342 | 47 099 |
+| 799 | 29 608 | 29,1 KB | 59 092 | 92 690 |
+
+- **De AVIF verschilt per platform:** de build in CI (`ubuntu-24.04`) maakt iets kleinere AVIF-bestanden, met dezelfde naam (de hash komt van de bron en de opties). WebP en JPEG zijn gelijk.
+- **Budget "Photo"**, het grootste bestand plus 15%: AVIF 34,1 KB, WebP 68,0 KB, JPEG 106,6 KB.
+
+### Wat een bezoeker laadt
+
+Eén bestand, AVIF in Chromium en WebKit, met `sizes="min(300px, 70vw)"` (`e2e/photo.spec.ts`):
+
+| Scherm | Foto (css px) | Bestand | Grootte |
+|---|--:|---|--:|
+| 1280 px, DPR 1 | 300 | 300w | 6,5 KB |
+| 1280 px, DPR 2 | 300 | 600w | 17,5 KB |
+| iPhone 15 (393 px, DPR 3) | 275 | 799w | 29,6 KB |
+| Pixel 7 (412 px, DPR 2,625) | 288 | 799w | 29,6 KB |
+
+`naturalWidth` is de breedte op het scherm (275, 288, 300): beide browsers rekenen `min()` in `sizes` echt uit.
+
+### De HTML
+
+| Pagina | HTML raw | HTML gzip | Was (fase 6) |
+|---|--:|--:|--:|
+| `/` | 41,91 | 9,93 | 9,62 |
+| `/en/` | 41,89 | 9,88 | 9,56 |
+
++0,32 KB gzip: de `<picture>` met drie `srcset`s en de CSS van het grid en de foto. Het HTML-budget blijft 11,1 KB. Geen JavaScript erbij (Scripts 0, één island) en geen inline style.
+
+### Layout shift
+
+- **De foto komt laat** (vastgehouden tot na de meting, minstens 1,5 s; 1280 px): de maat van de foto (300 × 300) en de plek van nummer 2 zijn vóór en na het laden gelijk, in Chromium en WebKit. Chromium meldt geen verschuiving in `.about`.
+- **De foto laadt niet** (`route.abort()`): het vak blijft 300 × 300. Zonder `aspect-ratio: 1` faalt die test in WebKit (nagegaan).
+
+### Over mij per breedte
+
+Gelijk aan het plan, op elke breedte en in beide talen (`screenshots/fase-7/metingen.json`, lokaal): de sectie is op 1280 px even hoog als op `main` (646 px NL, 676 px EN), de grote zinnen blijven vanaf 860 px op 2 + 2 regels, en het midden van de foto en van de tekst verschillen 0 px op 860, 1024 en 1280 px.
+
+### Workers Builds en de preview
+
+- **CI** (`npm ci && npm run verify` op `ubuntu-24.04`) bouwt de foto met sharp op Linux x64: "generating optimized images", 9 bestanden.
+- **Workers Builds kwam pas laat:** na de eerste push (commit `d7b82fc`, 22 oktober, 16:44 UTC) kwam er ruim 30 minuten geen build, en de preview gaf 404 (`x-preview-user-error: true`). Oorzaak: een storing bij GitHub (Pull Requests en Actions verminderd, incident van 17:16 UTC). De webhooks kwamen niet aan; ook de PR zag de tweede push eerst niet. Daarna bouwde Workers Builds `67e9cb7`: check "Workers Builds: kayhardam-site" geslaagd. sharp werkt dus bij Workers Builds; er hoefde niets veranderd te worden.
+- **Op de preview** (`https://fase-7-foto-kayhardam-site.hardamkay.workers.dev/`, commit `67e9cb7`):
+  - de HTML van `/` en `/en/` is gelijk aan `dist/` (op de `uid` van het island na);
+  - de 9 bestanden geven 200 met `image/avif`, `image/webp` of `image/jpeg`, en `Cache-Control: public, max-age=31536000, immutable`. De AVIF van 799 px is 29 145 bytes, die van 300 px 6 336: de grootte van de Linux-build, zoals in CI;
+  - `E2E_BASE_URL=<preview> npx playwright test e2e/photo.spec.ts e2e/security.spec.ts`: 52 tests groen, in Pixel 7 en iPhone 15.
+
+### Lighthouse (22 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome 154 op een Mac. Gemeten op de preview-URL `https://fase-7-foto-kayhardam-site.hardamkay.workers.dev/`, commit `67e9cb7`. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| `/en/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,1 s / 1,1 s / 0 ms / 0,024 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0,024 / 1,1 s |
+| `/en/` | 1,2 s / 1,2 s / 0 ms / 0,018 / 1,2 s | 0,8 s / 0,8 s / 0 ms / 0,018 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 69 op `/` en `/en/`** (was 66): alleen `is-crawlable` faalt (de preview stuurt `X-Robots-Tag: noindex`). Met de foto telt `image-alt` mee, en die slaagt: (13,04 − 4,04) / 13,04 = 69%. **De 404 blijft 54:** daar is geen foto.
+- **De CLS** is die van het lettertype in de hero (0,024 en 0,018, zoals bij `eefd2a2`), niet van de foto. Simulated gaf deze keer dezelfde waarden als devtools.
+- **Lighthouse laadt de 600w AVIF** (18,0 KB over het netwerk): een telefoon van 412 px met DPR 1,75, dus een foto van 288 px en 504 px nodig. "Improve image delivery" is daarom 0,5 bij devtools (1 bij simulated), zonder invloed op de score. Geen tussenmaat van 450 px (K5).
+- Na de merge volgt de meting op productie (SEO 100 verwacht), in een eigen kleine PR.

@@ -149,6 +149,61 @@ describe("checkBudget", () => {
     expect(errors).toEqual([]);
   });
 
+  /** A <picture> as Astro's <Picture> writes it: AVIF and WebP in <source>s, JPEG in the <img>. */
+  const picture = (name = "photo") =>
+    `<picture>` +
+    `<source srcset="/_astro/${name}.a.avif 300w, /_astro/${name}.b.avif 600w" type="image/avif" sizes="min(300px, 70vw)">` +
+    `<source srcset="/_astro/${name}.a.webp 300w, /_astro/${name}.b.webp 600w" type="image/webp" sizes="min(300px, 70vw)">` +
+    `<img src="/_astro/${name}.a.jpg" srcset="/_astro/${name}.a.jpg 300w, /_astro/${name}.b.jpg 600w" alt="" width="300" height="300">` +
+    `</picture>`;
+  const photoFiles = (name = "photo", size = 100) =>
+    Object.fromEntries(
+      ["a.avif", "b.avif", "a.webp", "b.webp", "a.jpg", "b.jpg"].map((file, i) => [`_astro/${name}.${file}`, "x".repeat(size + i)]),
+    );
+
+  it("measures every file of a photo raw, once, with a budget per format", () => {
+    const { rows, errors } = build({ "index.html": picture(), "en/index.html": picture(), ...photoFiles() });
+    expect(errors).toEqual([]);
+    expect(rows.filter((r) => r.budget === "Photo").map((r) => [r.item, r.measured, r.limit])).toEqual([
+      ["/_astro/photo.a.avif", 100, BUDGETS.photo.avif],
+      ["/_astro/photo.b.avif", 101, BUDGETS.photo.avif],
+      ["/_astro/photo.a.webp", 102, BUDGETS.photo.webp],
+      ["/_astro/photo.b.webp", 103, BUDGETS.photo.webp],
+      ["/_astro/photo.a.jpg", 104, BUDGETS.photo.jpeg],
+      ["/_astro/photo.b.jpg", 105, BUDGETS.photo.jpeg],
+    ]);
+  });
+
+  it.each([
+    ["avif", "/_astro/photo.b.avif", 101],
+    ["webp", "/_astro/photo.b.webp", 103],
+    ["jpeg", "/_astro/photo.b.jpg", 105],
+  ])("fails on a photo over its %s budget", (format, item, size) => {
+    const { errors } = build(
+      { "index.html": picture(), ...photoFiles() },
+      { ...BUDGETS, photo: { ...BUDGETS.photo, [format]: size - 1 } },
+    );
+    expect(errors).toEqual([`Photo ${item}: 0.1 KB is over the budget of 0.1 KB`]);
+  });
+
+  it("fails on a file in a srcset that is missing", () => {
+    const files = photoFiles();
+    delete files["_astro/photo.b.webp"];
+    const { errors } = build({ "index.html": picture(), ...files });
+    expect(errors).toEqual(["/: /_astro/photo.b.webp is missing"]);
+  });
+
+  it("fails on an image in another format", () => {
+    const { errors } = build({ "index.html": `<img src="/a.png" alt="">`, "a.png": "x" });
+    expect(errors).toEqual(["/: /a.png has no image budget (only AVIF, WebP and JPEG)"]);
+  });
+
+  it("has no photo row on a page without a photo", () => {
+    const { rows, errors } = build({ "index.html": "<p>Home</p>", ...photoFiles() });
+    expect(row(rows, "Photo")).toBeUndefined();
+    expect(errors).toEqual([]);
+  });
+
   it("prints a table with OVER next to a row over its budget", () => {
     const out = table([
       { budget: "HTML (gzip)", item: "/", measured: 3000, limit: 2000, unit: "KB" },

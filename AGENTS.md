@@ -29,6 +29,9 @@ Commit only when `npm run verify` exits with code 0. Check the exit code itself,
 
 ## Structure
 
+- `README.md` is for visitors on GitHub, in English: what the site is and how it is made. A change to it is agreed with Kay first, like the other texts.
+- `LICENSE`: MIT, "Copyright (c) 2026 Kay Hardam", for the code. The texts, the logo and the photo are not part of it (the README says so).
+- `.node-version` holds `22`, the Node version for Workers Builds and local work; CI sets 22 in `.github/workflows/ci.yml`. Change both together.
 - `src/pages/index.astro` (Dutch) and `src/pages/en/index.astro` render `src/components/Home.astro`; the language comes from `Astro.currentLocale`.
 - `src/pages/404.astro` is one page for every missing URL, Dutch first, then English, with the Dutch title. `wrangler.jsonc` serves it with status 404.
 - Texts: `src/i18n/nl.ts` and `src/i18n/en.ts` (the type comes from `nl.ts`, so a text missing in English fails `astro check`); `text(locale)` in `src/i18n/index.ts`.

@@ -25,7 +25,21 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
       <FieldLines variant="hero" />
       <div class="container hero-grid">
         <div class="hero-text">
-          <h1>{t.name}</h1>
+          <div class="name">
+            <Picture
+              src={portrait}
+              alt=""
+              formats={["avif", "webp"]}
+              widths={[64, 128, 192]}
+              sizes="64px"
+              width={64}
+              height={64}
+              loading="eager"
+              decoding="async"
+              class="avatar"
+            />
+            <h1>{t.name}</h1>
+          </div>
           <p class="statement"><span class="lead">{lead}</span> {rest}</p>
         </div>
         <div class="hero-board">
@@ -151,6 +165,23 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     .hero-text {
       margin-top: 0;
     }
+  }
+
+  /* The photo and the name: the photo round like a player, 16 px to the name, centred. */
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* 64 px with a white edge of 3 px inside it. aspect-ratio keeps the square
+     while it loads, and in WebKit also when it fails. */
+  .avatar {
+    width: 64px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 3px solid #fff;
+    border-radius: 50%;
   }
 
   /* The name: small and white. */

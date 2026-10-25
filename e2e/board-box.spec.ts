@@ -73,13 +73,33 @@ for (const screen of [393, 1280]) {
   });
 }
 
-test("1280×800: the whole button is on a laptop's first screen", async ({ page }) => {
+test("1280×800: the photo, the name, the statement, the board and the button are on a laptop's first screen", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const { button } = await boxes(page);
   expect(button.y + button.height).toBeLessThanOrEqual(800);
+  for (const selector of [".hero img", "h1", ".statement", ".board"]) {
+    const box = (await page.locator(selector).boundingBox())!;
+    expect(box.y, selector).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height, selector).toBeLessThanOrEqual(800);
+  }
 });
+
+// In the projects' own windows. Pixel 7 (412 × 839) has room; in Safari on an iPhone 15
+// (393 × 659) the photo starts just below the edge, and that is accepted (Kay, phase 8).
+for (const path of ["/", "/en/"]) {
+  test(`${path}: the photo and the name are on the first screen`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "iphone", "Safari's window on an iPhone is too short (Kay, phase 8)");
+    await page.goto(path);
+    await page.evaluate(() => document.fonts.ready);
+    const height = await page.evaluate(() => window.innerHeight);
+    for (const selector of [".hero img", "h1"]) {
+      const box = (await page.locator(selector).boundingBox())!;
+      expect(box.y + box.height, selector).toBeLessThanOrEqual(height);
+    }
+  });
+}
 
 test("the whole card and the button are on the first screen", async ({ page }) => {
   await page.goto("/");

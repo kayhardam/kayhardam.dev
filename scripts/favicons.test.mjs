@@ -29,6 +29,20 @@ describe("favicon.ico", () => {
     }
     expect(sizes).toEqual([16, 32]);
   });
+
+  // Navy with a white edge: the edge shows on a dark tab, the navy on a light one.
+  it("is light in the middle of the top edge and navy a quarter lower, in both PNGs", async () => {
+    const ico = read("favicon.ico");
+    for (let i = 0; i < ico.readUInt16LE(4); i++) {
+      const entry = 6 + 16 * i;
+      const png = ico.subarray(ico.readUInt32LE(entry + 12), ico.readUInt32LE(entry + 12) + ico.readUInt32LE(entry + 8));
+      const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+      const rgb = (x, y) => [...data.subarray((y * info.width + x) * info.channels, (y * info.width + x) * info.channels + 3)];
+      const middle = info.width / 2;
+      expect(Math.min(...rgb(middle, 0)), `${info.width} px, top edge: ${rgb(middle, 0)}`).toBeGreaterThanOrEqual(230);
+      expect(rgb(middle, info.width / 4), `${info.width} px, a quarter lower`).toEqual([0x0f, 0x17, 0x2a]);
+    }
+  });
 });
 
 describe("apple-touch-icon.png", () => {
@@ -39,7 +53,7 @@ describe("apple-touch-icon.png", () => {
     expect(ihdr(png)).toEqual({ width: 180, height: 180, colourType: 2 });
   });
 
-  it("is navy at the corners and the edges, green in the middle", async () => {
+  it("is navy at the corners and the edges, the white player in the middle", async () => {
     const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
     const hex = (x, y) => {
       const i = (y * info.width + x) * info.channels;
@@ -47,15 +61,15 @@ describe("apple-touch-icon.png", () => {
     };
     const edge = [[0, 0], [179, 0], [0, 179], [179, 179], [90, 0], [0, 90], [179, 90], [90, 179]];
     for (const [x, y] of edge) expect(hex(x, y), `${x},${y}`).toBe("#0F172A");
-    // Just above the middle: between the letters K and H there is green too, but not on every pixel.
-    expect(hex(90, 45)).toBe("#15803D");
+    // Just above the middle: the player as in the header, white with a navy label.
+    expect(hex(90, 45)).toBe("#F8FAFC");
   });
 });
 
 describe("favicon.svg", () => {
-  it("is the player with radius 9 in #15803D and the label KH", () => {
+  it("is the player with radius 9 in navy with a white edge, and the white label KH", () => {
     const svg = read("favicon.svg").toString();
-    expect(svg).toMatch(/<circle r="9" fill="#15803D"/);
-    expect(svg).toMatch(/>KH<\/text>/);
+    expect(svg).toMatch(/<circle r="9" fill="#0F172A" stroke="#FFFFFF"/);
+    expect(svg).toMatch(/<text y="0.5" fill="#FFFFFF"[^>]*>KH<\/text>/);
   });
 });

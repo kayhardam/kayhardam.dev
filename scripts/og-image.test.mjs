@@ -19,7 +19,7 @@ describe("og.png", () => {
     });
   });
 
-  it("is navy at the corners and the sides, green in the circle, and has all else in x 285–915", async () => {
+  it("is navy at the corners and the sides, white in the circle, and has all else in x 285–915", async () => {
     const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
     const hex = (x, y) => {
       const i = (y * info.width + x) * info.channels;
@@ -28,8 +28,8 @@ describe("og.png", () => {
     for (const [x, y] of [[0, 0], [1199, 0], [0, 629], [1199, 629], [0, 315], [1199, 315], [600, 0], [600, 629]]) {
       expect(hex(x, y), `${x},${y}`).toBe("#0F172A");
     }
-    // In the circle, beside the label KH.
-    expect(hex(600, 190)).toBe("#15803D");
+    // In the circle, beside the label KH: the white player as in the header.
+    expect(hex(600, 190)).toBe("#F8FAFC");
 
     // The square WhatsApp shows compactly: no pixel outside it that isn't navy.
     const outside = [];

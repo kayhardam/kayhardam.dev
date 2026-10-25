@@ -16,6 +16,7 @@ function walk(dir: string): string[] {
 
 const files = [
   ...walk(join(root, "src")).filter((f) => /\.(astro|css|ts|svelte)$/.test(f)),
+  ...readdirSync(join(root, "public")).filter((f) => f.endsWith(".svg")).map((f) => join(root, "public", f)),
 ]
   .map((f) => relative(root, f))
   .filter((f) => f !== "src/styles/colours.test.ts" && !allowed.includes(f));

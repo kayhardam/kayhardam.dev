@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-9.5 -9.5 19 19">
-  <!-- The KH logo: a player from Coachboard's Court.svelte (radius 9, label 7.5). -->
-  <circle r="9" fill="#15803D" stroke="#FFFFFF" stroke-width="1"/>
+  <!-- The KH logo: a player from Coachboard's Court.svelte (radius 9, label 7.5).
+       Navy with a white edge and label, so it shows on light and on dark tabs. -->
+  <circle r="9" fill="#0F172A" stroke="#FFFFFF" stroke-width="1"/>
   <text y="0.5" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="central">KH</text>
 </svg>

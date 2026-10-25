@@ -38,8 +38,8 @@ export const BUDGETS = {
   css: 1_000, // 0 KB: Astro inlines all CSS for now
   html: 11_100, // 9.93 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props, Astro's two scripts and the photo's <picture>
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
-  icon: 5_600, // 4.9 KB for apple-touch-icon.png, the largest
-  shareImage: 19_300, // 16.74 KB for og.png, the logo and kayhardam.dev
+  icon: 5_600, // 4.1 KB for apple-touch-icon.png, the largest
+  shareImage: 19_300, // 15.03 KB for og.png, the white logo and kayhardam.dev
   // The largest file per format: the photo in About me at 799 px, from an original of 799 px.
   photo: {
     avif: 34_100, // 29.61 KB

@@ -368,7 +368,8 @@ test("the hero: round, with a white edge of 3 px, 16 px before the name, in its 
     expect(near(rgb(x, y), [0x0f, 0x17, 0x2a]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
   }
   const middle = Math.round(info.width / 2);
-  expect(near(rgb(middle, 1), [255, 255, 255]), `top edge: ${rgb(middle, 1)}`).toBe(true);
+  // The edge is 3 px: WebKit on Linux (CI) smooths its middle to 246.
+  expect(Math.min(...rgb(middle, 1)), `top edge: ${rgb(middle, 1)}`).toBeGreaterThanOrEqual(240);
 });
 
 for (const width of [393, 1280]) {

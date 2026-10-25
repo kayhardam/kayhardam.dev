@@ -718,3 +718,145 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **SEO 100 op `/` en `/en/`,** zoals verwacht: `is-crawlable` slaagt (geen `X-Robots-Tag`), en `image-alt` slaagt.
 - **De CLS** bij devtools is die van het lettertype in de hero (0,024 en 0,018), gelijk aan de preview. Simulated gaf deze keer 0.
 - **Lighthouse laadt de 600w AVIF** (17,9 KB over het netwerk), zoals op de preview. "Improve image delivery" is 0,5 bij devtools en 1 bij simulated, zonder invloed op de score.
+
+## Fase 8: neutraal en persoonlijk (25 oktober 2026)
+
+Kleur komt alleen van de foto en van de kaart van het bord; de rest is navy, wit en grijs. De favicon navy met een witte rand, de touch-icon en `og.png` met de witte speler uit de header. Kays foto ook in de hero, 64 px, vóór de naam. Over mij met de nieuwe teksten, en harde spaties in de club. Gemeten op de Mac met Node 22.22.2, Astro 7.4.0, Playwright 1.64 (Chromium en WebKit) en Lighthouse 13.5.0. De metingen per breedte, de pixels van de focusring en van de favicon komen uit het plan (`docs/plan-fase-8.md`, een prototype van dezelfde code); de rest is gemeten op de branch `fase-8-neutraal`.
+
+### Contrast van de nieuwe kleurparen
+
+Uitgerekend uit de hex-waarden (WCAG 2.x). Tekst moet 4,5:1 halen, vlakken, randen en de focusring 3:1.
+
+| Paar | Contrast |
+|---|--:|
+| Header: de witte speler, het label KH en de actieve taal (navy op `#F8FAFC`) | 17,06 |
+| Hero: de naam `#F8FAFC` op navy (was `#4ADE80`: 10,25) | 17,06 |
+| Hero: de knop, navy op `#F8FAFC` (was wit op groen: 5,02) | 17,06 |
+| Hero: de witte rand van de foto op navy | 17,85 |
+| Nummer 1: wit cijfer op navy, de navy speler op wit | 17,85 |
+| Nummer 2 en 3: navy cijfer op wit | 17,85 |
+| Nummer 2: witte speler op `#1E293B` | 14,63 |
+| "Naar Coachboard": navy op wit, en bij hover wit op navy | 17,85 |
+| Over mij: tekst `#F8FAFC` op `#1E293B` (was wit op groen: 5,02) | 13,98 |
+| Over mij: kop `#94A3B8` op `#1E293B`, de laagste van alle tekst | 5,71 |
+| Contact: kop `#94A3B8` op navy | 6,96 |
+| 404: link `#F8FAFC` op navy | 17,06 |
+| Decoratief: de pass `#64748B` op navy en op wit; de streep onder het mailadres; de 9 m in de hero (`#94A3B8` op 30%) | 3,75 / 4,76; 3,75; 1,74 |
+
+axe (`e2e/a11y.spec.ts`, WCAG 2.1 A en AA) is groen op `/`, `/en/` en de 404, in Chromium en WebKit.
+
+### De focusring
+
+`#64748B` (`--color-text-small`), 3 px, offset 2 px. Op de pixels (Chromium, DPR 2, Tab door de pagina op 1280 en 393 px en op de 404):
+
+| Achtergrond | Waar | Contrast |
+|---|---|--:|
+| Navy `#0F172A` | header, Contact, 404 | 3,75 |
+| Navy onder de schaduw van de kaart (`#0B1224`) | naast de hero-knop | 3,92 |
+| Wit | de kaart, "Naar Coachboard" | 4,76 |
+| `#1E293B` | Over mij (daar is geen link) | 3,07 |
+| Vorige op stap 1 (`aria-disabled`, 40% dekking; met groen was het 1,59) | de kaart | 1,70 |
+
+`e2e/a11y.spec.ts` tabt door `/`, `/en/` en de 404 (WebKit met Alt+Tab) en vindt op elke link en knop `3px solid rgb(100, 116, 139)`, offset 2px.
+
+### De favicon op licht en donker
+
+Het contrast van de rand met het tabblad, op de pixel met het meeste contrast in de buitenste 15%:
+
+| | Wit | `#DFE1E5` | `#1F1F1F` | `#3C3C3C` |
+|---|--:|--:|--:|--:|
+| Nieuw, 16 px (ico / svg) | 17,85 / 17,85 (navy) | 13,64 / 13,64 (navy) | 11,89 / 11,69 (wit) | 8,13 / 7,98 (wit) |
+| Nieuw, 32 px | 17,85 | 13,64 | 15,52 | 10,48 |
+| Was (groen), 16 px | 5,02 | 3,83 | 12,69 | 8,65 |
+
+Op donker is de navy cirkel zelf bijna gelijk aan het tabblad (1,08 tot 1,62); de witte rand maakt hem zichtbaar. `scripts/favicons.test.mjs` kijkt in beide PNG's van `favicon.ico`: licht in het midden van de bovenrand, navy een kwart lager.
+
+### De iconen en `og.png`
+
+| Bestand | Was | Nu |
+|---|--:|--:|
+| `apple-touch-icon.png` (180 × 180, RGB, `#F8FAFC` op (90, 45)) | 4 866 B | 4 066 B |
+| `favicon.ico` (16 en 32 px) | | 1 615 B |
+| `favicon.svg` | | 468 B |
+| `og.png` (1200 × 630, RGB, `#F8FAFC` op (600, 190); inkt x 388–811, y 170–460) | 16 735 B | 15 031 B |
+
+Na de merge: het WhatsApp-voorbeeld met `https://kayhardam.dev/?wa=2` (Kay).
+
+### Het eerste scherm
+
+In px vanaf de bovenkant van het venster, NL en EN gelijk:
+
+| Venster | Onderkant knop | Foto | Naam | Statement | Foto en naam erin? |
+|---|--:|---|---|---|---|
+| Pixel 7, Chromium, 412×839 (project `android`) | 656,1 | 688,1–752,1 | 708,1–732,1 | 768,1–853,6 (EN 882,1) | ja: de foto eindigt 86,9 px boven de rand |
+| iPhone 15, WebKit, 393×659 (project `iphone`) | 640,8 | 672,8–736,8 | 692,8–716,8 | 752,8–866,8 | nee, akkoord (Kay): de foto begint 13,8 px onder de rand |
+| 1280×800, Chromium en WebKit | 772,3 | 288,8–352,8 | 308,8–332,8 | 368,8–592,5 | ja, ook het bord en de knop (27,7 px over) |
+
+Op schermmaten (uit het plan, informatie, geen test): op 360×780, 393×852, 412×915 en 430×932 staan de foto en de naam erin, met 70 tot 165 px over. `e2e/board-box.spec.ts` toetst in het venster van de Pixel 7, en slaat zich in `iphone` over.
+
+### De foto in de hero
+
+AVIF, WebP en JPEG op 64, 128 en 192 px, `sizes="64px"`, `loading="eager"`. De bestanden op de preview: 200, het juiste Content-Type en `public, max-age=31536000, immutable`.
+
+| Breedte | AVIF | WebP | JPEG |
+|--:|--:|--:|--:|
+| 64 | 874 B | 1 276 B | 1 548 B |
+| 128 | 1 964 B | 3 086 B | 4 090 B |
+| 192 | 3 499 B (Linux-build: 3 401) | 5 406 B | 7 544 B |
+
+- **Welk bestand:** Chromium en WebKit kiezen hetzelfde, altijd AVIF: 64w bij DPR 1, 128w bij 1,75 en 2, 192w bij 2,625 en 3. `naturalWidth` overal 64. `e2e/photo.spec.ts` toetst de projecten (192w) en 1280 px bij DPR 1 en 2 (64w en 128w).
+- **Wat een bezoeker erbij laadt:** 0,9 KB (DPR 1), 2,0 KB (2x) of 3,5 KB (3x), direct bij het laden.
+- **Geen layout shift:** de foto, de naam en het statement blijven staan als de foto 1,5 s te laat komt of niet laadt, op 393 en 1280 px, in Chromium en WebKit; het vak blijft 64 × 64.
+- **Gemeten:** 64 × 64, rand 3 px wit, 16 px tot de naam, de middens gelijk.
+
+### Over mij: de harde spaties
+
+Op elke breedte van 320 tot 1440 px (1 121 breedtes), NL en EN, Chromium en WebKit: evenveel regels en dezelfde hoogte als zonder harde spaties, en de club breekt nergens meer af (zonder: op 324 tot 558 van de 1 121 breedtes). Niets steekt uit. `src/i18n/texts.test.ts` en `e2e/page.spec.ts` falen als ze weg zijn.
+
+### De HTML
+
+| Pagina (gzip) | `main` | Fase 8 |
+|---|--:|--:|
+| `/` | 9 940 B | 10 075 B |
+| `/en/` | 9 886 B | 10 018 B |
+| `/404.html` | 2 013 B | 1 980 B |
+
+De tweede `<picture>` en de harde spaties maken de pagina's ruim 0,13 KB groter. Het budget blijft 11,1 KB. `check-budget.mjs`: 36 controles groen, waarvan 18 rijen "Photo"; JS 21,2 KB, ongewijzigd.
+
+### Tests
+
+- `npm run verify` groen bij elke commit.
+- `npm run e2e`: 485 groen, 5 overgeslagen (de 3 van fase 7: geen Layout Instability API in WebKit, en het eerste scherm op `/` en `/en/` in `iphone`).
+- In CI was eerst één test rood: de rand van 3 px van de foto in de hero is in WebKit op Linux in het midden `246, 246, 247`, net buiten de marge van 8. De test eist nu minstens 240 per kanaal (commit `5357ee0`); daarna CI groen.
+
+### De preview
+
+`https://fase-8-neutraal-kayhardam-site.hardamkay.workers.dev/`, commit `5357ee0`:
+- de HTML van `/` en `/en/` is gelijk aan `dist/`, op de `uid` van het island na; `/404` is gelijk aan `dist/404.html` (`cmp`). De preview stuurt `X-Robots-Tag: noindex`;
+- `E2E_BASE_URL=<preview> npx playwright test e2e/photo.spec.ts e2e/security.spec.ts`: 70 tests groen, in Pixel 7 en iPhone 15.
+
+### Lighthouse (25 oktober 2026)
+
+Lighthouse 13.5.0, mobiel (standaard), headless Chrome op een Mac. Gemeten op de preview, commit `5357ee0`. Eén run per pagina en methode. De 404 is gemeten op `/404`.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| `/en/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| 404 (`/404`) | 100 / 100 / 100 / 54 | 100 / 100 / 100 / 54 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,0 s / 1,2 s / 0 ms / 0 / 1,0 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+| `/en/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+| 404 (`/404`) | 0,8 s / 1,1 s / 0 ms / 0 / 0,8 s | 0,8 s / 0,8 s / 0 ms / 0 / 0,8 s |
+
+- **SEO 69 en 54,** zoals in fase 7: alleen `is-crawlable` faalt (de `noindex` van de preview), op de 404 ook `meta-description` (bewust: de 404 heeft geen description). `image-alt` slaagt, ook met de lege alt van de foto in de hero.
+- **De LCP blijft het statement** (`.statement > span.lead`), niet de foto.
+- **De foto in de hero** laadt als 128w AVIF (Lighthouse is DPR 1,75), 2,3 KB over het netwerk, prioriteit High. De foto in Over mij als 600w AVIF (18,0 KB), prioriteit Low.
+- **CLS 0** op beide pagina's en methoden (in fase 7 bij devtools 0,024 en 0,018, van het lettertype). "Improve image delivery" is deze keer 1 bij beide methoden.
+- Na de merge volgt de meting op productie (SEO 100 verwacht): Lighthouse twee keer op `/` en `/en/`, `curl -sI` op de kleine AVIF, en het WhatsApp-voorbeeld (`?wa=2`).

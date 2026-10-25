@@ -18,4 +18,26 @@ for (const path of [...allPages(), missingPages[0]!]) {
     );
     for (const [name, height] of heights) expect(height, name).toBeGreaterThanOrEqual(44);
   });
+
+  // One grey ring on every background: 3:1 on navy, #1E293B, white and the card (Kay, phase 8).
+  // Tab reaches every link and button.
+  test(`${path}: the focus ring is 3 px of #64748B, 2 px out`, async ({ page, browserName }) => {
+    await page.goto(path);
+    // Safari tabs to links only with Option (Alt) held.
+    const key = browserName === "webkit" ? "Alt+Tab" : "Tab";
+    const count = await page.locator("a, button").count();
+    const rings: { name: string; outline: string; offset: string }[] = [];
+    for (let i = 0; i < count; i++) {
+      await page.keyboard.press(key);
+      const ring = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el || el === document.body) return null;
+        const s = getComputedStyle(el);
+        return { name: el.textContent?.trim() || el.getAttribute("aria-label") || el.tagName, outline: `${s.outlineWidth} ${s.outlineStyle} ${s.outlineColor}`, offset: s.outlineOffset };
+      });
+      if (ring) rings.push(ring);
+    }
+    expect(rings.length).toBe(count);
+    for (const { name, outline, offset } of rings) expect({ outline, offset }, name).toEqual({ outline: "3px solid rgb(100, 116, 139)", offset: "2px" });
+  });
 }

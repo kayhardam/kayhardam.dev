@@ -8,7 +8,8 @@
 // system-ui (the label KH) differs per machine, so the image would too. Run it
 // again only when the logo, the colours or the font change.
 //
-// Stacked in the middle: the KH logo (public/favicon.svg) of 210 px, and 34 px
+// Stacked in the middle: the KH logo as in the header (the player from
+// public/favicon.svg, white with a navy label) of 210 px, and 34 px
 // below it KAYHARDAM.DEV as in the header, 64 px. It reads dist/ without a
 // server (page.route()) for the site's CSS and fonts. The text is placed by its
 // ink, not its line box: first measured on its own, so the group of pixels that
@@ -51,7 +52,11 @@ const source = readFileSync(join(dist, "index.html"), "utf8");
 const styles = [...source.matchAll(/<style[^>]*>[\s\S]*?<\/style>/g)].map((m) => m[0]).join("\n");
 const site = readFileSync(fileURLToPath(new URL("../src/i18n/nl.ts", import.meta.url)), "utf8").match(/site: "([^"]+)"/)[1];
 // The letter-spacing is on the text only: the label KH in the SVG would inherit it and read "K H".
-const logo = readFileSync(join(dist, "favicon.svg"), "utf8").replace("<svg ", `<svg width="${LOGO}" height="${LOGO}" aria-hidden="true" `);
+// The logo as in the header: the favicon's player, white with a navy label.
+const logo = readFileSync(join(dist, "favicon.svg"), "utf8")
+  .replace('<circle r="9" fill="#0F172A"', '<circle r="9" fill="#F8FAFC"')
+  .replace('<text y="0.5" fill="#FFFFFF"', '<text y="0.5" fill="#0F172A"')
+  .replace("<svg ", `<svg width="${LOGO}" height="${LOGO}" aria-hidden="true" `);
 
 const page = (body) => `<!doctype html><html lang="nl"><head><meta charset="utf-8">${styles}
 <style>

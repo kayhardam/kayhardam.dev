@@ -29,13 +29,15 @@ images.forEach((image, i) => {
 });
 writeFileSync(new URL("../public/favicon.ico", import.meta.url), Buffer.concat([header, ...images]));
 
-// iOS rounds the corners itself and fills transparency with black: the same
-// player on a navy square of 28 by 28, so the player is 19/28 of the icon,
-// and no alpha channel at all.
+// iOS rounds the corners itself and fills transparency with black: the
+// player as in the header (white, with a navy label) on a navy square of 28
+// by 28, so the player is 19/28 of the icon, and no alpha channel at all.
 const navy = "#0F172A";
 const square = Buffer.from(
   svg
     .toString()
+    .replace(`<circle r="9" fill="${navy}"`, '<circle r="9" fill="#F8FAFC"')
+    .replace('<text y="0.5" fill="#FFFFFF"', `<text y="0.5" fill="${navy}"`)
     .replace('viewBox="-9.5 -9.5 19 19"', 'viewBox="-14 -14 28 28"')
     .replace(/(<svg[^>]*>)/, `$1<rect x="-14" y="-14" width="28" height="28" fill="${navy}"/>`),
 );

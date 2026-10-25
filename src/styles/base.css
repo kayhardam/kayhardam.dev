@@ -48,8 +48,10 @@ a {
   color: inherit;
 }
 
+/* One grey for every background: 3.75:1 on navy, 3.07:1 on #1E293B, 4.76:1 on
+   white and on the board's card (Kay, phase 8). */
 :focus-visible {
-  outline: 3px solid var(--color-green);
+  outline: 3px solid var(--color-text-small);
   outline-offset: 2px;
 }
 

@@ -1,6 +1,7 @@
 /*
- * Design tokens: Coachboard's colours (brief, "Kleuren"). Components use these
- * through scoped <style> blocks.
+ * Design tokens: navy, white and grey, from Coachboard's palette (brief,
+ * "Kleuren"). Colour comes only from the photo and from Coachboard's board
+ * card. Components use these through scoped <style> blocks.
  *
  * Breakpoints are mobile-first and can't be custom properties, so every
  * media query uses one of these two literally, as in Coachboard:
@@ -18,18 +19,17 @@
   --color-border: #e2e8f0;
   --color-text: #0f172a;
   --color-text-muted: #475569;
-  --color-text-small: #64748b; /* small labels */
+  --color-text-small: #64748b; /* small labels; also the pass, the line under the email address and the focus ring */
 
   /* Text on navy */
   --color-on-navy: #f8fafc;
   --color-on-navy-muted: #cbd5e1;
   --color-on-navy-small: #94a3b8;
 
-  /* Green */
-  --color-green-dark: #15803d; /* behind or as text on light (white on it: 5.0:1) */
-  --color-green: #16a34a; /* fills and icons only */
-  --color-green-on-navy: #4ade80; /* text on navy */
-  --color-green-line: #22c55e; /* lines on navy */
+  /* Green only for the board's card (board.css): it is Coachboard's own look,
+     the attack's colour on the court. The rest of the site is neutral: green
+     is a club colour (Kay, phase 8). */
+  --color-green-dark: #15803d; /* the card's mark and Play button (white on it: 5.0:1) */
 
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Barlow Condensed", var(--font-sans);

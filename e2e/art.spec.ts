@@ -75,13 +75,14 @@ for (const { path } of pages) {
           height: box.height,
           gap: Math.round(h2.top - box.bottom),
           fill: svg.querySelectorAll("circle")[svg.querySelectorAll("circle").length - 1]!.getAttribute("fill"),
+          ink: svg.querySelector("text")!.getAttribute("fill"),
         };
       }),
     );
     expect(numbers).toEqual([
-      { label: "1", section: expect.stringMatching(/coachboard/), width: 36, height: 36, gap: 16, fill: "#15803D" },
-      { label: "2", section: expect.stringMatching(/about/), width: 36, height: 36, gap: 16, fill: "#FFFFFF" },
-      { label: "3", section: expect.stringMatching(/contact/), width: 36, height: 36, gap: 16, fill: "#15803D" },
+      { label: "1", section: expect.stringMatching(/coachboard/), width: 36, height: 36, gap: 16, fill: "#0F172A", ink: "#FFFFFF" },
+      { label: "2", section: expect.stringMatching(/about/), width: 36, height: 36, gap: 16, fill: "#FFFFFF", ink: "#0F172A" },
+      { label: "3", section: expect.stringMatching(/contact/), width: 36, height: 36, gap: 16, fill: "#FFFFFF", ink: "#0F172A" },
     ]);
   });
 }
@@ -109,6 +110,9 @@ for (const width of [320, 393, 430, 559, 560, 859, 860, 1024, 1280]) {
     expect(pass.y).toBeLessThan(hero.bottom);
     expect(pass.bottom).toBeGreaterThan(section.y);
     if (width < 860) expect(Math.abs(pass.y - statement.bottom - 32)).toBeLessThanOrEqual(1);
+    // Grey, the line and its point: no green outside the board's card (phase 8).
+    const strokes = await page.locator(".pass line, .pass marker path").evaluateAll((all) => all.map((el) => el.getAttribute("stroke")));
+    expect(strokes).toEqual(["#64748B", "#64748B"]);
 
     for (const selector of [".board", ".hero-button", "h1", ".statement", ".coachboard h2"]) {
       const other = await box(selector);

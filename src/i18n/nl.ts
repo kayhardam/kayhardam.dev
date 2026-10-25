@@ -42,10 +42,10 @@ export const nl = {
     heading: "Over mij",
     photo: "Portret van Kay Hardam.",
     text: [
-      "Hoi, ik ben Kay. Overdag sta ik in de gymzaal, in het weekend langs de lijn.",
-      "De rest van de tijd bouw ik dingen. Gewoon omdat ik het leuk vind.",
+      "Hoi, ik ben Kay. Overdag sta ik in de gymzaal, in het weekend langs de lijn bij\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde.",
+      "En soms bouw ik dingen die ik zelf nodig heb, zoals Coachboard.",
     ],
-    example: "Wat ik bouw, moet je snappen zonder uitleg. Een aanval tegen een 6-0 in Coachboard? Drie pijlen, en je spelers snappen wat je bedoelt.",
+    example: "Wat ik bouw, moet je snappen zonder uitleg. Een aanval tegen een 6-0? Drie pijlen, en je spelers snappen wat je bedoelt.",
   },
   contact: {
     heading: "Contact",

@@ -28,6 +28,8 @@ for (const { path, t, locale } of pages) {
       email,
     ];
     for (const value of texts) await expect(page.getByText(value, { exact: true })).toBeVisible();
+    // getByText makes every space plain; textContent keeps the hard spaces in About me.
+    expect(await page.locator(".about .big").allTextContents()).toEqual(t.about.text);
     await expect(page.locator("h1")).toHaveText(t.name);
     await expect(page.locator(".statement")).toHaveText(t.statement.join(" "));
     await expect(page.locator(".github")).toHaveText(t.contact.github.join(""));

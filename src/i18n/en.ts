@@ -36,10 +36,10 @@ export const en: Text = {
     heading: "About me",
     photo: "Portrait of Kay Hardam.",
     text: [
-      "Hi, I’m Kay. By day I’m in the gym, on weekends I’m on the sideline.",
-      "The rest of the time I build things. Just because I enjoy it.",
+      "Hi, I’m Kay. By day I’m in the gym, on weekends I’m on the sideline at\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde.",
+      "And sometimes I build things I need myself, like Coachboard.",
     ],
-    example: "What I build should make sense without explaining. A play against a 6-0 defense in Coachboard? Three arrows, and your players get what you mean.",
+    example: "What I build should make sense without explaining. A play against a 6-0 defense? Three arrows, and your players get what you mean.",
   },
   contact: {
     heading: "Contact",

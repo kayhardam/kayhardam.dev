@@ -860,3 +860,56 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **De foto in de hero** laadt als 128w AVIF (Lighthouse is DPR 1,75), 2,3 KB over het netwerk, prioriteit High. De foto in Over mij als 600w AVIF (18,0 KB), prioriteit Low.
 - **CLS 0** op beide pagina's en methoden (in fase 7 bij devtools 0,024 en 0,018, van het lettertype). "Improve image delivery" is deze keer 1 bij beide methoden.
 - Na de merge volgt de meting op productie (SEO 100 verwacht): Lighthouse twee keer op `/` en `/en/`, `curl -sI` op de kleine AVIF, en het WhatsApp-voorbeeld (`?wa=2`).
+
+## Fase 8: op productie (25 oktober 2026)
+
+Gemeten op `https://kayhardam.dev`, na de merge van PR #14 (commit `5d596f2` op `main`, 08:23 UTC), om 15:21 UTC. `dist/` is `npm run build` op `5d596f2`. Node 22.22.2, Lighthouse 13.5.0, headless Chrome 154, op een Mac.
+
+### De HTML op productie is gelijk aan `dist/`
+
+Met het commando van fase 6 (de `uid` van het island weggelaten): `/ gelijk`, `/en/ gelijk`. Geen `cdn-cgi`, geen beacon, geen `email-protection`; `mailto:hallo@kayhardam.dev` staat er onveranderd op beide pagina's. Geen `X-Robots-Tag`.
+
+### De bestanden met `curl`
+
+Alle 200, met het juiste Content-Type en `X-Content-Type-Options: nosniff`:
+
+| Bestand | Content-Type | Cache-Control | Bytes op productie | Bytes in `dist/` (Mac) |
+|---|---|---|--:|--:|
+| Hero, AVIF 64w (`kay-hardam.Wcf1GJew_13nNzr.avif`) | `image/avif` | `public, max-age=31536000, immutable` | 874 | 874 |
+| Hero, AVIF 128w (`kay-hardam.Wcf1GJew_ZGIYqy.avif`) | `image/avif` | `public, max-age=31536000, immutable` | 1 964 | 1 964 |
+| Hero, AVIF 192w (`kay-hardam.Wcf1GJew_Z1dWFSl.avif`) | `image/avif` | `public, max-age=31536000, immutable` | 3 401 | 3 499 |
+| `og.png` | `image/png` | `public, max-age=0, must-revalidate` | 15 031 | 15 031 |
+| `favicon.svg` | `image/svg+xml` | `public, max-age=0, must-revalidate` | 468 | 468 |
+| `favicon.ico` | `image/vnd.microsoft.icon` | `public, max-age=0, must-revalidate` | 1 615 | 1 615 |
+| `apple-touch-icon.png` | `image/png` | `public, max-age=0, must-revalidate` | 4 066 | 4 066 |
+
+- **De 64w AVIF is byte voor byte gelijk aan `dist/`.** De 128w is even groot maar niet byte-gelijk, de 192w is de grootte van de Linux-build (3 401), zoals op de preview.
+- **`og.png` en de favicons zijn byte voor byte gelijk aan `dist/`:** de bestanden uit `public/`, zonder `immutable` (hun naam heeft geen hash).
+
+### E2E tegen productie
+
+`E2E_BASE_URL=https://kayhardam.dev npx playwright test e2e/photo.spec.ts e2e/security.spec.ts`: 70 tests groen, in Pixel 7 en iPhone 15. Gelijk aan de preview.
+
+### Lighthouse (25 oktober 2026)
+
+Mobiel (standaard), één run per pagina en methode.
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+| `/en/` | 100 / 100 / 100 / 100 | 100 / 100 / 100 / 100 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 0,9 s / 1,1 s / 0 ms / 0 / 0,9 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+| `/en/` | 1,1 s / 1,1 s / 0 ms / 0 / 1,1 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+
+- **SEO 100 op `/` en `/en/`,** zoals verwacht: `is-crawlable` slaagt (geen `X-Robots-Tag`), en `image-alt` slaagt, ook met de lege alt van de foto in de hero.
+- **De LCP blijft het statement** (`.statement > span.lead`), niet de foto.
+- **De foto in de hero** laadt als 128w AVIF (Lighthouse is DPR 1,75), 2,3 KB over het netwerk, prioriteit High. De foto in Over mij als 600w AVIF (17,9 KB), prioriteit Low. Gelijk aan de preview.
+- **CLS 0** op beide pagina's en methoden, zoals op de preview. "Improve image delivery" is 0,5 bij devtools en 1 bij simulated, zonder invloed op de score (zoals in fase 7 op productie).
+- Nog open: het WhatsApp-voorbeeld met `https://kayhardam.dev/?wa=2` (Kay).

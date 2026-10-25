@@ -5,14 +5,14 @@
 // Colours are presentation attributes: the CSP blocks style attributes.
 interface Props {
   label: string;
-  fill?: string;
+  fill: string;
   /** The label's colour. */
-  ink?: string;
+  ink: string;
   r?: number;
   transform?: string;
 }
 
-const { label, fill = "#15803D", ink = "#FFFFFF", r = 9, transform } = Astro.props;
+const { label, fill, ink, r = 9, transform } = Astro.props;
 ---
 
 <g transform={transform}>

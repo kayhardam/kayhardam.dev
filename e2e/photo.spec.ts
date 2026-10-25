@@ -150,7 +150,7 @@ for (const [dpr, expected] of [
 test("round, with a white edge of 5 px", async ({ page }) => {
   await page.goto("/");
   const photo = await loaded(page);
-  // The field lines run behind the photo on the phone; hidden here, so the corners are the section's green.
+  // The field lines run behind the photo on the phone; hidden here, so the corners are the section's second navy.
   // Through the CSSOM: the CSP allows no new stylesheet.
   await page.locator(".about .field-lines").evaluate((lines: HTMLElement) => (lines.style.visibility = "hidden"));
   const style = await photo.evaluate((img) => {
@@ -175,7 +175,7 @@ test("round, with a white edge of 5 px", async ({ page }) => {
   const near = (actual: number[], [r, g, b]: number[]) => Math.max(...actual.map((v, i) => Math.abs(v - [r, g, b][i]))) <= 8;
   const last = info.width - 1;
   for (const [x, y] of [[0, 0], [last, 0], [0, last], [last, last]]) {
-    expect(near(rgb(x, y), [0x15, 0x80, 0x3d]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
+    expect(near(rgb(x, y), [0x1e, 0x29, 0x3b]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
   }
   const middle = Math.round(info.width / 2);
   expect(near(rgb(middle, 2), [255, 255, 255]), `top edge: ${rgb(middle, 2)}`).toBe(true);

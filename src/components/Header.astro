@@ -11,7 +11,7 @@ const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code
 <header class="site-header">
   <div class="container bar">
     <a href={getRelativeLocaleUrl(locale)} class="logo">
-      <svg viewBox="-10 -10 20 20" width="34" height="34" aria-hidden="true"><Player label="KH" /></svg>
+      <svg viewBox="-10 -10 20 20" width="34" height="34" aria-hidden="true"><Player label="KH" fill="#F8FAFC" ink="#0F172A" /></svg>
       <span>{t.site}</span>
     </a>
     <nav aria-label={t.languages}>
@@ -109,9 +109,10 @@ const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code
   nav a:hover {
     border-color: var(--color-on-navy-small);
   }
-  /* Green on dark (#15803D, white on it 5.0:1); #16A34A would be 3.3:1. */
+  /* White with navy text, like the hero button (17.1:1). */
   nav a[aria-current="page"] {
-    background: var(--color-green-dark);
-    border-color: var(--color-green-dark);
+    background: var(--color-on-navy);
+    border-color: var(--color-on-navy);
+    color: var(--color-navy);
   }
 </style>

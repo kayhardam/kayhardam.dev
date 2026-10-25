@@ -32,7 +32,7 @@ for (const { path, lang, label } of pages) {
     await expect(page.locator("html")).toHaveAttribute("lang", other);
   });
 
-  test(`${path}: the language links: 44 by 44 px, the current one green`, async ({ page }) => {
+  test(`${path}: the language links: 44 by 44 px, the current one white`, async ({ page }) => {
     await page.goto(path);
     const links = await page
       .getByRole("navigation", { name: label })
@@ -40,13 +40,13 @@ for (const { path, lang, label } of pages) {
       .evaluateAll((all) =>
         all.map((a) => {
           const { width, height } = a.getBoundingClientRect();
-          return { code: a.textContent, width, height, current: a.getAttribute("aria-current"), background: getComputedStyle(a).backgroundColor };
+          return { code: a.textContent, width, height, current: a.getAttribute("aria-current"), background: getComputedStyle(a).backgroundColor, color: getComputedStyle(a).color };
         }),
       );
-    for (const { code, width, height, current, background } of links) {
+    for (const { code, width, height, current, background, color } of links) {
       expect(width, code!).toBeGreaterThanOrEqual(44);
       expect(height, code!).toBeGreaterThanOrEqual(44);
-      if (code === lang.toUpperCase()) expect({ current, background }).toEqual({ current: "page", background: "rgb(21, 128, 61)" });
+      if (code === lang.toUpperCase()) expect({ current, background, color }).toEqual({ current: "page", background: "rgb(248, 250, 252)", color: "rgb(15, 23, 42)" });
       else expect({ current, background }).toEqual({ current: null, background: "rgba(0, 0, 0, 0)" });
     }
   });

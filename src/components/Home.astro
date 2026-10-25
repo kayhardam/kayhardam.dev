@@ -39,7 +39,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
       <div class="container coachboard-grid">
         <div class="coachboard-head">
           <Pass />
-          <SectionNumber n={1} variant="green" ring />
+          <SectionNumber n={1} variant="navy" ring />
           <h2>{t.coachboard.heading}</h2>
         </div>
         <div class="coachboard-text">
@@ -82,7 +82,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 
   <footer class="contact">
     <div class="container">
-      <SectionNumber n={3} variant="green" />
+      <SectionNumber n={3} variant="white" />
       <h2 class="small-heading">{t.contact.heading}</h2>
       <p class="question">{t.contact.question}</p>
       <p class="mail">{t.contact.mail}</p>
@@ -153,24 +153,15 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     }
   }
 
-  /* The name: small and green, with a dash before it. */
+  /* The name: small and white. */
   h1 {
-    display: flex;
-    align-items: center;
-    gap: 12px;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 20px;
     line-height: 1.2;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-green-on-navy);
-  }
-  h1::before {
-    content: "";
-    width: 32px;
-    height: 3px;
-    background: currentColor;
+    color: var(--color-on-navy);
   }
 
   .statement {
@@ -197,8 +188,8 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     margin-top: 16px;
     padding: 0 16px;
     border-radius: var(--radius-sm);
-    background: var(--color-green-dark);
-    color: #fff;
+    background: var(--color-on-navy);
+    color: var(--color-navy);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 20px;
@@ -231,10 +222,12 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     text-transform: uppercase;
   }
 
+  /* Grey on both dark sections: 5.7:1 on #1E293B, 7.0:1 on navy. */
   .small-heading {
     font-size: 22px;
     line-height: 1.2;
     letter-spacing: 0.08em;
+    color: var(--color-on-navy-small);
   }
 
   /* Coachboard: on white, like Coachboard itself. */
@@ -285,9 +278,9 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     min-height: 52px;
     margin-top: 32px;
     padding: 0 24px;
-    border: 2px solid var(--color-green-dark);
+    border: 2px solid var(--color-navy);
     border-radius: var(--radius-sm);
-    color: var(--color-green-dark);
+    color: var(--color-navy);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 19px;
@@ -296,7 +289,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     text-decoration: none;
   }
   .outline-button:hover {
-    background: var(--color-green-dark);
+    background: var(--color-navy);
     color: #fff;
   }
 
@@ -311,11 +304,11 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     stroke-linejoin: round;
   }
 
-  /* About me: on green, white text (5.0:1). */
+  /* About me: on the second navy, white text (14.0:1). */
   .about {
     position: relative;
-    background: var(--color-green-dark);
-    color: #fff;
+    background: var(--color-navy-soft);
+    color: var(--color-on-navy);
   }
 
   /* One column on the phone and tablet: the photo above the text, at most 760 px wide. */
@@ -370,10 +363,6 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     border-top: 1px solid var(--color-navy-line);
   }
 
-  .contact h2 {
-    color: var(--color-green-on-navy);
-  }
-
   .question {
     margin-top: 16px;
     font-family: var(--font-display);
@@ -398,7 +387,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
     font-size: clamp(34px, 7vw, 96px);
     line-height: 1.1;
     color: var(--color-on-navy);
-    text-decoration: underline 4px var(--color-green-line);
+    text-decoration: underline 4px var(--color-text-small);
     text-underline-offset: 0.12em;
   }
 

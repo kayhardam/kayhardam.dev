@@ -30,7 +30,7 @@ import { gzipSync } from "node:zlib";
 
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS and fonts in phase 1, icons in phase 3, JS and HTML in phase 5,
-// the share image in phase 6 (details), the photo in phase 7.
+// the photo in phase 7, the share image with the photo in "De keten: vindbaarheid" (27 October 2026).
 export const BUDGETS = {
   js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
   lazyJs: 0, // 0 KB: no dynamic imports
@@ -39,7 +39,7 @@ export const BUDGETS = {
   html: 11_100, // 10.07 KB for /, the largest page, with all texts, CSS and SVGs, the board's step 1, its props, Astro's two scripts and the two photos' <picture>s
   font: 25_800, // 22.4 KB for Barlow Condensed 700, the largest
   icon: 5_600, // 4.1 KB for apple-touch-icon.png, the largest
-  shareImage: 19_300, // 15.03 KB for og.png, the white logo and kayhardam.dev
+  shareImage: 163_800, // 142.45 KB for og.png: the photo, the white logo and kayhardam.dev (WhatsApp takes up to about 300 KB)
   // The largest file per format: the photo in About me at 799 px, from an original of 799 px.
   photo: {
     avif: 34_100, // 29.61 KB

@@ -1,21 +1,24 @@
 // Dutch texts, word for word from the brief. Change a text only after Kay agrees.
-// Addresses are in src/data/links.ts and src/data/boards.ts, not here.
+// Addresses are in src/data/links.ts and src/data/boards.ts, not here, and so is
+// the label above the court: the title in the share link.
 export const nl = {
   // The <title> and og:title of the home page; the description also goes in og:description.
   title: "Kay Hardam | Gymleraar en handbaltrainer",
   description:
-    "Ik bouw tools voor sport en onderwijs, zoals Coachboard: een digitaal tactiekbord voor handbal. Bekijk een aanval op het bord en bewerk hem zelf.",
+    "Ik bouw tools voor sport, zoals Coachboard: een digitaal tactiekbord voor handbal. Bekijk een aanval op het bord en bewerk hem zelf.",
+  // og:image:alt, for public/og.png (one image for both languages).
+  ogImage: "Portret van Kay Hardam naast het KH-logo, met daaronder kayhardam.dev.",
+  // The jobTitle in the JSON-LD Person: the statement's first sentence without its full stop.
+  jobTitle: "Gymleraar en handbaltrainer",
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
   // The first sentence light grey, the second white.
-  statement: ["Gymleraar en handbaltrainer.", "Ik bouw tools voor sport en onderwijs."],
+  statement: ["Gymleraar en handbaltrainer.", "Ik bouw tools voor sport."],
   hero: {
     button: "Bewerk deze aanval in Coachboard",
   },
   board: {
-    // Above the court: the share link has no title, on purpose.
-    label: "Kruising MO–LO",
     court: "Handbalveld",
     // For screen readers, after the visible "1/4"; {n} and {count} as in Coachboard's viewer.step.
     step: "Stap {n} van {count}",
@@ -31,9 +34,15 @@ export const nl = {
   },
   coachboard: {
     heading: "Coachboard",
-    text: [
+    intro:
       "Een digitaal tactiekbord voor handbal. Teken een spelsituatie in een paar tikken en deel hem via een link of QR-code. Je spelers hebben geen app of account nodig.",
-      "Gebouwd vanuit de praktijk als handbaltrainer. Ik werk nu aan een bibliotheek waar trainers hun kennis delen.",
+    // Before the link to the tactics, the link, between, the link to the drills, after.
+    note: [
+      "Gebouwd vanuit de praktijk als handbaltrainer. Blader door ",
+      "tactieken",
+      " en ",
+      "oefeningen",
+      ", elk met een tekening die je opent in het bord. Heb je zelf een oefening die erin hoort? Mail hem me.",
     ],
     // The arrow after it is an SVG: U+2192 isn't in Barlow's Latin subset.
     button: "Naar Coachboard",

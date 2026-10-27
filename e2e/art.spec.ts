@@ -163,33 +163,57 @@ for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
 // WebKit has no Layout Instability API. The statement may still shift (phase 2,
 // CLS 0.028), and what is below it moves along; the header, the card, the button,
-// the numbers and the pass may not shift on their own.
-for (const width of [393, 1280]) {
-  test(`${width} px: no layout shift in the header, the card, the numbers or the pass`, async ({ page, browserName }) => {
-    test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
-    await page.setViewportSize({ width, height: 900 });
-    await page.addInitScript(() => {
-      const sources: string[] = [];
-      (window as unknown as { shifts: string[] }).shifts = sources;
-      const protectedParts = "header, .board, .hero-button, .section-number, .pass";
-      new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as unknown as { sources: { node?: Node }[] }[]) {
-          for (const { node } of entry.sources) {
-            const el = node instanceof Element ? node : node?.parentElement;
-            // Only a shift of these parts themselves: the Coachboard section may move as a
-            // whole with the statement (plan, chapter 7), the pass and number 1 with it.
-            if (el?.closest(protectedParts)) sources.push(el.outerHTML.slice(0, 80));
+// the numbers and the pass may not shift on their own. The statement often has a
+// line more in the fallback font (on main already at 360 and 412 px, and on /en/
+// at 393), so the Coachboard section moves up when Barlow comes, with the pass
+// and number 1 in it. Each shift's rects tell how far: the pass and the numbers
+// may move only as far as the statement grew or shrank, straight up or down.
+type Shift = { html: string; dx: number; dy: number; below: boolean };
+for (const path of ["/", "/en/"]) {
+  for (const width of [393, 1280]) {
+    test(`${path} at ${width} px: no layout shift in the header, the card, the numbers or the pass`, async ({ page, browserName }) => {
+      test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(() => {
+        const shifts: Shift[] = [];
+        const w = window as unknown as { shifts: Shift[]; statementBefore: number };
+        w.shifts = shifts;
+        // The statement's height in the fallback font: the fonts come 500 ms later.
+        document.addEventListener("DOMContentLoaded", () => {
+          w.statementBefore = document.querySelector(".statement")!.getBoundingClientRect().height;
+        });
+        const protectedParts = "header, .board, .hero-button, .section-number, .pass";
+        new PerformanceObserver((list) => {
+          for (const entry of list.getEntries() as unknown as { sources: { node?: Node; previousRect: DOMRectReadOnly; currentRect: DOMRectReadOnly }[] }[]) {
+            for (const { node, previousRect, currentRect } of entry.sources) {
+              const el = node instanceof Element ? node : node?.parentElement;
+              if (!el?.closest(protectedParts)) continue;
+              shifts.push({
+                html: el.outerHTML.slice(0, 80),
+                dx: currentRect.x - previousRect.x,
+                dy: currentRect.y - previousRect.y,
+                // Below the statement in the page: the pass and the numbers, not the header, the card or the button.
+                below: !!el.closest(".pass, .section-number"),
+              });
+            }
           }
-        }
-      }).observe({ type: "layout-shift", buffered: true });
+        }).observe({ type: "layout-shift", buffered: true });
+      });
+      await page.route("**/*.woff2", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await route.continue();
+      });
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(500);
+      const { shifts, statementBefore } = await page.evaluate(() => {
+        const w = window as unknown as { shifts: Shift[]; statementBefore: number };
+        return { shifts: w.shifts, statementBefore: w.statementBefore };
+      });
+      const statementAfter = await page.locator(".statement").evaluate((el) => el.getBoundingClientRect().height);
+      const grew = statementAfter - statementBefore;
+      const onTheirOwn = shifts.filter((s) => !s.below || Math.abs(s.dx) > 1 || Math.abs(s.dy - grew) > 1);
+      expect(onTheirOwn.map((s) => `${s.html} (${s.dx}, ${s.dy}; the statement ${grew})`)).toEqual([]);
     });
-    await page.route("**/*.woff2", async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      await route.continue();
-    });
-    await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
-    await page.waitForTimeout(500);
-    expect(await page.evaluate(() => (window as unknown as { shifts: string[] }).shifts)).toEqual([]);
-  });
+  }
 }

@@ -101,6 +101,25 @@ for (const path of ["/", "/en/"]) {
   });
 }
 
+// A phone's whole screen, as a review measures it (Kay, 27 October 2026): below the
+// card and the button, the name and the statement's first line still fit. In
+// Safari's own window (390 × 664) they don't, as above.
+for (const path of ["/", "/en/"]) {
+  test(`${path} at 390×844: the name and the statement's first line are on the first screen`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(path);
+    await page.evaluate(() => document.fonts.ready);
+    const name = (await page.locator("h1").boundingBox())!;
+    expect(name.y + name.height).toBeLessThanOrEqual(844);
+    const firstLine = await page.locator(".statement").evaluate((statement) => {
+      const range = document.createRange();
+      range.selectNodeContents(statement);
+      return Math.min(...[...range.getClientRects()].map((r) => r.bottom));
+    });
+    expect(firstLine).toBeLessThanOrEqual(844);
+  });
+}
+
 test("the whole card and the button are on the first screen", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);

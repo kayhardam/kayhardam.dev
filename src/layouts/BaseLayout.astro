@@ -5,6 +5,7 @@ import bold from "@fontsource/barlow-condensed/files/barlow-condensed-latin-700-
 import "../styles/tokens.css";
 import "../styles/base.css";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
+import { coachboardSite, github } from "../data/links";
 import { defaultLocale, locales, text, type Locale } from "../i18n";
 
 /**
@@ -16,6 +17,7 @@ type Props = { title: string } & ({ description: string; noindex?: false } | { d
 
 const { title, description, noindex = false } = Astro.props;
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const t = text(locale);
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 // After Coachboard's BaseLayout.astro (commit 88a58a4): og:title and og:description
 // are the title and the description. One image for both languages, from
@@ -25,6 +27,17 @@ const ogImage = new URL("/og.png", Astro.site).href;
 // The home page in each language, and x-default to the English one (Kay, 17 October 2026).
 const alternates = noindex ? [] : locales.map((code) => [code, getAbsoluteLocaleUrl(code)] as const);
 const xDefault = getAbsoluteLocaleUrl("en");
+// Who the page is about, for search engines: a JSON-LD Person, a data block
+// that no browser runs (scripts/check-budget.mjs allows it). < is escaped, so
+// no text can close the <script>.
+const person = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: t.name,
+  jobTitle: t.jobTitle,
+  url: canonical,
+  sameAs: [github, coachboardSite],
+}).replaceAll("<", "\\u003c");
 ---
 
 <!doctype html>
@@ -47,7 +60,7 @@ const xDefault = getAbsoluteLocaleUrl("en");
         <>
           <link rel="sitemap" href="/sitemap-index.xml" />
           <meta property="og:type" content="website" />
-          <meta property="og:site_name" content={text(locale).site} />
+          <meta property="og:site_name" content={t.site} />
           <meta property="og:locale" content={ogLocale[locale]} />
           <meta property="og:url" content={canonical} />
           <meta property="og:title" content={title} />
@@ -55,7 +68,9 @@ const xDefault = getAbsoluteLocaleUrl("en");
           <meta property="og:image" content={ogImage} />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={t.ogImage} />
           <meta name="twitter:card" content="summary_large_image" />
+          <script type="application/ld+json" set:html={person} />
         </>
       )
     }

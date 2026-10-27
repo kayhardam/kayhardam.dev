@@ -1,7 +1,7 @@
 # kayhardam.dev
 
 Kay Hardam's personal landing page, live at https://kayhardam.dev in Dutch and English.
-PE teacher and handball coach; I build tools for sport and education.
+PE teacher and handball coach; I build tools for sports.
 
 The hero plays a shared board from [Coachboard](https://handballcoachboard.com), the digital
 tactics board for handball I'm building. The board's code is copied from the Coachboard repo,

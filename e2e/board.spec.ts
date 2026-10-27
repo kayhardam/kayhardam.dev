@@ -31,7 +31,8 @@ for (const { path, t, locale } of pages) {
   test(`${path}: step 1 with the label, the counter and the sentence`, async ({ page }) => {
     await page.goto(path);
     const board = await boardFrom(boards[locale]);
-    await expect(page.locator(".board-label")).toHaveText(t.board.label);
+    // The label is the link's title (src/data/boards.test.ts has the brief's words).
+    await expect(page.locator(".board-label")).toHaveText(board.title);
     await expect(page.locator(".board-count [aria-hidden=true]")).toHaveText("1/4");
     await expect(page.locator(".board-count [aria-hidden=true]")).toBeVisible();
     await expect(page.locator(".board-count .visually-hidden")).toHaveText(

@@ -1,6 +1,7 @@
 ---
 // The board card in the hero. Decodes the share link at build time and makes
-// the legend; a broken link or a legend item without a text stops the build.
+// the legend; a broken link, a link without a title (the label above the court)
+// or a legend item without a text stops the build.
 // BoardCard.svelte draws the card: an island with client:visible, which gets the
 // decoded board as props, so the browser never decodes the link. Its HTML from
 // the server is the card without JavaScript: step 1, with the buttons off.

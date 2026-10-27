@@ -1,9 +1,11 @@
+import { coachboardSite, github } from "../src/data/links";
 import { en } from "../src/i18n/en";
 import { nl } from "../src/i18n/nl";
 import { expect, missingPages, site, test } from "./helpers";
 
-// What search engines and link previews read: the title, the description and
-// Open Graph per language, robots.txt and the sitemap. The 404 page has none of it.
+// What search engines and link previews read: the title, the description,
+// Open Graph and the JSON-LD Person per language, robots.txt and the sitemap.
+// The 404 page has none of it.
 
 const pages = [
   { path: "/", t: nl, ogLocale: "nl_NL" },
@@ -28,6 +30,7 @@ for (const { path, t, ogLocale } of pages) {
       "og:image": `${site}/og.png`,
       "og:image:width": "1200",
       "og:image:height": "630",
+      "og:image:alt": t.ogImage,
       "twitter:card": "summary_large_image",
     };
     await expect(page.locator('link[rel="sitemap"]')).toHaveAttribute("href", "/sitemap-index.xml");
@@ -35,6 +38,20 @@ for (const { path, t, ogLocale } of pages) {
       await expect(meta(key), key).toHaveCount(1);
       await expect(meta(key), key).toHaveAttribute("content", value);
     }
+  });
+
+  test(`${path}: a JSON-LD Person with the name, the job title, the page and sameAs`, async ({ page }) => {
+    await page.goto(path);
+    const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+    expect(blocks).toHaveLength(1);
+    expect(JSON.parse(blocks[0]!)).toEqual({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: t.name,
+      jobTitle: t.jobTitle,
+      url: `${site}${path}`,
+      sameAs: [github, coachboardSite],
+    });
   });
 
   // The path, not the absolute URL: on a preview and locally the domain isn't this site.
@@ -51,7 +68,7 @@ for (const { path, t, ogLocale } of pages) {
 }
 
 for (const path of missingPages) {
-  test(`${path}: the 404 page is noindex, without a description or Open Graph`, async ({ page }) => {
+  test(`${path}: the 404 page is noindex, without a description, Open Graph or JSON-LD`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
     for (const selector of [
@@ -61,6 +78,7 @@ for (const path of missingPages) {
       'meta[name="description"]',
       'meta[property^="og:"]',
       'meta[name^="twitter:"]',
+      'script[type="application/ld+json"]',
     ]) {
       await expect(page.locator(selector), selector).toHaveCount(0);
     }

@@ -5,16 +5,17 @@ import type { Text } from "./nl";
 export const en: Text = {
   title: "Kay Hardam | PE teacher and handball coach",
   description:
-    "I build tools for sports and education, like Coachboard: a digital tactics board for handball. Watch a play on the board and edit it yourself.",
+    "I build tools for sports, like Coachboard: a digital tactics board for handball. Watch a play on the board and edit it yourself.",
+  ogImage: "Portrait of Kay Hardam beside the KH logo, with kayhardam.dev below.",
+  jobTitle: "PE teacher and handball coach",
   site: "kayhardam.dev",
   languages: "Language",
   name: "Kay Hardam",
-  statement: ["PE teacher and handball coach.", "I build tools for sports and education."],
+  statement: ["PE teacher and handball coach.", "I build tools for sports."],
   hero: {
     button: "Edit this play in Coachboard",
   },
   board: {
-    label: "Crossing CB–LB",
     court: "Handball court",
     step: "Step {n} of {count}",
     legend: "Legend",
@@ -26,9 +27,14 @@ export const en: Text = {
   },
   coachboard: {
     heading: "Coachboard",
-    text: [
+    intro:
       "A digital tactics board for handball. Draw a play in a few taps and share it with a link or QR code. Your players don’t need an app or account.",
-      "Built from my own experience as a handball coach. I’m now working on a library where coaches share what they know.",
+    note: [
+      "Built from my own experience as a handball coach. Browse ",
+      "tactics",
+      " and ",
+      "drills",
+      ", each with a diagram you can open in the board. Got a drill that belongs in there? Email me.",
     ],
     button: "Go to Coachboard",
   },

@@ -5,7 +5,7 @@ import type { Text } from "./nl";
 export const en: Text = {
   title: "Kay Hardam | PE teacher and handball coach",
   description:
-    "I build tools for sports, like Coachboard: a digital tactics board for handball. Watch a play on the board and edit it yourself.",
+    "I build tools for sports, like Handball Coachboard: a digital tactics board. Watch a play on the board and edit it yourself.",
   ogImage: "Portrait of Kay Hardam beside the KH logo, with kayhardam.dev below.",
   jobTitle: "PE teacher and handball coach",
   site: "kayhardam.dev",

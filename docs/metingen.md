@@ -976,11 +976,11 @@ De test in `e2e/art.spec.ts` keek alleen naar `/` op 393 px, waar op `main` toev
 
 | Pagina (gzip) | `main` | Nu |
 |---|--:|--:|
-| `/` | 10 075 B | 10 318 B |
-| `/en/` | 10 018 B | 10 244 B |
+| `/` | 10 075 B | 10 319 B |
+| `/en/` | 10 018 B | 10 243 B |
 | `/404.html` | 1 980 B | 1 978 B |
 
-De JSON-LD, `og:image:alt`, de twee links en de langere deellinks maken de pagina's 0,23 KB groter. Het budget blijft 11,1 KB. JS 21,2 KB, ongewijzigd; het island krijgt alleen de titel erbij.
+De JSON-LD, `og:image:alt`, de twee links en de langere deellinks maken de pagina's 0,23 KB groter. Gemeten na de description met "Handball Coachboard" (28 oktober); de preview en Lighthouse hieronder zijn van `1da67a7`, met de description daarvoor. Het budget blijft 11,1 KB. JS 21,2 KB, ongewijzigd; het island krijgt alleen de titel erbij.
 
 ### Tests
 

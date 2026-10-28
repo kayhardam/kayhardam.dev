@@ -3,9 +3,11 @@
 // the label above the court: the title in the share link.
 export const nl = {
   // The <title> and og:title of the home page; the description also goes in og:description.
+  // The description is the first mention of Coachboard, so it has the full name,
+  // "Handball Coachboard"; after it "Coachboard", and buttons keep it short (Kay, 28 October 2026).
   title: "Kay Hardam | Gymleraar en handbaltrainer",
   description:
-    "Ik bouw tools voor sport, zoals Coachboard: een digitaal tactiekbord voor handbal. Bekijk een aanval op het bord en bewerk hem zelf.",
+    "Ik bouw tools voor sport, zoals Handball Coachboard: een digitaal tactiekbord. Bekijk een aanval op het bord en bewerk hem zelf.",
   // og:image:alt, for public/og.png (one image for both languages).
   ogImage: "Portret van Kay Hardam naast het KH-logo, met daaronder kayhardam.dev.",
   // The jobTitle in the JSON-LD Person: the statement's first sentence without its full stop.

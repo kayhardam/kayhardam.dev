@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { locales, type Locale } from "../i18n";
-import type { Board, Pt } from "../lib/board/format";
+import { encode, type Board, type Pt } from "../lib/board/format";
 import { BALL_R, PLAYER_R } from "../lib/board/geometry";
 import { moment } from "../lib/board/play";
 import { boardFrom, boards, legendFor } from "./boards";
@@ -8,9 +8,10 @@ import { boardFrom, boards, legendFor } from "./boards";
 // The two share links decode to the board the page shows: the brief's attack,
 // within the cropped court, in both languages.
 
-/** From the brief, word for word: the sentence per step and the attack's labels. */
-const brief: Record<Locale, { steps: string[]; labels: string[] }> = {
+/** From the brief, word for word: the title (the label above the court), the sentence per step and the attack's labels. */
+const brief: Record<Locale, { title: string; steps: string[]; labels: string[] }> = {
   nl: {
+    title: "Kruising MO–LO",
     steps: [
       "MO gaat met de bal schuin naar links.",
       "LO kruist achter MO langs.",
@@ -20,6 +21,7 @@ const brief: Record<Locale, { steps: string[]; labels: string[] }> = {
     labels: ["LH", "LO", "MO", "RO", "RH", "CL", "K"],
   },
   en: {
+    title: "Crossing CB–LB",
     steps: [
       "CB goes diagonally left with the ball.",
       "LB crosses behind CB.",
@@ -49,10 +51,10 @@ describe("boards", () => {
         expect(boards[code].startsWith(`https://handballcoachboard.com/${code}/board/#t=2.`)).toBe(true);
       });
 
-      it("decodes to a half court without a title, in four steps", () => {
+      it("decodes to a half court with the brief's title, in four steps", () => {
         const board = decoded[code];
         expect(board.court).toBe("half");
-        expect(board.title).toBeUndefined();
+        expect(board.title).toBe(brief[code].title);
         expect(board.frames).toHaveLength(4);
       });
 
@@ -101,5 +103,13 @@ describe("boards", () => {
   it("stops on a broken link", async () => {
     await expect(boardFrom("https://handballcoachboard.com/nl/board/#t=2.broken")).rejects.toThrow("Not a board");
     await expect(boardFrom("https://handballcoachboard.com/nl/board/")).rejects.toThrow("Not a board");
+  });
+
+  // The title is the label above the court: without one there is nothing to show there.
+  it("stops on a link without a title", async () => {
+    const untitled = structuredClone(decoded.nl);
+    delete untitled.title;
+    const link = `https://handballcoachboard.com/nl/board/#t=${await encode(untitled)}`;
+    await expect(boardFrom(link)).rejects.toThrow(`No title: ${link}`);
   });
 });

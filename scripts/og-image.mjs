@@ -6,14 +6,17 @@
 // One-off, on the Mac: `npm run build && node scripts/og-image.mjs`, then
 // commit the PNG. Not part of the build: Workers Builds has no Chromium, and
 // system-ui (the label KH) differs per machine, so the image would too. Run it
-// again only when the logo, the colours or the font change.
+// again only when the photo, the logo, the colours or the font change.
 //
-// Stacked in the middle: the KH logo as in the header (the player from
-// public/favicon.svg, white with a navy label) of 210 px, and 34 px
-// below it KAYHARDAM.DEV as in the header, 64 px. It reads dist/ without a
-// server (page.route()) for the site's CSS and fonts. The text is placed by its
-// ink, not its line box: first measured on its own, so the group of pixels that
-// aren't navy has equal margins, top and bottom, left and right.
+// In the middle: Kay's photo of 260 px, round with a white edge of 8 px like a
+// player, and 48 px beside it the KH logo as in the header (the player from
+// public/favicon.svg, white with a navy label) of 210 px, centred on each
+// other; 34 px below them KAYHARDAM.DEV as in the header, 64 px. The photo is
+// the clean copy, src/assets/kay-hardam.jpg; the PNG keeps none of its
+// metadata (og-image.test.mjs). It reads dist/ without a server (page.route())
+// for the site's CSS and fonts. The text is placed by its ink, not its line
+// box: first measured on its own, so the group of pixels that aren't navy has
+// equal margins, top and bottom, left and right.
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +26,7 @@ import sharp from "sharp";
 const dist = fileURLToPath(new URL("../dist/", import.meta.url));
 const origin = "http://og.local";
 const types = { ".html": "text/html", ".css": "text/css", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
-const [WIDTH, HEIGHT, LOGO, GAP] = [1200, 630, 210, 34];
+const [WIDTH, HEIGHT, PHOTO, EDGE, BESIDE, LOGO, GAP] = [1200, 630, 260, 8, 48, 210, 34];
 const NAVY = [0x0f, 0x17, 0x2a];
 
 if (!existsSync(join(dist, "index.html"))) {
@@ -57,6 +60,7 @@ const logo = readFileSync(join(dist, "favicon.svg"), "utf8")
   .replace('<circle r="9" fill="#0F172A"', '<circle r="9" fill="#F8FAFC"')
   .replace('<text y="0.5" fill="#FFFFFF"', '<text y="0.5" fill="#0F172A"')
   .replace("<svg ", `<svg width="${LOGO}" height="${LOGO}" aria-hidden="true" `);
+const photo = `data:image/jpeg;base64,${readFileSync(fileURLToPath(new URL("../src/assets/kay-hardam.jpg", import.meta.url))).toString("base64")}`;
 
 const page = (body) => `<!doctype html><html lang="nl"><head><meta charset="utf-8">${styles}
 <style>
@@ -64,6 +68,7 @@ const page = (body) => `<!doctype html><html lang="nl"><head><meta charset="utf-
   body > * { position: absolute; }
   .site { font-family: var(--font-display); font-weight: 700; font-size: 64px; line-height: 1; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--color-on-navy); white-space: nowrap; }
+  .photo { width: ${PHOTO}px; height: ${PHOTO}px; border: ${EDGE}px solid #fff; border-radius: 50%; object-fit: cover; }
 </style></head><body>${body}</body></html>`;
 
 const browser = await chromium.launch();
@@ -87,11 +92,14 @@ async function shoot(body) {
 const alone = await ink(await shoot(`<span class="site" style="left: 100px; top: 100px">${site}</span>`));
 const text = { dx: alone.left - 100, dy: alone.top - 100, width: alone.right - alone.left + 1, height: alone.bottom - alone.top + 1 };
 
-const top = Math.round((HEIGHT - (LOGO + GAP + text.height)) / 2);
+// The photo and the logo in a row, the text below it.
+const top = Math.round((HEIGHT - (PHOTO + GAP + text.height)) / 2);
+const left = Math.round((WIDTH - (PHOTO + BESIDE + LOGO)) / 2);
 const textLeft = Math.round((WIDTH - text.width) / 2);
 const shot = await shoot(
-  `<div style="left: ${(WIDTH - LOGO) / 2}px; top: ${top}px; line-height: 0">${logo}</div>` +
-    `<span class="site" style="left: ${textLeft - text.dx}px; top: ${top + LOGO + GAP - text.dy}px">${site}</span>`,
+  `<img class="photo" src="${photo}" alt="" style="left: ${left}px; top: ${top}px">` +
+    `<div style="left: ${left + PHOTO + BESIDE}px; top: ${top + (PHOTO - LOGO) / 2}px; line-height: 0">${logo}</div>` +
+    `<span class="site" style="left: ${textLeft - text.dx}px; top: ${top + PHOTO + GAP - text.dy}px">${site}</span>`,
 );
 await browser.close();
 

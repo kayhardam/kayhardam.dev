@@ -8,7 +8,7 @@ import FieldLines from "./art/FieldLines.astro";
 import Pass from "./art/Pass.astro";
 import SectionNumber from "./art/SectionNumber.astro";
 import { boards } from "../data/boards";
-import { coachboard, email, github, mailto } from "../data/links";
+import { coachboard, drills, email, github, mailto, tactics } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
@@ -16,6 +16,7 @@ const t = text(locale);
 const [lead, rest] = t.statement;
 const [atName, atDomain] = email.split("@");
 const [beforeGithub, githubLink, afterGithub] = t.contact.github;
+const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
 ---
 
 <BaseLayout title={t.title} description={t.description}>
@@ -57,8 +58,8 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
           <h2>{t.coachboard.heading}</h2>
         </div>
         <div class="coachboard-text">
-          <p class="intro">{t.coachboard.text[0]}</p>
-          <p class="note">{t.coachboard.text[1]}</p>
+          <p class="intro">{t.coachboard.intro}</p>
+          <p class="note">{beforeTactics}<a href={tactics[locale]}>{tacticsLink}</a>{betweenLinks}<a href={drills[locale]}>{drillsLink}</a>{afterDrills}</p>
           <a class="outline-button" href={coachboard[locale]}>
             {t.coachboard.button}
             <svg class="arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
@@ -102,7 +103,7 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
       <p class="mail">{t.contact.mail}</p>
       {/* On one line; the <wbr> only as a fallback on very narrow screens. */}
       <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
-      <p class="github">{beforeGithub}<a href={github}>{githubLink}</a>{afterGithub}</p>
+      <p class="github">{beforeGithub}<a href={github} rel="me">{githubLink}</a>{afterGithub}</p>
     </div>
   </footer>
 </BaseLayout>
@@ -300,6 +301,15 @@ const [beforeGithub, githubLink, afterGithub] = t.contact.github;
   .note {
     margin-top: 16px;
     color: var(--color-text-muted);
+  }
+
+  /* 17 × 1.6 = 27.2 px of text, plus the padding: 45 px. The negative margin
+     keeps the line as high as the others; only the touch target grows. */
+  .note a {
+    display: inline-block;
+    padding-block: 9px;
+    margin-block: -9px;
+    color: var(--color-text);
   }
 
   .outline-button {

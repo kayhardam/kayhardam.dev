@@ -913,3 +913,106 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **De foto in de hero** laadt als 128w AVIF (Lighthouse is DPR 1,75), 2,3 KB over het netwerk, prioriteit High. De foto in Over mij als 600w AVIF (17,9 KB), prioriteit Low. Gelijk aan de preview.
 - **CLS 0** op beide pagina's en methoden, zoals op de preview. "Improve image delivery" is 0,5 bij devtools en 1 bij simulated, zonder invloed op de score (zoals in fase 7 op productie).
 - Nog open: het WhatsApp-voorbeeld met `https://kayhardam.dev/?wa=2` (Kay).
+
+## De keten: vindbaarheid (27 oktober 2026)
+
+Branch `keten-vindbaarheid`, Kays besluit na drie onafhankelijke reviews: de titel in de deellinks, `og.png` met de foto en `og:image:alt`, de links naar de tactieken en oefeningen van Coachboard, een JSON-LD Person en `rel="me"`, het statement en de description zonder "onderwijs", en de naam en de eerste regel van het statement in het eerste scherm op 390 × 844. Gemeten op de Mac met Node 22.22.2, Astro 7.4.0, Playwright 1.64.1 (Chromium en WebKit) en Lighthouse 13.5.0.
+
+### De deellinks met titel
+
+Gemaakt met `encode()` uit de kopie van `format.ts`. Die is gelijk aan Coachboard `main` (`591601f`): `git diff 4ceafd4 origin/main` op de gekopieerde bestanden is leeg.
+
+| Link | Hash (tekens) | Titel | Verder |
+|---|--:|---|---|
+| NL | 342 | Kruising MO–LO | hetzelfde bord (`sameBoard()`) |
+| EN | 338 | Crossing CB–LB | hetzelfde bord (`sameBoard()`) |
+
+Op `handballcoachboard.com` (headless Chromium, 393 px) opent de editor beide links met de titel in de titelknop, zonder fouten op de pagina. Het label boven het veld is nu `board.title`; `src/data/boards.test.ts` toetst de woorden uit de brief.
+
+### `og.png`
+
+| | Was | Nu |
+|---|--:|--:|
+| Bytes | 15 031 | 142 446 |
+| Inkt x | 388–811 | 341–858 |
+| Inkt y | 170–460 | 145–485 |
+| Marges (links, rechts, boven, onder) | 388, 388, 170, 169 | 341, 341, 145, 144 |
+
+- **Wat erop staat:** de foto (260 px, witte rand van 8 px, `#FFFFFF` op (345, 275)) en het logo (210 px, `#F8FAFC` op (754, 190)), met 48 px ertussen, en `KAYHARDAM.DEV` 34 px eronder. Alles binnen x 285–915. Geen EXIF, ICC, XMP of IPTC.
+- **Op 72 px** (het middenvierkant, zoals WhatsApp het compact toont) herken je het gezicht en KH nog; `KAYHARDAM.DEV` is daar niet te lezen, op 300 px breed wel.
+- **Het budget** gaat van 19,3 naar 163,8 KB (gemeten plus 15%). Als JPEG zou hij 24,5 KB (kwaliteit 80) of 33,9 KB (90) zijn, maar dan wordt het `og.jpg`; niet gekozen. WhatsApp neemt tot ongeveer 300 KB.
+
+### Het eerste scherm op 390 × 844
+
+In px vanaf de bovenkant van het venster, NL en EN gelijk:
+
+| Venster | Onderkant knop | Naam | Eerste regel statement | Erin? |
+|---|--:|---|--:|---|
+| 390×844, Chromium | 638,4 | 690,4–714,4 | 782 | ja, 62 px over |
+| 390×844, WebKit | 638,4 | 690,4–714,4 | 783 | ja, 61 px over |
+| 390×664 (Safari op zo'n iPhone) | 638,4 | 690,4–714,4 | 782 | nee, zoals in fase 8 |
+
+Het stond er al vóór deze branch; `e2e/board-box.spec.ts` toetst het nu, in beide projecten.
+
+### De links in de Coachboard-sectie
+
+`inline-block`, 9 px padding en −9 px marge: elke link 45,2 px hoog, op 393 en 1280 px. De regels van de alinea blijven 27,2 px uit elkaar (op 393 px: 1285, 1312, 1339 en 1366). axe en de focusring (`e2e/a11y.spec.ts`) groen.
+
+### De layout shift als Barlow laat komt
+
+Het statement heeft in het reservelettertype vaak een regel meer dan in Barlow, ook op `main`. Of de hoogte verandert (Chromium, 900 px hoog):
+
+| Breedte | `main` NL | `main` EN | Nu NL | Nu EN |
+|--:|---|---|---|---|
+| 320 | 142,5 → 114 | 142,5 → 114 | gelijk | gelijk |
+| 360 | 142,5 → 114 | 142,5 → 114 | 114 → 85,5 | 114 → 85,5 |
+| 393 | gelijk | 142,5 → 114 | 114 → 85,5 | 114 → 85,5 |
+| 412 | 114 → 85,5 | gelijk | 114 → 57 | 114 → 85,5 |
+| 1280 | 279,6 → 223,7 | 335,5 → 223,7 | gelijk | 279,6 → 223,7 |
+
+De test in `e2e/art.spec.ts` keek alleen naar `/` op 393 px, waar op `main` toevallig niets veranderde. Nu schuift daar de Coachboard-sectie 28,5 px omhoog, met de pass (die in de hero steekt): score 0,0000. De test vergelijkt nu elke verschuiving met die van het statement. De pass en de nummers mogen precies zo ver mee, recht omhoog of omlaag; de header, de kaart en de knop helemaal niet. Hij draait op `/` en `/en/`. Lighthouse: CLS 0.
+
+### De HTML
+
+| Pagina (gzip) | `main` | Nu |
+|---|--:|--:|
+| `/` | 10 075 B | 10 319 B |
+| `/en/` | 10 018 B | 10 243 B |
+| `/404.html` | 1 980 B | 1 978 B |
+
+De JSON-LD, `og:image:alt`, de twee links en de langere deellinks maken de pagina's 0,23 KB groter. Gemeten na de description met "Handball Coachboard" (28 oktober); de preview en Lighthouse hieronder zijn van `1da67a7`, met de description daarvoor. Het budget blijft 11,1 KB. JS 21,2 KB, ongewijzigd; het island krijgt alleen de titel erbij.
+
+### Tests
+
+- `npm run verify` groen bij elke commit.
+- `npm run e2e`: 495 groen, 7 overgeslagen (de 5 van fase 8, en de layout shift op `/en/` in WebKit, op 393 en 1280 px).
+
+### De preview
+
+`https://keten-vindbaarheid-kayhardam-site.hardamkay.workers.dev/`, commit `1da67a7`:
+- de HTML van `/` en `/en/` is gelijk aan `dist/`, op de `uid` van het island na; `/404` is gelijk aan `dist/404.html` (`cmp`). Geen `cdn-cgi` of `email-protection`. De preview stuurt `X-Robots-Tag: noindex`;
+- `og.png`: 200, `image/png`, byte voor byte gelijk aan `public/og.png`;
+- `E2E_BASE_URL=<preview> npx playwright test e2e/seo.spec.ts e2e/security.spec.ts e2e/page.spec.ts e2e/board.spec.ts e2e/photo.spec.ts`: 166 tests groen, in Pixel 7 en iPhone 15.
+
+### Lighthouse (27 oktober 2026)
+
+Mobiel (standaard), headless Chrome op een Mac, op de preview. Eén run per pagina en methode; `/` simulated twee keer (de eerste had een Speed Index van 1,6 s).
+
+Scores (Performance / Accessibility / Best Practices / SEO):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+| `/en/` | 100 / 100 / 100 / 69 | 100 / 100 / 100 / 69 |
+
+Metrics (FCP / LCP / TBT / CLS / Speed Index):
+
+| Pagina | Simulated | Devtools |
+|---|---|---|
+| `/` | 1,0 s / 1,1 s / 0 ms / 0 / 1,0 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+| `/en/` | 1,0 s / 1,2 s / 0 ms / 0 / 1,0 s | 0,8 s / 0,8 s / 0 ms / 0 / 1,1 s |
+
+- **SEO 69,** zoals op elke preview: alleen `is-crawlable` faalt (de `noindex` van de preview). Op productie 100 verwacht.
+- **De LCP blijft het statement** (`.statement > span.lead`).
+- **CLS 0** op beide pagina's en methoden.
+- Na de merge: de meting op productie, het WhatsApp-voorbeeld met `https://kayhardam.dev/?wa=3`, en eventueel de Rich Results Test van Google voor de JSON-LD (Kay).

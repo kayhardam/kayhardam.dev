@@ -23,7 +23,8 @@
   import Court from "./Court.svelte";
 
   interface Props {
-    board: Board;
+    /** With a title, the label above the court: boardFrom() in src/data/boards.ts stops the build without one. */
+    board: Board & { title: string };
     /** The legend, with its texts: legendFor() in src/data/boards.ts. */
     legend: { kind: LegendItem; text: string }[];
     t: Text["board"];
@@ -238,7 +239,7 @@
     <div class="board-head">
       <p class="board-label">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icons.court} /></svg>
-        <span>{t.label}</span>
+        <span>{board.title}</span>
       </p>
       <p class="board-count"><span aria-hidden="true">{step + 1}/{count}</span><span class="visually-hidden">{where}</span></p>
     </div>

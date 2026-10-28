@@ -2,13 +2,12 @@ import { render } from "svelte/server";
 import { beforeAll, describe, expect, it } from "vitest";
 import { boardFrom, boards, legendFor } from "../../data/boards";
 import { nl } from "../../i18n/nl";
-import type { Board } from "../../lib/board/format";
 import BoardCard from "./BoardCard.svelte";
 
 // The card as the server renders it: the HTML without JavaScript, which the
 // island hydrates without changing it (e2e/play.spec.ts).
 
-let board: Board;
+let board: Awaited<ReturnType<typeof boardFrom>>;
 let body: string;
 beforeAll(async () => {
   board = await boardFrom(boards.nl);

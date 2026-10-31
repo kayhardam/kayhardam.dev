@@ -53,12 +53,12 @@ describe("texts", () => {
     expect(languages.en.filter(([, value]) => /trainer/i.test(value))).toEqual([]);
   });
 
-  // The club stays on one line in About me: hard spaces (U+00A0) between its words (Kay, phase 8).
-  // "_" shows them in a failure; a plain space looks the same as a hard one.
-  it("keeps the club on one line", () => {
-    const shown = (text: string) => text.replaceAll("\u00A0", "_");
-    expect(shown(nl.about.text[0])).toContain("bij_HV_Unitas_in_Rolde.");
-    expect(shown(en.about.text[0])).toContain("at_HV_Unitas_in_Rolde.");
+  // The link in About me is the product's short name (the first mention, "Handball Coachboard", is the description).
+  it("links Coachboard by its short name in About me", () => {
+    expect(nl.about.product).toHaveLength(3);
+    expect(en.about.product).toHaveLength(3);
+    expect(nl.about.product[1]).toBe("Coachboard");
+    expect(en.about.product[1]).toBe("Coachboard");
   });
 
   it("uses the typographic apostrophe in English", () => {

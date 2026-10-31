@@ -168,6 +168,8 @@ for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
 // at 393), so the Coachboard section moves up when Barlow comes, with the pass
 // and number 1 in it. Each shift's rects tell how far: the pass and the numbers
 // may move only as far as the statement grew or shrank, straight up or down.
+// From 860 px the button is under the statement (phase 9), so there it may move
+// along too, the same way; on the phone it is above the statement and may not.
 type Shift = { html: string; dx: number; dy: number; below: boolean };
 for (const path of ["/", "/en/"]) {
   for (const width of [393, 1280]) {
@@ -192,8 +194,9 @@ for (const path of ["/", "/en/"]) {
                 html: el.outerHTML.slice(0, 80),
                 dx: currentRect.x - previousRect.x,
                 dy: currentRect.y - previousRect.y,
-                // Below the statement in the page: the pass and the numbers, not the header, the card or the button.
-                below: !!el.closest(".pass, .section-number"),
+                // Below the statement in the page: the pass and the numbers, and from 860 px the
+                // button; not the header or the card.
+                below: !!el.closest(".pass, .section-number") || (innerWidth >= 860 && !!el.closest(".hero-button")),
               });
             }
           }

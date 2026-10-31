@@ -14,9 +14,10 @@ const pages = [
 for (const { path, t, locale } of pages) {
   test(`${path}: every text is on the page`, async ({ page }) => {
     await page.goto(path);
+    // The heading "Coachboard" by its role: the link in About me has the same text (phase 9).
+    await expect(page.getByRole("heading", { name: t.coachboard.heading, exact: true })).toBeVisible();
     const texts = [
       t.hero.button,
-      t.coachboard.heading,
       t.coachboard.intro,
       t.coachboard.button,
       t.about.heading,
@@ -28,11 +29,11 @@ for (const { path, t, locale } of pages) {
       email,
     ];
     for (const value of texts) await expect(page.getByText(value, { exact: true })).toBeVisible();
-    // getByText makes every space plain; textContent keeps the hard spaces in About me.
     expect(await page.locator(".about .big").allTextContents()).toEqual(t.about.text);
     await expect(page.locator("h1")).toHaveText(t.name);
     await expect(page.locator(".statement")).toHaveText(t.statement.join(" "));
     await expect(page.locator(".note")).toHaveText(t.coachboard.note.join(""));
+    await expect(page.locator(".product")).toHaveText(t.about.product.join(""));
     await expect(page.locator(".github")).toHaveText(t.contact.github.join(""));
   });
 
@@ -58,6 +59,7 @@ for (const { path, t, locale } of pages) {
       [t.coachboard.note[1], tactics[locale]],
       [t.coachboard.note[3], drills[locale]],
       [t.coachboard.button, coachboard[locale]],
+      [t.about.product[1], coachboard[locale]],
       [email, mailto],
       [t.contact.github[1], github],
     ];

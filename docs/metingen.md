@@ -1051,7 +1051,7 @@ Gelijk aan de keten (27 oktober): op de telefoon blijft de knop 16 px onder de k
 
 ### Over mij
 
-De twee grote zinnen, dan de alinea met de link naar Coachboard (`about.product`, 19 px, de link `inline-block` met 9 px padding: 48,4 px hoog) en het voorbeeld. De harde spaties en hun tests zijn weg: de club staat niet meer in de tekst.
+De twee grote zinnen, dan de alinea met de link naar Coachboard (`about.product`, 19 px, de link `inline-block` met 9 px padding: 48,4 px hoog) en het voorbeeld. De club staat nu in de tweede zin, met de harde spaties van fase 8 (Kay, 31 oktober: eerst weggelaten, daarna terug); `texts.test.ts` toetst ze daar.
 
 ### De HTML
 

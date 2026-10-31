@@ -52,10 +52,10 @@ export const nl = {
   about: {
     heading: "Over mij",
     photo: "Portret van Kay Hardam.",
-    // The two big sentences (Kay, 31 October 2026).
+    // The two big sentences (Kay, 31 October 2026). Hard spaces (U+00A0) keep the club on one line (Kay, phase 8).
     text: [
       "Hoi, ik ben Kay. Ik help je handbal zo uit te leggen dat je hele team het snapt.",
-      "Ik ben gymleraar, handbaltrainer, en ik bouw software als de zaal dicht is.",
+      "Ik ben gymleraar, handbaltrainer bij\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde, en ik bouw software als de zaal dicht is.",
     ],
     // Before the link to Coachboard, the link, after. The address is `coachboard` in src/data/links.ts.
     product: ["Ik maak ", "Coachboard", ": een digitaal tekenbord voor als handen en voeten niet genoeg zijn."],

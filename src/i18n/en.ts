@@ -43,7 +43,7 @@ export const en: Text = {
     photo: "Portrait of Kay Hardam.",
     text: [
       "Hi, I’m Kay. I help you explain handball so your whole team gets it.",
-      "I’m a PE teacher and a handball coach, and I build software when the gym is closed.",
+      "I’m a PE teacher, a handball coach at\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde, and I build software when the gym is closed.",
     ],
     product: ["I make ", "Coachboard", ": a digital drawing board for when hands and feet aren’t enough."],
     example: "A play against a 6-0 defense? Three arrows, and your players get what you mean.",

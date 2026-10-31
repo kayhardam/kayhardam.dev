@@ -17,6 +17,7 @@ const [lead, rest] = t.statement;
 const [atName, atDomain] = email.split("@");
 const [beforeGithub, githubLink, afterGithub] = t.contact.github;
 const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
+const [beforeProduct, productLink, afterProduct] = t.about.product;
 ---
 
 <BaseLayout title={t.title} description={t.description}>
@@ -42,10 +43,10 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
             <h1>{t.name}</h1>
           </div>
           <p class="statement"><span class="lead">{lead}</span> {rest}</p>
+          <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
         </div>
         <div class="hero-board">
           <Board link={boards[locale]} t={t.board} />
-          <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
         </div>
       </div>
     </section>
@@ -89,6 +90,7 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
           <SectionNumber n={2} variant="white" />
           <h2 class="small-heading">{t.about.heading}</h2>
           {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
+          <p class="product">{beforeProduct}<a href={coachboard[locale]}>{productLink}</a>{afterProduct}</p>
           <p class="example">{t.about.example}</p>
         </div>
       </div>
@@ -110,9 +112,16 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
 
 <style>
   /*
-   * Phone and tablet: one column, the board first. Only in CSS: the HTML keeps
-   * the text first, and the text has no links, so the tab order stays logical.
-   * From 860 px: text left, board right, centred; the board sets the row's height.
+   * The HTML keeps the reading order: the name, the statement, the button, then
+   * the board. That is the tab order too: the button, then the board's buttons.
+   * Phone and tablet: one column, the board first, the button under it, then the
+   * name and the statement. Only in CSS: .hero-text has no box of its own
+   * (display: contents), so its children are the column's items and `order`
+   * puts the board and the button first (phase 9).
+   * From 860 px: text left with the button under the statement, board right,
+   * centred; the board sets the row's height. The button under the statement,
+   * not under the board: on a laptop of 1366 × 768 the board's foot and a
+   * button under it fall below the edge (phase 9, Kay's choice B).
    * The space below makes room for the pass to section 1 (Pass.astro): it starts
    * 32 px below the statement on the phone, 64 px above the hero's edge from 860 px.
    */
@@ -132,22 +141,32 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
     flex-direction: column;
   }
 
+  .hero-text {
+    display: contents;
+  }
+
   .hero-board {
+    order: -2;
+  }
+
+  .hero-button {
     order: -1;
   }
 
-  .hero-text {
+  /* 32 px between the button and the name (was the margin of .hero-text). */
+  .name {
     margin-top: 32px;
   }
 
   @media (min-width: 560px) {
-    .hero-board {
+    .hero-board,
+    .hero-button {
       max-width: 560px;
     }
   }
 
   @media (min-width: 860px) {
-    /* 32 px above, as in the mockup: the button stays on a laptop screen of 800 px. */
+    /* 32 px above, as in the mockup. */
     .hero {
       padding-block: 32px 112px;
     }
@@ -159,11 +178,21 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
       align-items: center;
     }
 
-    .hero-board {
+    /* Its own column again, with the button in it. */
+    .hero-text {
+      display: block;
+    }
+
+    .hero-board,
+    .hero-button {
       order: 0;
     }
 
-    .hero-text {
+    .hero-button {
+      max-width: none;
+    }
+
+    .name {
       margin-top: 0;
     }
   }
@@ -211,7 +240,9 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
     color: var(--color-on-navy-muted);
   }
 
-  /* Always 56 px: one line, or two balanced lines on narrow phones. */
+  /* Always 56 px: one line, or two balanced lines on narrow phones. On the phone
+     as wide as the board, 16 px under it; from 860 px as wide as its text, 32 px
+     under the statement. */
   .hero-button {
     display: flex;
     align-items: center;
@@ -231,6 +262,14 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
     text-transform: uppercase;
     text-wrap: balance;
     text-decoration: none;
+  }
+
+  @media (min-width: 860px) {
+    .hero-button {
+      display: inline-flex;
+      margin-top: 32px;
+      padding: 0 28px;
+    }
   }
 
   /* The three sections: 64 px on the phone, as in the mockup from 860 px. */
@@ -391,11 +430,26 @@ const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.co
     line-height: 1.05;
   }
 
-  .example {
+  /* Under the big sentences, after a line: what Kay makes, with the link, and the example. */
+  .product {
     max-width: 620px;
     margin-top: 32px;
     padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.4);
+    font-size: 19px;
+  }
+
+  /* 19 × 1.6 = 30.4 px of text, plus the padding: 48.4 px, as the links in the Coachboard section. */
+  .product a {
+    display: inline-block;
+    padding-block: 9px;
+    margin-block: -9px;
+    color: var(--color-on-navy);
+  }
+
+  .example {
+    max-width: 620px;
+    margin-top: 12px;
     font-size: 19px;
   }
 

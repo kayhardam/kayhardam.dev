@@ -27,28 +27,36 @@ const expectedHeight = (b: number) => 131.6 + (b >= 420 ? 44 : 76) + ((b - 28) *
 
 async function boxes(page: Page) {
   const box = async (selector: string) => (await page.locator(selector).first().boundingBox())!;
-  return { board: await box(".board"), button: await box(".hero-button"), name: await box("h1") };
+  return { board: await box(".board"), button: await box(".hero-button"), name: await box("h1"), statement: await box(".statement") };
 }
 
+// The button: on the phone and tablet as wide as the card, 16 px under it; from
+// 860 px under the statement, 32 px below it, as wide as its text (phase 9).
 for (const [screen, b] of Object.entries(widths).map(([s, w]) => [Number(s), w] as const)) {
   test(`${screen} px: the card is ${b} px wide, with the height of the formula`, async ({ page }) => {
     await page.setViewportSize({ width: screen, height: 900 });
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
-    const { board, button, name } = await boxes(page);
+    const { board, button, name, statement } = await boxes(page);
     expect(board.width).toBeCloseTo(b, 0);
     expect(board.width).toBeLessThanOrEqual(560);
     expect(Math.abs(board.height - expectedHeight(board.width))).toBeLessThanOrEqual(1);
-    expect(button.y - (board.y + board.height)).toBeCloseTo(16, 0);
 
     if (screen < 860) {
-      // Above the name.
-      expect(board.y + board.height).toBeLessThan(name.y);
+      // The button under the card, as wide; both above the name.
+      expect(button.y - (board.y + board.height)).toBeCloseTo(16, 0);
+      expect(button.width).toBeCloseTo(board.width, 0);
+      expect(button.y + button.height).toBeLessThan(name.y);
     } else {
-      // Beside the name: to the right of it, in the same row.
+      // The board beside the name: to the right of it, in the same row.
       expect(board.x).toBeGreaterThan(name.x + name.width);
       expect(board.y).toBeLessThan(name.y + name.height);
       expect(board.y + board.height).toBeGreaterThan(name.y);
+      // The button under the statement, in the text column, narrower than the card.
+      expect(button.y - (statement.y + statement.height)).toBeCloseTo(32, 0);
+      expect(button.x).toBeCloseTo(statement.x, 0);
+      expect(button.x + button.width).toBeLessThan(board.x);
+      expect(button.width).toBeLessThan(board.width);
     }
   });
 }
@@ -68,8 +76,14 @@ for (const screen of [393, 1280]) {
     const after = await boxes(page);
     for (const key of ["x", "y", "width", "height"] as const) {
       expect(after.board[key], key).toBeCloseTo(before.board[key], 0);
+    }
+    // From 860 px the button is under the statement, which may be a line shorter
+    // in Barlow: then the button moves up with it, and keeps its 32 px below it.
+    const gap = (b: Awaited<ReturnType<typeof boxes>>) => b.button.y - (b.statement.y + b.statement.height);
+    for (const key of screen < 860 ? (["x", "y", "width", "height"] as const) : (["x", "height"] as const)) {
       expect(after.button[key], key).toBeCloseTo(before.button[key], 0);
     }
+    if (screen >= 860) expect(gap(after)).toBeCloseTo(gap(before), 0);
   });
 }
 

@@ -1016,3 +1016,49 @@ Metrics (FCP / LCP / TBT / CLS / Speed Index):
 - **De LCP blijft het statement** (`.statement > span.lead`).
 - **CLS 0** op beide pagina's en methoden.
 - Na de merge: de meting op productie, het WhatsApp-voorbeeld met `https://kayhardam.dev/?wa=3`, en eventueel de Rich Results Test van Google voor de JSON-LD (Kay).
+
+## Fase 9: de knop en het verhaal (31 oktober 2026)
+
+Branch `fase-9-knop-en-verhaal`, na een onafhankelijke review van de live site (31 oktober). Twee wijzigingen: de heroknop staat vanaf 860 px onder het statement in plaats van onder de kaart (Kays keuze B), en Over mij heeft nieuwe teksten, met een link naar Coachboard (Kay, 31 oktober). De regel boven de kaart op de telefoon is niet gedaan (Kays keuze A): hij past niet in het venster van Safari op een iPhone 15 (393 × 659) naast het bord en de knop. Gemeten in Chromium 153 (Playwright 1.64.1) in een Linux-container, op de build van de branch; WebKit en Lighthouse niet (Kay, op de preview).
+
+### Waarom de knop verhuist
+
+Op `main` eindigt de knop op 1280 × 800 op 772 px, net erin. Een laptop van 1366 × 768 houdt na de browserbalk en de taakbalk zo'n 640 tot 690 px over: daar stonden de knop en de voet van de kaart buiten beeld.
+
+### De knop per venster
+
+In px vanaf de bovenkant van het venster, NL en EN gelijk (de knop is in EN smaller: 309,6 in plaats van 364,1 px):
+
+| Venster | Onderkant knop | Onderkant kaart | Knop erin? |
+|---|--:|--:|---|
+| 1366 × 640 (laptop, krap venster) | 608 | 700,3 | ja; de voet van de kaart valt eronder |
+| 1366 × 660 | 608 | 700,3 | ja |
+| 1280 × 800 | 600,5 (was 772) | 700,3 | ja |
+| 1024 × 700 | 542,7 | 629,4 | ja |
+| 860 × 700 | 511,3 | 595,3 | ja |
+
+Vanaf 860 px staat de knop 32 px onder het statement, links uitgelijnd met de tekst, smaller dan de kaart (`e2e/board-box.spec.ts`). Als het statement in Barlow een regel korter wordt dan in het reservelettertype, schuift de knop mee omhoog (`e2e/art.spec.ts` staat dat toe vanaf 860 px, zoals bij de pass en de nummers); de kaart niet.
+
+### De telefoon: ongewijzigd
+
+| Venster | Onderkant knop | Naam | Eerste regel statement |
+|---|--:|--:|--:|
+| 412 × 839 (Pixel 7) | 656,1 | 732,1 | 796,6 |
+| 393 × 659 (iPhone 15, Safari) | 640,8 | 716,8 | 784,8 |
+| 390 × 844 | 638,4 | 714,4 | 782,4 |
+
+Gelijk aan de keten (27 oktober): op de telefoon blijft de knop 16 px onder de kaart, even breed. In de HTML staat de knop nu na het statement; `.hero-text` is op de telefoon `display: contents`, en `order` zet de kaart en de knop voorop.
+
+### Over mij
+
+De twee grote zinnen, dan de alinea met de link naar Coachboard (`about.product`, 19 px, de link `inline-block` met 9 px padding: 48,4 px hoog) en het voorbeeld. De club staat nu in de tweede zin, met de harde spaties van fase 8 (Kay, 31 oktober: eerst weggelaten, daarna terug); `texts.test.ts` toetst ze daar.
+
+### De HTML
+
+`/` en `/en/` allebei 10,4 KB (gzip), was 10,3 en 10,2 KB: de alinea met de link en de CSS van de knop. Het budget blijft 11,1 KB. JS ongewijzigd.
+
+### Tests
+
+- `npm run verify` groen.
+- e2e in de container, alleen project `android` (geen WebKit): `a11y`, `art`, `board-box`, `board`, `i18n`, `icons`, `narrow`, `notfound`, `page`, `photo`, `play`, `security`, `seo`: groen, op vier na: de layoutshift-tests in `art.spec.ts` falen in de container ook op `main` (de taallinks schuiven 1 px met het reservelettertype Inter, zoals de slotreview van 22 oktober al zag); op een Mac en in CI niet.
+- De volledige e2e in beide projecten: CI op de pull request.

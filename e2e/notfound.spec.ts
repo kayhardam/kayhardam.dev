@@ -20,14 +20,14 @@ for (const path of missingPages) {
   });
 }
 
-// The link like the GitHub link at Contact: white, the weight of the text, underlined (phase 8).
-test("the links: white, not bold, underlined", async ({ page }) => {
+// The link like the GitHub link at Contact: dark, bold, underlined in ink blue (phase 10).
+test("the links: dark, bold, underlined in ink blue", async ({ page }) => {
   await page.goto(missingPages[0]!);
   const styles = await page.locator("main a").evaluateAll((all) =>
     all.map((a) => {
       const s = getComputedStyle(a);
-      return { color: s.color, weight: s.fontWeight, line: s.textDecorationLine };
+      return { color: s.color, weight: s.fontWeight, line: s.textDecorationLine, lineColor: s.textDecorationColor };
     }),
   );
-  expect(styles).toEqual(Array(2).fill({ color: "rgb(248, 250, 252)", weight: "400", line: "underline" }));
+  expect(styles).toEqual(Array(2).fill({ color: "rgb(31, 26, 23)", weight: "700", line: "underline", lineColor: "rgb(30, 64, 175)" }));
 });

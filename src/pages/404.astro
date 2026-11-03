@@ -29,27 +29,33 @@ const blocks = locales.map((code) => ({ code, t: text(code).notFound, home: getR
   section + section {
     margin-top: 48px;
     padding-top: 48px;
-    border-top: 1px solid var(--color-navy-line);
+    border-top: 1px solid var(--color-line);
   }
 
   h1 {
-    font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 800;
     font-size: clamp(32px, 4vw, 52px);
-    line-height: 1;
-    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
   }
 
   p {
     margin-top: 12px;
-    color: var(--color-on-navy-muted);
+    color: var(--color-text-muted);
   }
 
+  /* As the links in running text on the home page: dark and bold, underlined in ink blue. */
   a {
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
     margin-top: 8px;
-    color: var(--color-on-navy);
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: underline 2px var(--color-accent);
+    text-underline-offset: 4px;
+  }
+  a:hover {
+    color: var(--color-accent);
   }
 </style>

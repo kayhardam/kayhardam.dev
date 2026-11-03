@@ -1,7 +1,11 @@
 ---
-import "@fontsource/barlow-condensed/latin-600.css";
-import "@fontsource/barlow-condensed/latin-700.css";
-import bold from "@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?url";
+// Plus Jakarta Sans, Latin only, self-hosted (CSP 'self'): 500 for running text,
+// 700 for buttons and labels, 800 for the name, the statement and the headings
+// (the mockup, phase 10). 800 is preloaded: the statement is the hero's text.
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
+import heavy from "@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2?url";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
@@ -47,11 +51,11 @@ const person = JSON.stringify({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
-    <link rel="preload" href={bold} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={heavy} as="font" type="font/woff2" crossorigin />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={xDefault} />}
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#fdfbf8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

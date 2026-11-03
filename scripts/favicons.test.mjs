@@ -30,8 +30,8 @@ describe("favicon.ico", () => {
     expect(sizes).toEqual([16, 32]);
   });
 
-  // Navy with a white edge: the edge shows on a dark tab, the navy on a light one.
-  it("is light in the middle of the top edge and navy a quarter lower, in both PNGs", async () => {
+  // Ink blue with a white edge: the edge shows on a dark tab, the ink blue on a light one.
+  it("is light in the middle of the top edge and ink blue a quarter lower, in both PNGs", async () => {
     const ico = read("favicon.ico");
     for (let i = 0; i < ico.readUInt16LE(4); i++) {
       const entry = 6 + 16 * i;
@@ -40,7 +40,7 @@ describe("favicon.ico", () => {
       const rgb = (x, y) => [...data.subarray((y * info.width + x) * info.channels, (y * info.width + x) * info.channels + 3)];
       const middle = info.width / 2;
       expect(Math.min(...rgb(middle, 0)), `${info.width} px, top edge: ${rgb(middle, 0)}`).toBeGreaterThanOrEqual(230);
-      expect(rgb(middle, info.width / 4), `${info.width} px, a quarter lower`).toEqual([0x0f, 0x17, 0x2a]);
+      expect(rgb(middle, info.width / 4), `${info.width} px, a quarter lower`).toEqual([0x1e, 0x40, 0xaf]);
     }
   });
 });
@@ -53,23 +53,27 @@ describe("apple-touch-icon.png", () => {
     expect(ihdr(png)).toEqual({ width: 180, height: 180, colourType: 2 });
   });
 
-  it("is navy at the corners and the edges, the white player in the middle", async () => {
+  it("is the page's colour at the corners and the edges, with the logo as in the header", async () => {
     const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
     const hex = (x, y) => {
       const i = (y * info.width + x) * info.channels;
       return "#" + [...data.subarray(i, i + 3)].map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
     };
     const edge = [[0, 0], [179, 0], [0, 179], [179, 179], [90, 0], [0, 90], [179, 90], [90, 179]];
-    for (const [x, y] of edge) expect(hex(x, y), `${x},${y}`).toBe("#0F172A");
-    // Just above the middle: the player as in the header, white with a navy label.
-    expect(hex(90, 45)).toBe("#F8FAFC");
+    for (const [x, y] of edge) expect(hex(x, y), `${x},${y}`).toBe("#FDFBF8");
+    // The ink-blue player, above its label, and the ball: the page's colour inside its ink-blue edge.
+    expect(hex(76, 60), "the player").toBe("#1E40AF");
+    expect(hex(133, 52), "the ball").toBe("#FDFBF8");
+    expect(hex(152, 52), "the ball's edge").toBe("#1E40AF");
   });
 });
 
 describe("favicon.svg", () => {
-  it("is the player with radius 9 in navy with a white edge, and the white label KH", () => {
+  // The label KH is a path (phase 10): the same in every tab, in sharp and in og.png.
+  it("is the player with radius 9 in ink blue with a white edge, and the white label KH as a path", () => {
     const svg = read("favicon.svg").toString();
-    expect(svg).toMatch(/<circle r="9" fill="#0F172A" stroke="#FFFFFF"/);
-    expect(svg).toMatch(/<text y="0.5" fill="#FFFFFF"[^>]*>KH<\/text>/);
+    expect(svg).toMatch(/<circle r="9" fill="#1E40AF" stroke="#FFFFFF"/);
+    expect(svg).toMatch(/<path fill="#FFFFFF" d="M[-\d.]+ 3\.56V-2\.027H/);
+    expect(svg).not.toMatch(/<text/);
   });
 });

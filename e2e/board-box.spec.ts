@@ -78,7 +78,7 @@ for (const screen of [393, 1280]) {
       expect(after.board[key], key).toBeCloseTo(before.board[key], 0);
     }
     // From 860 px the button is under the statement, which may be a line shorter
-    // in Barlow: then the button moves up with it, and keeps its 32 px below it.
+    // in Plus Jakarta Sans: then the button moves up with it, and keeps its 32 px below it.
     const gap = (b: Awaited<ReturnType<typeof boxes>>) => b.button.y - (b.statement.y + b.statement.height);
     for (const key of screen < 860 ? (["x", "y", "width", "height"] as const) : (["x", "height"] as const)) {
       expect(after.button[key], key).toBeCloseTo(before.button[key], 0);

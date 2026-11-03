@@ -1,6 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-9.5 -9.5 19 19">
-  <!-- The KH logo: a player from Coachboard's Court.svelte (radius 9, label 7.5).
-       Navy with a white edge and label, so it shows on light and on dark tabs. -->
-  <circle r="9" fill="#0F172A" stroke="#FFFFFF" stroke-width="1"/>
-  <text y="0.5" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="central">KH</text>
+  <!-- The KH logo without the ball, which is too small in a tab: a player from
+       Coachboard's Court.svelte (radius 9), ink blue with a white edge, so it
+       shows on light and on dark tabs. The label KH is Plus Jakarta Sans 800 of
+       7.5 as a path, placed as the header's text (x 0 in its middle, the central
+       baseline at y 0.5), so it looks the same in every tab, in sharp and in og.png. -->
+  <circle r="9" fill="#1E40AF" stroke="#FFFFFF" stroke-width="1"/>
+  <path fill="#FFFFFF" d="M-4.826 3.56V-2.027H-3.664V0.77L-3.986 0.658L-1.751 -2.027H-0.296L-2.509 0.643L-2.441 -0.182L-0.251 3.56H-1.609L-2.974 1.198L-3.664 2.03V3.56ZM0.326 3.56V-2.027H1.489V0.388H3.664V-2.027H4.826V3.56H3.664V1.4H1.489V3.56Z"/>
 </svg>

@@ -2,9 +2,9 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// Colour comes only from the photo and from Coachboard's board card; the rest
-// is navy, white and grey (Kay, phase 8). Green may be in the card's three
-// files, and in the one token they use.
+// Green only in Coachboard's board card: it is a club colour (Kay, phase 8). The
+// rest of the site is the warm page with ink blue as its one accent (phase 10).
+// Green may be in the card's three files, and in the one token they use.
 
 const root = new URL("../../", import.meta.url).pathname;
 const green = /#(15803d|16a34a|4ade80|22c55e)\b|--color-green/i;

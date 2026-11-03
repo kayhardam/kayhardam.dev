@@ -15,7 +15,7 @@ export const nl = {
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
-  // The first sentence light grey, the second white.
+  // The first sentence dark, the second in ink blue.
   statement: ["Gymleraar en handbaltrainer.", "Ik bouw tools voor sport."],
   hero: {
     button: "Bewerk deze aanval in Coachboard",
@@ -46,7 +46,7 @@ export const nl = {
       "oefeningen",
       ", elk met een tekening die je opent in het bord. Heb je zelf een oefening die erin hoort? Mail hem me.",
     ],
-    // The arrow after it is an SVG: U+2192 isn't in Barlow's Latin subset.
+    // The arrow after it is an SVG: U+2192 isn't in the font's Latin subset.
     button: "Naar Coachboard",
   },
   about: {

@@ -1062,3 +1062,57 @@ De twee grote zinnen, dan de alinea met de link naar Coachboard (`about.product`
 - `npm run verify` groen.
 - e2e in de container, alleen project `android` (geen WebKit): `a11y`, `art`, `board-box`, `board`, `i18n`, `icons`, `narrow`, `notfound`, `page`, `photo`, `play`, `security`, `seo`: groen, op vier na: de layoutshift-tests in `art.spec.ts` falen in de container ook op `main` (de taallinks schuiven 1 px met het reservelettertype Inter, zoals de slotreview van 22 oktober al zag); op een Mac en in CI niet.
 - De volledige e2e in beide projecten: CI op de pull request.
+
+## Fase 10: de stijl van de mockup voor werkgevers (3 november 2026)
+
+Branch `fase-10-stijl`. De site krijgt de stijl van Kays mockup voor werkgevers (het Design-canvas "Portfolio kayhardam.dev — mockup", accent "inkt"); de teksten blijven zoals ze zijn. Een warme pagina (`#FDFBF8`) zonder banden, Coachboard, Over mij en Contact elk een kaart (`#F5F1EB`), Plus Jakarta Sans in plaats van Barlow Condensed en `system-ui`, en inktblauw (`#1E40AF`) als enige accent. Het logo is de KH-speler met de bal, de nummers 1–3 blijven spelers, in inktblauw; de veldlijnen en de pass zijn weg (Kay, 3 november: de spelers houden, de rest niet). De kaart van het bord houdt Coachboards eigen look: wit en leisteen, groen, het systeemlettertype. Gemeten in Chromium 153 (Playwright 1.64.1) in een Linux-container, op de build van de branch; WebKit en Lighthouse niet (Kay, op de preview).
+
+### Bestanden
+
+| | Fase 9 | Fase 10 |
+|---|--:|--:|
+| HTML `/` (gzip) | 10,4 KB | 10,13 KB |
+| HTML `/en/` (gzip) | 10,4 KB | 10,08 KB |
+| Lettertypen | Barlow Condensed 600 en 700 (22,4 KB de grootste) | Plus Jakarta Sans 500, 700, 800: 12,3, 12,2 en 11,9 KB |
+| `og.png` | 142,45 KB | 146,3 KB |
+| `apple-touch-icon.png` | 4,1 KB | 4,7 KB |
+| `favicon.ico` / `favicon.svg` | 1,6 / 0,5 KB | 1,5 / 0,8 KB |
+
+De HTML is kleiner: de veldlijnen en de pass zijn weg. Het budget voor een lettertype gaat omlaag van 25,8 naar 14,2 KB (gemeten plus ongeveer 15%); de andere budgetten blijven. JS ongewijzigd: 21,3 KB.
+
+### De heroknop per venster
+
+Het statement is hoogstens 56 px, vier regels vanaf 860 px, zodat de knop op een laptop in beeld blijft zoals in fase 9. In px vanaf de bovenkant van het venster; de header is 76 px (was 77: geen rand meer).
+
+| Venster | Onderkant knop | Onderkant kaart |
+|---|--:|--:|
+| 1366 × 640 | 607,2 (was 608) | 699,3 |
+| 1280 × 800 | 607,2 (was 600,5) | 699,3 |
+| 1024 × 700 | 548,8 (was 542,7) | 628,4 |
+| 860 × 700 | 516,6 (was 511,3) | 594,3 |
+
+### De telefoon
+
+| Venster | Onderkant knop | Naam | Eerste regel statement |
+|---|--:|--:|--:|
+| 412 × 839 (Pixel 7) | 655,1 (was 656,1) | 732,3 | 807,1 (was 796,6) |
+| 393 × 659 (iPhone 15, Safari) | 639,8 | 717 | 791,8 |
+| 390 × 844 | 637,4 | 714,6 | 789,4 (was 782,4) |
+
+De eerste regel van het statement staat iets lager: 20 px tussen naam en statement (was 16) en een regel van 33,6 px (32 px, 1,05).
+
+### Het e-mailadres en de header op 320 px
+
+- `hallo@kayhardam.dev` in Plus Jakarta Sans 800 is breder dan in Barlow Condensed: op de telefoon 22 px (239 px breed; de kaart heeft er 246 met 20 px binnenruimte), oplopend tot 44 px. 10 px padding houdt de link 44 px hoog.
+- Het logo is 37 × 34 px; de tekst `kayhardam.dev` 16 px op 320 px (124,6 px), 20 px vanaf 400 px.
+
+### Afbeeldingen
+
+`og.png`, `favicon.ico` en `apple-touch-icon.png` opnieuw gemaakt, in de container (`og-image.mjs` met de Chromium van de container). Het label KH is in `favicon.svg` een pad, dus de favicons en `og.png` hangen niet meer af van de lettertypen van de machine.
+
+### Tests
+
+- `npm run verify` groen.
+- e2e in de container, alleen project `android` (geen WebKit): alle 234 groen, ook de vier layoutshift-tests in `art.spec.ts` die in fase 9 in de container faalden: de taallinks zijn nu `display: flex`, zonder regel om op te schuiven.
+- De tests van de veldlijnen en de pass zijn weg (`art.spec.ts`, `narrow.spec.ts`). Aangepast op de nieuwe look: het logo (37 × 34 px, met de bal), de kleur van de nummers, de randen van de foto's, de taallinks, de focusring (inktblauw), de links op de 404, de header (76 px) en de geladen lettertypen.
+- De volledige e2e in beide projecten: CI op de pull request.

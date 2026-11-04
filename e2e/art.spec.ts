@@ -2,9 +2,10 @@ import { en } from "../src/i18n/en";
 import { nl } from "../src/i18n/nl";
 import { expect, test } from "./helpers";
 
-// The images from Coachboard (phase 3): the KH logo, the section numbers, the
-// pass and the field lines. All decoration: hidden, and nothing to click.
-// The one exception is the board's court (phase 4): an image with its label.
+// The images from Coachboard (phase 3): the KH logo, since phase 10 with the
+// ball, and the section numbers; the pass and the field lines went in phase 10.
+// All decoration: hidden, and nothing to click. The one exception is the
+// board's court (phase 4): an image with its label.
 
 const pages = [
   { path: "/", t: nl },
@@ -46,15 +47,23 @@ for (const { path, t } of pages) {
     expect(labels.filter((l) => !["normal", "0px"].includes(l.letterSpacing))).toEqual([]);
   });
 
-  test(`${path}: the logo: 34 px, in the link kayhardam.dev, with the label KH`, async ({ page }) => {
+  // The player in ink blue with the white label KH, and the ball: the page's colour
+  // with an ink-blue edge, so it cuts into the player's edge (phase 10).
+  test(`${path}: the logo: 37 by 34 px, in the link kayhardam.dev, the label KH and the ball`, async ({ page }) => {
     await page.goto(path);
     const link = page.getByRole("link", { name: t.site, exact: true });
     await expect(link).toHaveAccessibleName(t.site);
     const logo = link.locator("svg");
     await expect(logo).toHaveAttribute("aria-hidden", "true");
     await expect(logo.locator("text")).toHaveText("KH");
+    await expect(logo.locator("text")).toHaveAttribute("fill", "#FFFFFF");
+    const circles = await logo.locator("circle").evaluateAll((all) => all.map((c) => [c.getAttribute("fill"), c.getAttribute("stroke")]));
+    expect(circles).toEqual([
+      ["#1E40AF", "#FFFFFF"],
+      ["#FDFBF8", "#1E40AF"],
+    ]);
     const box = (await logo.boundingBox())!;
-    expect(box.width).toBeCloseTo(34, 0);
+    expect(box.width).toBeCloseTo(37, 0);
     expect(box.height).toBeCloseTo(34, 0);
   });
 }
@@ -80,100 +89,26 @@ for (const { path } of pages) {
       }),
     );
     expect(numbers).toEqual([
-      { label: "1", section: expect.stringMatching(/coachboard/), width: 36, height: 36, gap: 16, fill: "#0F172A", ink: "#FFFFFF" },
-      { label: "2", section: expect.stringMatching(/about/), width: 36, height: 36, gap: 16, fill: "#FFFFFF", ink: "#0F172A" },
-      { label: "3", section: expect.stringMatching(/contact/), width: 36, height: 36, gap: 16, fill: "#FFFFFF", ink: "#0F172A" },
+      { label: "1", section: expect.stringMatching(/coachboard/), width: 36, height: 36, gap: 16, fill: "#1E40AF", ink: "#FFFFFF" },
+      { label: "2", section: expect.stringMatching(/about/), width: 36, height: 36, gap: 16, fill: "#1E40AF", ink: "#FFFFFF" },
+      { label: "3", section: expect.stringMatching(/contact/), width: 36, height: 36, gap: 16, fill: "#1E40AF", ink: "#FFFFFF" },
     ]);
-  });
-}
-
-// The pass: from the hero to number 1, its point 16 px above the number.
-for (const width of [320, 393, 430, 559, 560, 859, 860, 1024, 1280]) {
-  test(`${width} px: the pass runs from the hero to number 1`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
-    const box = (selector: string) =>
-      page.locator(selector).first().evaluate((el) => {
-        const r = el.getBoundingClientRect();
-        return { x: r.x, y: r.y + window.scrollY, width: r.width, height: r.height, right: r.right, bottom: r.bottom + window.scrollY };
-      });
-    const pass = await box(".pass");
-    const number = await box(".coachboard .section-number");
-    const hero = await box(".hero");
-    const section = await box(".coachboard");
-    const statement = await box(".statement");
-
-    expect(Math.abs(pass.x + pass.width / 2 - (number.x + number.width / 2))).toBeLessThanOrEqual(1);
-    expect(Math.abs(number.y - pass.bottom - 16)).toBeLessThanOrEqual(1);
-    expect(pass.y).toBeGreaterThan(hero.y);
-    expect(pass.y).toBeLessThan(hero.bottom);
-    expect(pass.bottom).toBeGreaterThan(section.y);
-    if (width < 860) expect(Math.abs(pass.y - statement.bottom - 32)).toBeLessThanOrEqual(1);
-    // Grey, the line and its point: no green outside the board's card (phase 8).
-    const strokes = await page.locator(".pass line, .pass marker path").evaluateAll((all) => all.map((el) => el.getAttribute("stroke")));
-    expect(strokes).toEqual(["#64748B", "#64748B"]);
-
-    for (const selector of [".board", ".hero-button", "h1", ".statement", ".coachboard h2"]) {
-      const other = await box(selector);
-      const overlaps =
-        pass.x < other.right && other.x < pass.right && pass.y < other.bottom && other.y < pass.bottom;
-      expect(overlaps, selector).toBe(false);
-    }
-  });
-}
-
-// The field lines: in the hero only from 860 px, in About me on every width.
-for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
-  test(`${width} px: the field lines`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
-    const lines = await page.locator(".field-lines").evaluateAll((all) =>
-      all.map((wrapper) => {
-        const section = wrapper.parentElement!.getBoundingClientRect();
-        const box = wrapper.getBoundingClientRect();
-        const svg = wrapper.querySelector("svg")!.getBoundingClientRect();
-        return {
-          section: wrapper.parentElement!.className,
-          visible: getComputedStyle(wrapper).display !== "none" && svg.width > 0,
-          sameBox: [box.x - section.x, box.y - section.y, box.width - section.width, box.height - section.height].every((d) => Math.abs(d) < 0.5),
-          overflow: getComputedStyle(wrapper).overflow,
-          hidden: wrapper.getAttribute("aria-hidden"),
-        };
-      }),
-    );
-    expect(lines).toEqual([
-      expect.objectContaining({ section: expect.stringMatching(/hero/), visible: width >= 860, hidden: "true" }),
-      { section: expect.stringMatching(/about/), visible: true, sameBox: true, overflow: "clip", hidden: "true" },
-    ]);
-    if (width >= 860) expect(lines[0]).toMatchObject({ sameBox: true, overflow: "clip" });
-
-    // The lines block no click: the middle of each link gives the link itself.
-    for (const selector of [".hero-button", ".outline-button", ".email"]) {
-      const hit = await page.locator(selector).evaluate((a) => {
-        a.scrollIntoView({ block: "center" });
-        const r = a.getBoundingClientRect();
-        return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest("a") === a;
-      });
-      expect(hit, selector).toBe(true);
-    }
   });
 }
 
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
 // WebKit has no Layout Instability API. The statement may still shift (phase 2,
-// CLS 0.028), and what is below it moves along; the header, the card, the button,
-// the numbers and the pass may not shift on their own. The statement often has a
-// line more in the fallback font (on main already at 360 and 412 px, and on /en/
-// at 393), so the Coachboard section moves up when Barlow comes, with the pass
-// and number 1 in it. Each shift's rects tell how far: the pass and the numbers
+// CLS 0.028), and what is below it moves along; the header, the card, the button
+// and the numbers may not shift on their own. The statement may have a line more
+// or less in the fallback font, so the Coachboard section moves when Plus Jakarta
+// Sans comes, with number 1 in it. Each shift's rects tell how far: the numbers
 // may move only as far as the statement grew or shrank, straight up or down.
 // From 860 px the button is under the statement (phase 9), so there it may move
 // along too, the same way; on the phone it is above the statement and may not.
 type Shift = { html: string; dx: number; dy: number; below: boolean };
 for (const path of ["/", "/en/"]) {
   for (const width of [393, 1280]) {
-    test(`${path} at ${width} px: no layout shift in the header, the card, the numbers or the pass`, async ({ page, browserName }) => {
+    test(`${path} at ${width} px: no layout shift in the header, the card or the numbers`, async ({ page, browserName }) => {
       test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
       await page.setViewportSize({ width, height: 900 });
       await page.addInitScript(() => {
@@ -184,7 +119,7 @@ for (const path of ["/", "/en/"]) {
         document.addEventListener("DOMContentLoaded", () => {
           w.statementBefore = document.querySelector(".statement")!.getBoundingClientRect().height;
         });
-        const protectedParts = "header, .board, .hero-button, .section-number, .pass";
+        const protectedParts = "header, .board, .hero-button, .section-number";
         new PerformanceObserver((list) => {
           for (const entry of list.getEntries() as unknown as { sources: { node?: Node; previousRect: DOMRectReadOnly; currentRect: DOMRectReadOnly }[] }[]) {
             for (const { node, previousRect, currentRect } of entry.sources) {
@@ -194,9 +129,9 @@ for (const path of ["/", "/en/"]) {
                 html: el.outerHTML.slice(0, 80),
                 dx: currentRect.x - previousRect.x,
                 dy: currentRect.y - previousRect.y,
-                // Below the statement in the page: the pass and the numbers, and from 860 px the
-                // button; not the header or the card.
-                below: !!el.closest(".pass, .section-number") || (innerWidth >= 860 && !!el.closest(".hero-button")),
+                // Below the statement in the page: the numbers, and from 860 px the button; not
+                // the header or the card.
+                below: !!el.closest(".section-number") || (innerWidth >= 860 && !!el.closest(".hero-button")),
               });
             }
           }

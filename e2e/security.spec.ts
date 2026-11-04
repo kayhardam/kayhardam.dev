@@ -33,5 +33,6 @@ test("the fonts load from the site itself", async ({ page }) => {
   const loaded = await page.evaluate(() =>
     [...document.fonts].filter((f) => f.status === "loaded").map((f) => `${f.family.replaceAll('"', "")} ${f.weight}`),
   );
-  expect(loaded).toContain("Barlow Condensed 700");
+  // Plus Jakarta Sans: 500 for running text, 700 for the buttons, 800 for the statement and the headings.
+  expect(loaded).toEqual(expect.arrayContaining(["Plus Jakarta Sans 500", "Plus Jakarta Sans 700", "Plus Jakarta Sans 800"]));
 });

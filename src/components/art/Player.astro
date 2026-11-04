@@ -1,6 +1,8 @@
 ---
 // After Court.svelte at commit 4ceafd4 (Coachboard): a player is a circle with
-// a white edge of 1 and a label in system-ui 700 7.5, centred at y = 0.5.
+// a white edge of 1 and a label of 7.5, centred at y = 0.5. The site's players
+// (the logo and the section numbers) have the label in the site's font, Plus
+// Jakarta Sans 800, as in the mockup (phase 10); the court keeps system-ui.
 // Draws a <g> around (0, 0); the caller places it with its viewBox or a transform.
 // Colours are presentation attributes: the CSP blocks style attributes.
 interface Props {
@@ -20,9 +22,9 @@ const { label, fill, ink, r = 9, transform } = Astro.props;
   <text
     y="0.5"
     fill={ink}
-    font-family="system-ui, sans-serif"
+    font-family="'Plus Jakarta Sans', system-ui, sans-serif"
     font-size="7.5"
-    font-weight="700"
+    font-weight="800"
     text-anchor="middle"
     dominant-baseline="central">{label}</text
   >

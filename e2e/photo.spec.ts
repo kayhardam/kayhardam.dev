@@ -5,9 +5,9 @@ import { nl } from "../src/i18n/nl";
 import { expect, test, watchViolations } from "./helpers";
 
 // Two photos, from astro:assets as AVIF, WebP and JPEG, both round like a player:
-// - in About me (phase 7): a white edge of 5 px, 300, 600 and 799 px. Above the
+// - in About me (phase 7): an ink-blue edge of 4 px (phase 10), 300, 600 and 799 px. Above the
 //   text on the phone and tablet, beside it from 860 px;
-// - in the hero (phase 8): 64 px before the name, a white edge of 3 px, 64, 128
+// - in the hero (phase 8): 64 px before the name, an ink-blue edge of 3 px (phase 10), 64, 128
 //   and 192 px, loaded at once, and without alt text: the name is beside it.
 
 test.use({ reducedMotion: "reduce" });
@@ -179,12 +179,9 @@ for (const [dpr, about, hero] of [
   });
 }
 
-test("About me: round, with a white edge of 5 px", async ({ page }) => {
+test("About me: round, with an ink-blue edge of 4 px", async ({ page }) => {
   await page.goto("/");
   const photo = await loaded(page, ".about img");
-  // The field lines run behind the photo on the phone; hidden here, so the corners are the section's second navy.
-  // Through the CSSOM: the CSP allows no new stylesheet.
-  await page.locator(".about .field-lines").evaluate((lines: HTMLElement) => (lines.style.visibility = "hidden"));
   const style = await photo.evaluate((img) => {
     const s = getComputedStyle(img);
     const box = img.getBoundingClientRect();
@@ -197,8 +194,8 @@ test("About me: round, with a white edge of 5 px", async ({ page }) => {
   });
   expect(style).toEqual({
     radius: "50%",
-    widths: ["5px", "5px", "5px", "5px"],
-    colours: Array(4).fill("rgb(255, 255, 255)"),
+    widths: ["4px", "4px", "4px", "4px"],
+    colours: Array(4).fill("rgb(30, 64, 175)"),
     square: true,
   });
 
@@ -206,11 +203,12 @@ test("About me: round, with a white edge of 5 px", async ({ page }) => {
   const rgb = (x: number, y: number) => [...data.subarray((y * info.width + x) * 3, (y * info.width + x) * 3 + 3)];
   const near = (actual: number[], [r, g, b]: number[]) => Math.max(...actual.map((v, i) => Math.abs(v - [r, g, b][i]))) <= 8;
   const last = info.width - 1;
+  // The corners are the card's colour, the edge ink blue.
   for (const [x, y] of [[0, 0], [last, 0], [0, last], [last, last]]) {
-    expect(near(rgb(x, y), [0x1e, 0x29, 0x3b]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
+    expect(near(rgb(x, y), [0xf5, 0xf1, 0xeb]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
   }
   const middle = Math.round(info.width / 2);
-  expect(near(rgb(middle, 2), [255, 255, 255]), `top edge: ${rgb(middle, 2)}`).toBe(true);
+  expect(near(rgb(middle, 2), [0x1e, 0x40, 0xaf]), `top edge: ${rgb(middle, 2)}`).toBe(true);
 });
 
 for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
@@ -236,7 +234,7 @@ for (const width of [320, 393, 430, 768, 859, 860, 1024, 1280]) {
       expect(Math.abs(centre(boxes.photo) - centre(boxes.text))).toBeLessThanOrEqual(1);
     }
 
-    // The field lines lie behind the photo.
+    // Nothing lies over the photo.
     const hit = await photo.evaluate((img) => {
       const b = img.getBoundingClientRect();
       return document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) === img;
@@ -282,9 +280,9 @@ test.describe("no layout shift from the photo", () => {
       });
     }
     // Not the load event, nor document.fonts.ready: in WebKit both wait for the photo,
-    // which WebKit may fetch before the scroll. The two fonts themselves, then.
+    // which WebKit may fetch before the scroll. The three fonts themselves, then.
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.evaluate(() => Promise.all(["600", "700"].map((weight) => document.fonts.load(`${weight} 48px "Barlow Condensed"`))));
+    await page.evaluate(() => Promise.all(["500", "700", "800"].map((weight) => document.fonts.load(`${weight} 48px "Plus Jakarta Sans"`))));
     await page.locator(".about img").scrollIntoViewIfNeeded();
     const before = await measure(page);
     expect(arrived).toBe(false);
@@ -334,7 +332,7 @@ test("the hero: loaded without scrolling", async ({ page }) => {
   expect(state.naturalWidth).toBeGreaterThan(0);
 });
 
-test("the hero: round, with a white edge of 3 px, 16 px before the name, in its middle", async ({ page }) => {
+test("the hero: round, with an ink-blue edge of 3 px, 16 px before the name, in its middle", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const photo = await loaded(page, ".hero img");
@@ -354,7 +352,7 @@ test("the hero: round, with a white edge of 3 px, 16 px before the name, in its 
   expect(style).toEqual({
     radius: "50%",
     widths: ["3px", "3px", "3px", "3px"],
-    colours: Array(4).fill("rgb(255, 255, 255)"),
+    colours: Array(4).fill("rgb(30, 64, 175)"),
     size: [64, 64],
     gap: 16,
     centres: true,
@@ -364,12 +362,14 @@ test("the hero: round, with a white edge of 3 px, 16 px before the name, in its 
   const rgb = (x: number, y: number) => [...data.subarray((y * info.width + x) * 3, (y * info.width + x) * 3 + 3)];
   const near = (actual: number[], [r, g, b]: number[]) => Math.max(...actual.map((v, i) => Math.abs(v - [r, g, b][i]))) <= 8;
   const last = info.width - 1;
+  // The corners are the page's colour, the edge ink blue.
   for (const [x, y] of [[0, 0], [last, 0], [0, last], [last, last]]) {
-    expect(near(rgb(x, y), [0x0f, 0x17, 0x2a]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
+    expect(near(rgb(x, y), [0xfd, 0xfb, 0xf8]), `corner ${x},${y}: ${rgb(x, y)}`).toBe(true);
   }
   const middle = Math.round(info.width / 2);
-  // The edge is 3 px: WebKit on Linux (CI) smooths its middle to 246.
-  expect(Math.min(...rgb(middle, 1)), `top edge: ${rgb(middle, 1)}`).toBeGreaterThanOrEqual(240);
+  // The edge is 3 px: WebKit on Linux (CI) smooths its middle a little, so a wider margin.
+  const [r, g, b] = rgb(middle, 1);
+  expect(Math.max(Math.abs(r - 0x1e), Math.abs(g - 0x40), Math.abs(b - 0xaf)), `top edge: ${rgb(middle, 1)}`).toBeLessThanOrEqual(24);
 });
 
 for (const width of [393, 1280]) {
@@ -395,7 +395,7 @@ for (const width of [393, 1280]) {
         await route.continue();
       });
       await page.goto("/", { waitUntil: "domcontentloaded" });
-      await page.evaluate(() => Promise.all(["600", "700"].map((weight) => document.fonts.load(`${weight} 48px "Barlow Condensed"`))));
+      await page.evaluate(() => Promise.all(["500", "700", "800"].map((weight) => document.fonts.load(`${weight} 48px "Plus Jakarta Sans"`))));
       const before = await measure(page);
       expect(await page.locator(".hero img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(false);
       release();

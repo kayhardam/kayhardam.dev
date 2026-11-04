@@ -25,28 +25,33 @@ describe("og.png", () => {
     expect({ exif, icc, xmp, iptc }).toEqual({ exif: undefined, icc: undefined, xmp: undefined, iptc: undefined });
   });
 
-  it("is navy at the corners and the sides, has the photo and the logo, and all else in x 285–915", async () => {
+  it("is the page's colour at the corners and the sides, has the photo, the logo and the text, and all else in x 285–915", async () => {
     const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
     const hex = (x, y) => {
       const i = (y * info.width + x) * info.channels;
       return "#" + [...data.subarray(i, i + 3)].map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
     };
     for (const [x, y] of [[0, 0], [1199, 0], [0, 629], [1199, 629], [0, 315], [1199, 315], [600, 0], [600, 629]]) {
-      expect(hex(x, y), `${x},${y}`).toBe("#0F172A");
+      expect(hex(x, y), `${x},${y}`).toBe("#FDFBF8");
     }
-    // The photo on the left, with its white edge; the logo on the right, above
-    // the label KH in its circle: the white player as in the header.
-    expect(hex(470, 275), "the photo").not.toBe("#0F172A");
-    expect(hex(345, 275), "the photo's edge").toBe("#FFFFFF");
-    expect(hex(754, 190), "the logo").toBe("#F8FAFC");
+    // The photo on the left, with its ink-blue edge; the logo on the right: the
+    // ink-blue player as in the header, above the label KH, and the ball, the
+    // page's colour inside its ink-blue edge (phase 10).
+    expect(hex(443, 270), "the photo").not.toBe("#FDFBF8");
+    expect(hex(317, 270), "the photo's edge").toBe("#1E40AF");
+    expect(hex(727, 230), "the logo").toBe("#1E40AF");
+    expect(hex(839, 181), "the ball").toBe("#FDFBF8");
+    expect(hex(878, 181), "the ball's edge").toBe("#1E40AF");
     // Between the two.
-    expect(hex(625, 275)).toBe("#0F172A");
+    expect(hex(598, 270)).toBe("#FDFBF8");
+    // kayhardam.dev below them, dark.
+    expect(hex(600, 470), "the text").toBe("#1F1A17");
 
-    // The square WhatsApp shows compactly: no pixel outside it that isn't navy.
+    // The square WhatsApp shows compactly: no pixel outside it that isn't the page's colour.
     const outside = [];
     for (let y = 0; y < info.height; y++) {
       for (let x = 0; x < info.width; x++) {
-        if ((x < 285 || x > 915) && hex(x, y) !== "#0F172A") outside.push(`${x},${y}`);
+        if ((x < 285 || x > 915) && hex(x, y) !== "#FDFBF8") outside.push(`${x},${y}`);
       }
     }
     expect(outside).toEqual([]);

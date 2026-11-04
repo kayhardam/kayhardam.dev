@@ -19,9 +19,9 @@ for (const path of [...allPages(), missingPages[0]!]) {
     for (const [name, height] of heights) expect(height, name).toBeGreaterThanOrEqual(44);
   });
 
-  // One grey ring on every background: 3:1 on navy, #1E293B, white and the card (Kay, phase 8).
+  // One ink-blue ring on every background: 8.4:1 on the page, 7.8:1 on a card, 8.7:1 on the board's card (phase 10).
   // Tab reaches every link and button.
-  test(`${path}: the focus ring is 3 px of #64748B, 2 px out`, async ({ page, browserName }) => {
+  test(`${path}: the focus ring is 3 px of #1E40AF, 2 px out`, async ({ page, browserName }) => {
     await page.goto(path);
     // Safari tabs to links only with Option (Alt) held.
     const key = browserName === "webkit" ? "Alt+Tab" : "Tab";
@@ -38,6 +38,6 @@ for (const path of [...allPages(), missingPages[0]!]) {
       if (ring) rings.push(ring);
     }
     expect(rings.length).toBe(count);
-    for (const { name, outline, offset } of rings) expect({ outline, offset }, name).toEqual({ outline: "3px solid rgb(100, 116, 139)", offset: "2px" });
+    for (const { name, outline, offset } of rings) expect({ outline, offset }, name).toEqual({ outline: "3px solid rgb(30, 64, 175)", offset: "2px" });
   });
 }

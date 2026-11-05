@@ -13,7 +13,7 @@ const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const t = text(locale);
 const [lead, rest] = t.statement;
 const [atName, atDomain] = email.split("@");
-const [beforeGithub, githubLink, afterGithub] = t.contact.github;
+const [beforeGithub, githubLink, afterGithub] = t.footer.github;
 const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
 const [beforeProduct, productLink, afterProduct] = t.about.product;
 ---
@@ -89,24 +89,30 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
             <h2 class="eyebrow">{t.about.heading}</h2>
             {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
             <p class="product">{beforeProduct}<a href={coachboard[locale]}>{productLink}</a>{afterProduct}</p>
-            <p class="example">{t.about.example}</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact">
+      <div class="container">
+        <div class="card">
+          <SectionNumber n={3} />
+          <h2 class="eyebrow">{t.contact.heading}</h2>
+          <p class="question">{t.contact.question}</p>
+          <p class="mail">{t.contact.mail}</p>
+          {/* On one line; the <wbr> only as a fallback on very narrow screens. */}
+          <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="contact">
+  {/* The footer (phase 11): one small line, with the link to GitHub; LinkedIn comes later. */}
+  <footer class="site-footer">
     <div class="container">
-      <div class="card">
-        <SectionNumber n={3} />
-        <h2 class="eyebrow">{t.contact.heading}</h2>
-        <p class="question">{t.contact.question}</p>
-        <p class="mail">{t.contact.mail}</p>
-        {/* On one line; the <wbr> only as a fallback on very narrow screens. */}
-        <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
-        <p class="github">{beforeGithub}<a href={github} rel="me">{githubLink}</a>{afterGithub}</p>
-      </div>
+      <p class="footer-line">{t.footer.line}</p>
+      <p class="footer-links">{beforeGithub}<a href={github} rel="me">{githubLink}</a>{afterGithub}</p>
     </div>
   </footer>
 </BaseLayout>
@@ -319,8 +325,7 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
      27.2 px of text, plus the padding: 45 px (48.4 px at 19 px). The negative
      margin keeps the line as high as the others; only the touch target grows. */
   .note a,
-  .product a,
-  .github a {
+  .product a {
     display: inline-block;
     padding-block: 9px;
     margin-block: -9px;
@@ -330,8 +335,7 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
     text-underline-offset: 4px;
   }
   .note a:hover,
-  .product a:hover,
-  .github a:hover {
+  .product a:hover {
     color: var(--color-accent);
   }
 
@@ -442,7 +446,7 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
     letter-spacing: -0.025em;
   }
 
-  /* Under the big sentences, after a line: what Kay makes, with the link, and the example. */
+  /* Under the big sentence, after a line: what Kay makes, with the link. */
   .product {
     max-width: 620px;
     margin-top: 32px;
@@ -451,13 +455,7 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
     font-size: 19px;
   }
 
-  .example {
-    max-width: 620px;
-    margin-top: 12px;
-    font-size: 19px;
-  }
-
-  /* Contact: the footer, the last card. */
+  /* Contact: the last card. */
   .question {
     margin-top: 16px;
     font-weight: 800;
@@ -489,13 +487,39 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
     color: var(--color-accent);
   }
 
-  .github {
-    margin-top: 24px;
-    color: var(--color-text-muted);
+  /* The footer: small and grey, after a line, below the last card's 56 or 88 px.
+     The link is 44 px high (15 × 1.6 = 24 px of text, plus the padding) without
+     a negative margin: the paragraph has only this line. */
+  .site-footer {
+    padding-block: 24px 40px;
+    border-top: 1px solid var(--color-line);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-text-small);
   }
 
-  /* No negative margin here: the line is the paragraph's only one. */
-  .github a {
-    margin-block: 0;
+  .site-footer .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px 24px;
+  }
+
+  .footer-line,
+  .footer-links {
+    margin: 0;
+  }
+
+  .footer-links a {
+    display: inline-block;
+    padding-block: 10px;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: underline 2px var(--color-accent);
+    text-underline-offset: 4px;
+  }
+  .footer-links a:hover {
+    color: var(--color-accent);
   }
 </style>

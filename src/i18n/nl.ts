@@ -10,13 +10,14 @@ export const nl = {
     "Ik bouw tools voor sport, zoals Handball Coachboard: een digitaal tactiekbord. Bekijk een aanval op het bord en bewerk hem zelf.",
   // og:image:alt, for public/og.png (one image for both languages).
   ogImage: "Portret van Kay Hardam naast het KH-logo, met daaronder kayhardam.dev.",
-  // The jobTitle in the JSON-LD Person: the statement's first sentence without its full stop.
+  // The jobTitle in the JSON-LD Person, as in the title: the page itself no longer says it (phase 11).
   jobTitle: "Gymleraar en handbaltrainer",
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
-  // The first sentence dark, the second in ink blue.
-  statement: ["Gymleraar en handbaltrainer.", "Ik bouw tools voor sport."],
+  // The first sentence dark, the second in ink blue. Shorter since phase 11: no
+  // job titles on the page, until the texts for employers come (Kay, 5 November 2026).
+  statement: ["Ik coach.", "Ik code."],
   hero: {
     button: "Bewerk deze aanval in Coachboard",
   },
@@ -52,22 +53,23 @@ export const nl = {
   about: {
     heading: "Over mij",
     photo: "Portret van Kay Hardam.",
-    // The two big sentences (Kay, 31 October 2026). Hard spaces (U+00A0) keep the club on one line (Kay, phase 8).
-    text: [
-      "Hoi, ik ben Kay. Ik help je handbal zo uit te leggen dat je hele team het snapt.",
-      "Ik ben gymleraar, handbaltrainer bij\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde, en ik bouw software als de zaal dicht is.",
-    ],
+    // The big sentence (Kay, 31 October 2026). The second one, with the club, and the
+    // example after the product went in phase 11 (Kay, 5 November 2026).
+    text: ["Hoi, ik ben Kay. Ik help je handbal zo uit te leggen dat je hele team het snapt."],
     // Before the link to Coachboard, the link, after. The address is `coachboard` in src/data/links.ts.
     product: ["Ik maak ", "Coachboard", ": een digitaal tekenbord voor als handen en voeten niet genoeg zijn."],
-    example: "Een aanval tegen een 6-0? Drie pijlen, en je spelers snappen wat je bedoelt.",
   },
   contact: {
     heading: "Contact",
     question: "Ben je zelf trainer? Ik hoor graag wat je van Coachboard vindt.",
     // The email address follows as its own, large link.
     mail: "Ook voor vragen of ideeën. Mail me:",
-    // Before the link, the link, after it.
-    github: ["Mijn code staat op ", "GitHub", "."],
+  },
+  // The footer under Contact (phase 11, Kay's choice): one line, then the links.
+  // Before the link, the link, after it. LinkedIn comes later (Kay, 5 November 2026).
+  footer: {
+    line: "Gebouwd als de zaal dicht is.",
+    github: ["Code op ", "GitHub", "."],
   },
   notFound: {
     title: "Pagina niet gevonden | Kay Hardam",

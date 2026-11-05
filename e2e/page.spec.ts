@@ -22,11 +22,11 @@ for (const { path, t, locale } of pages) {
       t.coachboard.button,
       t.about.heading,
       ...t.about.text,
-      t.about.example,
       t.contact.heading,
       t.contact.question,
       t.contact.mail,
       email,
+      t.footer.line,
     ];
     for (const value of texts) await expect(page.getByText(value, { exact: true })).toBeVisible();
     expect(await page.locator(".about .big").allTextContents()).toEqual(t.about.text);
@@ -34,7 +34,7 @@ for (const { path, t, locale } of pages) {
     await expect(page.locator(".statement")).toHaveText(t.statement.join(" "));
     await expect(page.locator(".note")).toHaveText(t.coachboard.note.join(""));
     await expect(page.locator(".product")).toHaveText(t.about.product.join(""));
-    await expect(page.locator(".github")).toHaveText(t.contact.github.join(""));
+    await expect(page.locator(".footer-links")).toHaveText(t.footer.github.join(""));
   });
 
   test(`${path}: the headings: the name, then the three sections`, async ({ page }) => {
@@ -61,14 +61,14 @@ for (const { path, t, locale } of pages) {
       [t.coachboard.button, coachboard[locale]],
       [t.about.product[1], coachboard[locale]],
       [email, mailto],
-      [t.contact.github[1], github],
+      [t.footer.github[1], github],
     ];
     await expect(page.getByRole("link")).toHaveCount(links.length);
     for (const [name, href] of links) {
       await expect(page.getByRole("link", { name, exact: true })).toHaveAttribute("href", href!);
     }
     // GitHub's profile is Kay's own: rel="me", for search engines and for a link back.
-    await expect(page.getByRole("link", { name: t.contact.github[1], exact: true })).toHaveAttribute("rel", "me");
+    await expect(page.getByRole("link", { name: t.footer.github[1], exact: true })).toHaveAttribute("rel", "me");
     await expect(page.locator("a[rel]")).toHaveCount(1);
   });
 

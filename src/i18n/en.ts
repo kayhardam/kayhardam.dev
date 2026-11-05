@@ -11,7 +11,7 @@ export const en: Text = {
   site: "kayhardam.dev",
   languages: "Language",
   name: "Kay Hardam",
-  statement: ["PE teacher and handball coach.", "I build tools for sports."],
+  statement: ["I coach.", "I code."],
   hero: {
     button: "Edit this play in Coachboard",
   },
@@ -41,18 +41,17 @@ export const en: Text = {
   about: {
     heading: "About me",
     photo: "Portrait of Kay Hardam.",
-    text: [
-      "Hi, I’m Kay. I help you explain handball so your whole team gets it.",
-      "I’m a PE teacher, a handball coach at\u00A0HV\u00A0Unitas\u00A0in\u00A0Rolde, and I build software when the gym is closed.",
-    ],
+    text: ["Hi, I’m Kay. I help you explain handball so your whole team gets it."],
     product: ["I make ", "Coachboard", ": a digital drawing board for when hands and feet aren’t enough."],
-    example: "A play against a 6-0 defense? Three arrows, and your players get what you mean.",
   },
   contact: {
     heading: "Contact",
     question: "Are you a coach yourself? I’d love to hear what you think of Coachboard.",
     mail: "Questions or ideas are welcome too. Email me:",
-    github: ["My code is on ", "GitHub", "."],
+  },
+  footer: {
+    line: "Built when the gym is closed.",
+    github: ["Code on ", "GitHub", "."],
   },
   notFound: {
     // The 404 page is one page with the Dutch title; this one isn't shown.

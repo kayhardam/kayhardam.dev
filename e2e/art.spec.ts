@@ -75,7 +75,7 @@ for (const { path } of pages) {
     const numbers = await page.locator(".section-number").evaluateAll((all) =>
       all.map((svg) => {
         const box = svg.getBoundingClientRect();
-        const section = svg.closest("section, footer")!;
+        const section = svg.closest("section")!;
         const h2 = section.querySelector("h2")!.getBoundingClientRect();
         return {
           label: svg.querySelector("text")!.textContent,

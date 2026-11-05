@@ -53,12 +53,12 @@ describe("texts", () => {
     expect(languages.en.filter(([, value]) => /trainer/i.test(value))).toEqual([]);
   });
 
-  // The club stays on one line in About me: hard spaces (U+00A0) between its words (Kay, phase 8; the second sentence since phase 9).
-  // "_" shows them in a failure; a plain space looks the same as a hard one.
-  it("keeps the club on one line", () => {
-    const shown = (text: string) => text.replaceAll("\u00A0", "_");
-    expect(shown(nl.about.text[1])).toContain("bij_HV_Unitas_in_Rolde,");
-    expect(shown(en.about.text[1])).toContain("at_HV_Unitas_in_Rolde,");
+  // No job titles on the page until the texts for employers come (Kay, 5 November 2026):
+  // not in the statement, not in About me. The title and the JSON-LD keep them.
+  it("has no job title in the statement or in About me", () => {
+    for (const t of [nl, en]) {
+      for (const text of [...t.statement, ...t.about.text]) expect(text).not.toMatch(/gymleraar|handbaltrainer|PE teacher|handball coach/i);
+    }
   });
 
   // The link in About me is the product's short name (the first mention, "Handball Coachboard", is the description).

@@ -1116,3 +1116,36 @@ De eerste regel van het statement staat iets lager: 20 px tussen naam en stateme
 - e2e in de container, alleen project `android` (geen WebKit): alle 234 groen, ook de vier layoutshift-tests in `art.spec.ts` die in fase 9 in de container faalden: de taallinks zijn nu `display: flex`, zonder regel om op te schuiven.
 - De tests van de veldlijnen en de pass zijn weg (`art.spec.ts`, `narrow.spec.ts`). Aangepast op de nieuwe look: het logo (37 × 34 px, met de bal), de kleur van de nummers, de randen van de foto's, de taallinks, de focusring (inktblauw), de links op de 404, de header (76 px) en de geladen lettertypen.
 - De volledige e2e in beide projecten: CI op de pull request.
+
+## Fase 11: korter (5 november 2026)
+
+Branch `fase-11-korter`. De teksten tijdelijk ingekort, tot de teksten voor werkgevers er zijn (Kay, 5 november). Het statement is "Ik coach. Ik code." / "I coach. I code." (Kays keuze A uit vier opties). Uit Over mij zijn de tweede zin (met de club) en het voorbeeld na Coachboard weg. "Mijn code staat op GitHub" is uit Contact naar een nieuwe footer verhuisd: één kleine grijze regel, "Gebouwd als de zaal dicht is." links en "Code op GitHub." rechts; LinkedIn volgt als Kay het adres geeft. De titel, de beschrijving en de JSON-LD houden "Gymleraar en handbaltrainer". Gemeten in Chromium 153 (Playwright 1.64.1) in een Linux-container, op de build van de branch; WebKit en Lighthouse niet (Kay, op de preview).
+
+### De heroknop per venster
+
+Het statement is nu twee korte regels, ook vanaf 860 px. In px vanaf de bovenkant van het venster, NL en EN gelijk.
+
+| Venster | Onderkant knop | Onderkant kaart |
+|---|--:|--:|
+| 1366 × 640 | 548,4 (was 607,2) | 699,3 |
+| 1280 × 800 | 548,4 (was 607,2) | 699,3 |
+| 1024 × 700 | 501,5 (was 548,8) | 628,4 |
+| 860 × 700 | 476,9 (was 516,6) | 594,3 |
+
+### De telefoon
+
+| Venster | Onderkant knop | Naam | Eerste regel statement |
+|---|--:|--:|--:|
+| 412 × 839 (Pixel 7) | 655,1 | 732,3 | 804,7 (was 807,1) |
+| 393 × 659 (iPhone 15, Safari) | 639,8 | 717 | 789,4 |
+| 390 × 844 | 637,4 | 714,6 | 787 (was 789,4) |
+
+### De HTML
+
+`/` 10,10 KB en `/en/` 10,04 KB (gzip), was 10,13 en 10,08 KB: twee zinnen minder, de footer met zijn CSS erbij. Het budget blijft 11,1 KB. JS ongewijzigd.
+
+### Tests
+
+- `npm run verify` groen.
+- `texts.test.ts`: de harde spaties van de club zijn weg met de zin; in plaats daarvan faalt de test op een functietitel in het statement of in Over mij.
+- `e2e/page.spec.ts`: de teksten, de footerregel, de GitHub-link met `rel="me"` in de footer; `e2e/art.spec.ts`: Contact is een sectie.

@@ -50,11 +50,13 @@ a {
   color: inherit;
 }
 
-/* Ink blue on every background: 8.4:1 on the page, 7.8:1 on a card and 8.7:1 on
-   the board's card. */
+/* The focus ring of Hars: 3 px amber, 2 px out, with an edge of espresso around
+   it (the shadow, 2 px beyond the ring), so it shows on every background: amber
+   is 9.4:1 on the hero, 10.5:1 on the ground; on amber the espresso edge shows. */
 :focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: var(--ring) solid var(--amber);
+  outline-offset: var(--ring-edge);
+  box-shadow: 0 0 0 calc(var(--ring-edge) + var(--ring) + var(--ring-edge)) var(--espresso);
 }
 
 .container {

@@ -49,26 +49,12 @@
   --color-text-small: #655c55; /* small labels */
 
   /* Ink blue: the buttons, the players (the logo and the section numbers), the
-     headings in colour, the lines under links and the focus ring. 8.4:1 on the
-     page, 7.8:1 on a card, 8.7:1 on the board's card, and white on it 8.7:1. */
+     headings in colour and the lines under links. 8.4:1 on the page, 7.8:1 on a
+     card, and white on it 8.7:1. */
   --color-accent: #1e40af;
   --color-accent-dark: #1e3a8a; /* the accent button under the pointer */
 
-  /* The board's card: Coachboard's own look (board.css). */
-  --color-board-bg: #ffffff;
-  --color-board-border: #e2e8f0;
-  --color-board-text: #0f172a;
-  --color-board-text-muted: #475569;
-  --color-board-text-small: #64748b;
-
-  /* Green only for the board's card (board.css): it is Coachboard's own look,
-     the attack's colour on the court. The rest of the site has no green: it is
-     a club colour (Kay, phase 8). */
-  --color-green-dark: #15803d; /* the card's mark and Play button (white on it: 5.0:1) */
-
   --font-sans: var(--font-text);
-  /* The board's card keeps the system font, as in Coachboard. */
-  --font-board: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --radius-card: 16px; /* the cards, and the board's card */
   --radius: 12px; /* the buttons */

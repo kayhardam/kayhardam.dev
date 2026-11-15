@@ -16,6 +16,7 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import type { Board } from "../../lib/board/format";
+  import { BALL_R } from "../../lib/board/geometry";
   import { moment } from "../../lib/board/play";
   import { moveFor, moves, stillFor, type LegendItem } from "../../lib/board/viewer";
   import { viewerIcons as icons } from "../../lib/viewerIcons";
@@ -59,6 +60,8 @@
   let elapsed = 0;
   let reduce = false;
 
+  /** Where the balls are on the court now, for their rings in room. */
+  const balls = $derived((shown ?? board).frames[step]!.balls);
   const lastStep = $derived(board.frames.length - 1);
   const count = $derived(board.frames.length);
   const where = $derived(t.step.replace("{n}", String(step + 1)).replace("{count}", String(count)));
@@ -246,6 +249,14 @@
     <p class="board-step" aria-live={live}>{board.frames[step]!.text ?? ""}</p>
     <div class="board-court">
       <Court board={shown ?? board} frame={step} label={t.court} viewBox={CROP} />
+      <!-- A ring in room around each ball, just outside its espresso edge: in the
+           goal area gloed is 2.7:1, the ring 7.9:1 (Hars, step 2). On top of
+           Court.svelte, which stays Coachboard's copy. -->
+      <svg class="board-rings" viewBox={CROP} aria-hidden="true">
+        {#each balls as [x, y], i (i)}
+          <circle cx={x} cy={y} r={BALL_R + 0.8} stroke-width="0.8" />
+        {/each}
+      </svg>
     </div>
     <div class="board-foot">
       <ul class="board-legend" aria-label={t.legend}>

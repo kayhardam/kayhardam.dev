@@ -30,7 +30,7 @@ const places = (frame: Frame): Places => ({ players: frame.players.map((p) => p.
 
 /** Where every player and ball is on the court now. */
 const onCourt = (page: Page): Promise<Places> =>
-  page.locator(".board-court svg").evaluate((svg) => {
+  page.locator(".board-court svg[role=img]").evaluate((svg) => {
     const at = (kind: string) =>
       [...svg.querySelectorAll(`[data-kind="${kind}"]`)].map((g) => {
         const [, x, y] = g.getAttribute("transform")!.match(/translate\(([-\d.e]+) ([-\d.e]+)\)/)!;
@@ -229,7 +229,9 @@ for (const { path, t, locale } of pages) {
       expect((await onCourt(page)).balls).toEqual([[100, 0]]);
       await expect(c.next).toHaveAttribute("aria-disabled", "true");
       await expect(c.next).toBeFocused();
-      await expect(c.next).toHaveCSS("opacity", "0.4");
+      // Only the icon fades, so the focus ring on it keeps its full colour (Hars, step 2).
+      await expect(c.next).toHaveCSS("opacity", "1");
+      await expect(c.next.locator("svg")).toHaveCSS("opacity", "0.4");
 
       await page.keyboard.press("Enter");
       await playTo(page, now + 1000);

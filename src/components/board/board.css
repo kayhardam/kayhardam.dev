@@ -11,21 +11,19 @@
  * Global, every rule under .board, as BoardViewer.css is in Coachboard: the
  * card is a Svelte component (BoardCard.svelte), an island since phase 5.
  *
- * Coachboard's own look on the warm page (phase 10): white and slate, with
- * green, in the system font. Its edge is a shadow, not a border, so the
- * formula above stays as it is.
+ * In the palette Hars (Kay, 15 November 2026): the card is the stage
+ * (walnoot-donker), the court walnoot. Its edge is a shadow, not a border, so
+ * the formula above stays as it is.
  */
 .board {
   /* The card's own width, for the foot below. */
   container-type: inline-size;
-  font-family: var(--font-board);
-  font-weight: 400;
-  background: var(--color-board-bg);
-  color: var(--color-board-text);
+  font-family: var(--font-text);
+  font-weight: 500;
+  background: var(--walnoot-donker);
+  color: var(--room);
   border-radius: var(--radius-card);
-  box-shadow:
-    0 0 0 1px var(--color-line),
-    0 16px 40px rgba(31, 26, 23, 0.1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--room) 14%, transparent);
 }
 
 .board .board-body {
@@ -66,7 +64,7 @@
 .board .board-label svg {
   width: 20px;
   height: 20px;
-  color: var(--color-green-dark);
+  color: var(--amber);
 }
 
 .board .board-label span {
@@ -75,12 +73,12 @@
   white-space: nowrap;
 }
 
-/* 1/4, worked out from the step and the number of steps. #64748B: 4.8:1 on white. */
+/* 1/4, worked out from the step and the number of steps. Zand: 9.9:1 on walnoot-donker. */
 .board .board-count {
   flex: none;
   font-size: 14px;
   line-height: 1.2;
-  color: var(--color-board-text-small);
+  color: var(--zand);
   font-variant-numeric: tabular-nums;
 }
 
@@ -94,7 +92,7 @@
 }
 
 /* The viewBox from the brief: -8 -14 216 174. The court's SVG sits on top of
-   the box, so nothing in it can change the box's height. Its edge is white. */
+   the box, so nothing in it can change the box's height. */
 .board .board-court {
   position: relative;
   aspect-ratio: 216 / 174;
@@ -114,18 +112,23 @@
   margin-top: 12px;
 }
 
-/* On one line: about 200 px, and a card of 288 px has 260. */
+/* On one line, in columns of a fixed width, so an item doesn't move when Barlow
+   comes and the text before it gets wider or narrower (e2e/art.spec.ts): three
+   columns of 4.9em (68.6 px) and two gaps of 12 px make 230 px. A card of 288 px
+   has 260; in one row with the buttons, from a card of 420 px, there are 232. */
 .board .board-legend {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 4.9em;
   align-items: center;
-  gap: 14px;
+  column-gap: 12px;
   height: 24px;
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 14px;
   line-height: 1.2;
-  color: var(--color-board-text-muted);
+  color: var(--zand);
   white-space: nowrap;
 }
 
@@ -138,7 +141,7 @@
 .board .board-legend svg {
   width: 18px;
   height: 18px;
-  color: var(--color-board-text);
+  color: var(--room);
 }
 
 /* Previous, Play and Next, on the right, also below the legend. */
@@ -155,25 +158,33 @@
   width: var(--tap);
   height: var(--tap);
   padding: 0;
-  border: 1px solid var(--color-board-border);
+  border: 1px solid color-mix(in srgb, var(--room) 35%, transparent);
   border-radius: var(--radius-sm);
-  background: var(--color-board-bg);
-  color: var(--color-board-text);
+  background: transparent;
+  color: var(--room);
   font: inherit;
   cursor: pointer;
 }
 
 .board .board-controls .play {
-  border-color: var(--color-green-dark);
-  background: var(--color-green-dark);
-  color: #fff;
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--espresso);
 }
 
 /* Off: all three without JavaScript (disabled); once mounted, a button with
-   nothing to do (aria-disabled, so the focus stays on it). */
+   nothing to do (aria-disabled, so the focus stays on it). Only the icon and the
+   edge fade, not the button: the focus ring keeps its full colour. */
 .board .board-controls button:is(:disabled, [aria-disabled="true"]) {
-  opacity: 0.4;
   cursor: default;
+}
+
+.board .board-controls button:is(:disabled, [aria-disabled="true"]) svg {
+  opacity: 0.4;
+}
+
+.board .board-controls button:not(.play):is(:disabled, [aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--room) 14%, transparent);
 }
 
 .board .board-controls svg {
@@ -193,4 +204,116 @@
   .board .board-controls {
     align-self: auto;
   }
+}
+
+/*
+ * The court in Hars. Court.svelte is Coachboard's copy and stays unchanged
+ * (src/lib/coachboard.test.ts): it gives every shape its colour as an SVG
+ * attribute, and a CSS rule always beats an attribute. So each rule below
+ * picks one of Coachboard's colours by its attribute and gives it its Hars
+ * token. The hex values here are selectors, not colours: they name what
+ * Court.svelte draws.
+ */
+.board .board-court rect[fill="#f1f5f9"] {
+  fill: var(--walnoot); /* the court */
+}
+
+.board .board-court path[fill="#dbe4ee"] {
+  fill: var(--walnoot-licht); /* the goal area */
+}
+
+/* The court's lines (10.9:1 on walnoot, 7.9:1 on walnoot-licht). */
+.board .board-court [stroke="#64748b"] {
+  stroke: var(--room);
+}
+
+/* The goal: espresso, with an edge in room. */
+.board .board-court rect[fill="#ffffff"] {
+  fill: var(--espresso);
+}
+
+/* Coachboard's ink: the goal's edge, the arrows, the shot's wide line, a block's
+   bar, a bounce's edge, and the arrowheads. */
+.board .board-court [stroke="#0f172a"] {
+  stroke: var(--room);
+}
+
+.board .board-court marker path {
+  fill: var(--room);
+}
+
+/* The shot's inner line and a bounce's dot: the court's colour, so the shot is a
+   double line in room. */
+.board .board-court [data-kind="arrow"] [stroke="#ffffff"] {
+  stroke: var(--walnoot);
+}
+
+.board .board-court [data-kind="arrow"] [fill="#ffffff"] {
+  fill: var(--walnoot);
+}
+
+/* Players: attackers amber, defenders espresso, both with an edge in room, so a
+   defender stands out from the court (espresso alone is 1.6:1 on walnoot). The
+   label in Barlow Condensed: espresso on amber (10.5:1), room on espresso (17.5:1). */
+.board .board-court [data-kind="player"] [stroke="#ffffff"] {
+  stroke: var(--room);
+}
+
+.board .board-court [data-kind="player"] [fill="#15803d"] {
+  fill: var(--amber);
+}
+
+.board .board-court [data-kind="player"] [fill="#0f172a"] {
+  fill: var(--espresso);
+}
+
+.board .board-court [data-kind="player"] [fill="#2563eb"] {
+  fill: var(--zand); /* a passer: none on this board */
+}
+
+.board .board-court [data-kind="player"] text {
+  fill: var(--room);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.board .board-court [data-kind="player"]:has([fill="#15803d"], [fill="#2563eb"]) text {
+  fill: var(--espresso);
+}
+
+/* The ball: gloed with an edge in espresso. The ring in room around it is
+   BoardCard's own (.board-rings): in the goal area gloed is 2.7:1. */
+.board .board-court [data-kind="ball"] [fill="#f59e0b"] {
+  fill: var(--gloed);
+}
+
+.board .board-court [data-kind="ball"] [stroke="#78350f"] {
+  stroke: var(--espresso);
+}
+
+/* Where players stood in the step before: room, faint. */
+.board .board-court .trails {
+  stroke: color-mix(in srgb, var(--room) 50%, transparent);
+}
+
+/* A cone: none on this board. */
+.board .board-court [fill="#dc2626"] {
+  fill: var(--zand);
+}
+
+.board .board-court [stroke="#7f1d1d"] {
+  stroke: var(--espresso);
+}
+
+/* The ring around each ball, on top of the court, never in the way of a tap. */
+.board .board-rings {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.board .board-rings circle {
+  fill: none;
+  stroke: var(--room);
 }

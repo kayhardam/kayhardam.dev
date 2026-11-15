@@ -19,25 +19,27 @@ for (const path of [...allPages(), missingPages[0]!]) {
     for (const [name, height] of heights) expect(height, name).toBeGreaterThanOrEqual(44);
   });
 
-  // One ink-blue ring on every background: 8.4:1 on the page, 7.8:1 on a card, 8.7:1 on the board's card (phase 10).
+  // The ring of Hars (Kay, 15 November 2026): 3 px amber, 2 px out, with an espresso edge around it (the shadow).
   // Tab reaches every link and button.
-  test(`${path}: the focus ring is 3 px of #1E40AF, 2 px out`, async ({ page, browserName }) => {
+  test(`${path}: the focus ring is 3 px of amber, 2 px out, with an espresso edge`, async ({ page, browserName }) => {
     await page.goto(path);
     // Safari tabs to links only with Option (Alt) held.
     const key = browserName === "webkit" ? "Alt+Tab" : "Tab";
     const count = await page.locator("a, button").count();
-    const rings: { name: string; outline: string; offset: string }[] = [];
+    const rings: { name: string; outline: string; offset: string; edge: string }[] = [];
     for (let i = 0; i < count; i++) {
       await page.keyboard.press(key);
       const ring = await page.evaluate(() => {
         const el = document.activeElement;
         if (!el || el === document.body) return null;
         const s = getComputedStyle(el);
-        return { name: el.textContent?.trim() || el.getAttribute("aria-label") || el.tagName, outline: `${s.outlineWidth} ${s.outlineStyle} ${s.outlineColor}`, offset: s.outlineOffset };
+        return { name: el.textContent?.trim() || el.getAttribute("aria-label") || el.tagName, outline: `${s.outlineWidth} ${s.outlineStyle} ${s.outlineColor}`, offset: s.outlineOffset, edge: s.boxShadow };
       });
       if (ring) rings.push(ring);
     }
     expect(rings.length).toBe(count);
-    for (const { name, outline, offset } of rings) expect({ outline, offset }, name).toEqual({ outline: "3px solid rgb(30, 64, 175)", offset: "2px" });
+    for (const { name, outline, offset, edge } of rings) {
+      expect({ outline, offset, edge }, name).toEqual({ outline: "3px solid rgb(255, 179, 0)", offset: "2px", edge: "rgb(22, 17, 13) 0px 0px 0px 7px" });
+    }
   });
 }

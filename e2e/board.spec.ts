@@ -49,7 +49,7 @@ for (const { path, t, locale } of pages) {
     await page.goto(path);
     const href = await page.locator(".hero-button").getAttribute("href");
     const frame = (await boardFrom(href!)).frames[0]!;
-    const court = page.locator(".board-court svg");
+    const court = page.locator(".board-court svg[role=img]");
 
     const players = await court.locator('[data-kind="player"]').evaluateAll((all) =>
       all.map((g) => ({
@@ -74,7 +74,7 @@ for (const { path, t, locale } of pages) {
 
   test(`${path}: the court: an image with its label, cropped at 16 metres, nothing sticking out`, async ({ page }) => {
     await page.goto(path);
-    const court = page.locator(".board-court svg");
+    const court = page.locator(".board-court svg[role=img]");
     await expect(court).toHaveAttribute("role", "img");
     await expect(court).toHaveAttribute("aria-label", t.board.court);
     await expect(court).toHaveAttribute("viewBox", "-8 -14 216 174");
@@ -176,7 +176,7 @@ test.describe("with JavaScript, playing", () => {
   test.use({ reducedMotion: "no-preference" });
 
   for (const { path, t } of pages) {
-    test(`${path}: three buttons, on: Previous, Stop and Next, 44 × 44 px, on the right; Play is green`, async ({ page }) => {
+    test(`${path}: three buttons, on: Previous, Stop and Next, 44 × 44 px, on the right; Play is amber`, async ({ page }) => {
       await page.goto(path);
       const buttons = page.getByRole("button");
       await expect(buttons).toHaveCount(3);
@@ -194,7 +194,7 @@ test.describe("with JavaScript, playing", () => {
       const card = await box(page, ".board-body");
       const last = (await buttons.nth(2).boundingBox())!;
       expect(last.x + last.width).toBeCloseTo(card.right - 14, 0);
-      await expect(buttons.nth(1)).toHaveCSS("background-color", "rgb(21, 128, 61)");
+      await expect(buttons.nth(1)).toHaveCSS("background-color", "rgb(255, 179, 0)");
     });
   }
 });
@@ -239,7 +239,7 @@ test.describe("without JavaScript", () => {
       }
     });
 
-    test(`${path}: three buttons, off, 44 × 44 px, on the right; Play is green`, async ({ page }) => {
+    test(`${path}: three buttons, off, 44 × 44 px, on the right; Play is amber`, async ({ page }) => {
       await page.goto(path);
       const buttons = page.getByRole("button");
       await expect(buttons).toHaveCount(3);
@@ -255,7 +255,7 @@ test.describe("without JavaScript", () => {
       const card = await box(page, ".board-body");
       const last = (await buttons.nth(2).boundingBox())!;
       expect(last.x + last.width).toBeCloseTo(card.right - 14, 0);
-      await expect(page.getByRole("button", { name: t.board.play })).toHaveCSS("background-color", "rgb(21, 128, 61)");
+      await expect(page.getByRole("button", { name: t.board.play })).toHaveCSS("background-color", "rgb(255, 179, 0)");
     });
   }
 });

@@ -56,19 +56,12 @@ describe("texts", () => {
   });
 
   // No job titles on the page until the texts for employers come (Kay, 5 November 2026):
-  // not in About me. The title and the JSON-LD keep them.
-  it("has no job title in About me", () => {
-    for (const t of [nl, en]) {
-      for (const text of t.about.text) expect(text).not.toMatch(/gymleraar|handbaltrainer|PE teacher|handball coach/i);
+  // the title, the description and the JSON-LD keep them, nothing else says them.
+  it("has a job title only in the title, the description and the JSON-LD", () => {
+    for (const [code, list] of Object.entries(languages)) {
+      const said = list.filter(([key, value]) => !["title", "description", "jobTitle"].includes(key) && /gymleraar|handbaltrainer|PE teacher|handball coach/i.test(value));
+      expect(said, code).toEqual([]);
     }
-  });
-
-  // The link in About me is the product's short name (the first mention, "Handball Coachboard", is the description).
-  it("links Coachboard by its short name in About me", () => {
-    expect(nl.about.product).toHaveLength(3);
-    expect(en.about.product).toHaveLength(3);
-    expect(nl.about.product[1]).toBe("Coachboard");
-    expect(en.about.product[1]).toBe("Coachboard");
   });
 
   it("uses the typographic apostrophe in English", () => {

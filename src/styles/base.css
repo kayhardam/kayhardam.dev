@@ -10,17 +10,18 @@
   margin: 0;
 }
 
+/* The ground of Hars: espresso, with room text (17.5:1). */
 html {
-  background: var(--color-bg);
+  background: var(--espresso);
 }
 
 /* Barlow 500 for running text (BaseLayout.astro loads the fonts of "Hars"). */
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-text);
   font-weight: 500;
-  font-size: 1.0625rem; /* 17px */
-  color: var(--color-text);
-  background: var(--color-bg);
+  font-size: var(--text);
+  color: var(--room);
+  background: var(--espresso);
   line-height: 1.6;
   overflow-wrap: break-word;
   -webkit-text-size-adjust: 100%;

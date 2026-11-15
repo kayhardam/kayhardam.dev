@@ -34,34 +34,9 @@
   --text: 1.125rem; /* 18px */
 }
 
-/*
- * Until the rebuild (steps 3 to 6): the tokens of the phase-10 look, which the
- * current sections still use. They go, with their hex values, once the last
- * section that uses them is rebuilt in Hars.
- */
 :root {
-  /* The page */
-  --color-bg: #fdfbf8;
-  --color-surface: #f5f1eb; /* the cards */
-  --color-line: #e6dfd5; /* the cards' edges and the lines in them */
-  --color-text: #1f1a17;
-  --color-text-muted: #4a433d;
-  --color-text-small: #655c55; /* small labels */
-
-  /* Ink blue: the buttons, the players (the logo and the section numbers), the
-     headings in colour and the lines under links. 8.4:1 on the page, 7.8:1 on a
-     card, and white on it 8.7:1. */
-  --color-accent: #1e40af;
-  --color-accent-dark: #1e3a8a; /* the accent button under the pointer */
-
-  --font-sans: var(--font-text);
-
-  --radius-card: 16px; /* the cards, and the board's card */
-  --radius: 12px; /* the buttons */
-  --radius-sm: 8px; /* the board's buttons and the language switch */
-
-  --gutter: 16px;
   --container: 1200px;
+  --gutter: 16px;
   --tap: 44px; /* minimum touch target */
 }
 

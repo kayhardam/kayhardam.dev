@@ -60,7 +60,8 @@ const person = JSON.stringify({
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={xDefault} />}
-    <meta name="theme-color" content="#fdfbf8" />
+    {/* The ground of Hars, espresso: a <meta> can't read a custom property (src/styles/colours.test.ts). */}
+    <meta name="theme-color" content="#16110d" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

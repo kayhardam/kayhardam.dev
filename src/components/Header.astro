@@ -1,120 +1,114 @@
 ---
+// The header of Hars (15 November 2026): sticky, on espresso. "Kay Hardam" on the
+// left, a link to the home page; on the right the language switch (from 560 px;
+// below it the page's foot has it) and the button "Plan een gesprek", amber with
+// espresso text, which opens an email to Kay.
 import { getRelativeLocaleUrl } from "astro:i18n";
-import Player from "./art/Player.astro";
-import { defaultLocale, locales, text } from "../i18n";
+import Languages from "./Languages.astro";
+import { mailto } from "../data/links";
+import { defaultLocale, text } from "../i18n";
 
 const locale = Astro.currentLocale ?? defaultLocale;
 const t = text(locale);
-const languages = locales.map((code) => ({ code, href: getRelativeLocaleUrl(code), current: code === locale }));
 ---
 
 <header class="site-header">
   <div class="container bar">
-    <a href={getRelativeLocaleUrl(locale)} class="logo">
-      {/* The KH player with the ball, as in the mockup (phase 10): the ball has the
-          page's colour, so it cuts into the player's edge. The viewBox is the
-          two together: x −9.5 to 14.45, y −12.45 to 9.5. */}
-      <svg viewBox="-9.5 -12.5 24 22" width="37" height="34" aria-hidden="true">
-        <Player label="KH" fill="#1E40AF" ink="#FFFFFF" />
-        <circle cx="10.2" cy="-8.2" r="3.4" fill="#FDFBF8" stroke="#1E40AF" stroke-width="1.7"></circle>
-      </svg>
-      <span>{t.site}</span>
-    </a>
-    <nav aria-label={t.languages}>
-      <ul>
-        {
-          languages.map((l) => (
-            <li>
-              <a href={l.href} hreflang={l.code} lang={l.code} aria-current={l.current ? "page" : undefined}>
-                {l.code.toUpperCase()}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
+    <a href={getRelativeLocaleUrl(locale)} class="name">{t.name}</a>
+    <div class="end">
+      <Languages class="header-languages" />
+      <a class="talk" href={mailto}>{t.talk}</a>
+    </div>
   </div>
 </header>
-
 <style>
+  /* Sticky on espresso, 64 px high: 10 + 44 + 10. A line in room below it. */
   .site-header {
-    background: var(--color-bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--espresso);
+    border-bottom: 1px solid color-mix(in srgb, var(--room) 12%, transparent);
   }
 
-  /* 16 + 44 + 16: 76 px. At 320 px: 37 + 8 + 124.6 (16 px) + 12 + 94 (2 × 44 + 6)
-     = 275.6 of the 288 px. */
   .bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding-block: 16px;
+    padding-block: 10px;
   }
 
-  /* Flex, not inline-flex: no line box, so nothing moves when the font comes. */
   a {
     display: flex;
     align-items: center;
     min-height: var(--tap);
     text-decoration: none;
-    font-weight: 800;
-    color: var(--color-text);
   }
 
-  /* The text stays kayhardam.dev, in lower case as written. 16 px at 320 px,
-     20 px from 400 px. Until the font loads, the text may be wider: then only
-     the text shrinks and is cut off, without a horizontal scroll. */
-  .logo {
-    gap: 8px;
+  /* The name: Barlow Condensed 800 in capitals, room (17.5:1). Until the font
+     loads, the name may be wider: it is cut off, the page doesn't scroll. */
+  .name {
     min-width: 0;
-    font-size: clamp(16px, 5vw, 20px);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-
-  /* The label KH would inherit the link's letter-spacing, scaled with the logo:
-     0, as in public/favicon.svg. e2e/art.spec.ts checks every label. */
-  .logo svg {
-    flex: none;
-    letter-spacing: 0;
-    pointer-events: none;
-  }
-
-  .logo span {
     overflow: hidden;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(18px, 5.6vw, 22px);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--room);
+  }
+
+  .end {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* The language switch: zand, the current one room; only from 560 px. */
+  .end :global(.header-languages) {
+    display: none;
+    color: var(--zand);
+  }
+
+  @media (min-width: 560px) {
+    .end :global(.header-languages) {
+      display: block;
+    }
+  }
+
+  .end :global(.header-languages a[aria-current="page"]) {
+    color: var(--room);
+  }
+
+  /* The button: amber with espresso text (10.5:1), Barlow Condensed 700 in capitals.
+     A fixed width, so nothing in the header moves when the font comes (in the fallback
+     font the text is wider, and cut off until then): 168 px in Barlow Condensed for
+     "Plan een gesprek", 122 px for "Book a call" (e2e/narrow.spec.ts checks it fits). */
+  .talk {
+    justify-content: center;
+    width: 9.5em;
+    overflow: hidden;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--amber);
+    color: var(--espresso);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(16px, 5vw, 18px); /* 16 px at 320 px: the name and the button fit beside each other */
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     white-space: nowrap;
   }
-
-  nav {
-    flex: none;
+  .talk:hover {
+    background: var(--room);
   }
 
-  ul {
-    display: flex;
-    gap: 6px;
-    list-style: none;
-    padding: 0;
-  }
-
-  /* Always 44 px wide, in any font. The current language on a card's colour,
-     with its edge; the other grey, and on the card's colour under the pointer. */
-  nav a {
-    justify-content: center;
-    width: var(--tap);
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--color-text-small);
-  }
-  nav a:hover {
-    background: var(--color-surface);
-    color: var(--color-text);
-  }
-  nav a[aria-current="page"] {
-    border-color: var(--color-line);
-    background: var(--color-surface);
-    color: var(--color-text);
+  :global(html[lang="en"]) .talk {
+    width: 7em;
   }
 </style>

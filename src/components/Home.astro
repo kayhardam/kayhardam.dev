@@ -1,25 +1,21 @@
 ---
-import { getImage, Picture } from "astro:assets";
+import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import portrait from "../assets/kay-hardam.jpg";
 import editorNl from "../assets/coachboard-editor-nl.png";
 import editorEn from "../assets/coachboard-editor-en.png";
 import Header from "./Header.astro";
+import Languages from "./Languages.astro";
 import Board from "./board/Board.astro";
 import Figures from "./Figures.svelte";
 import Lens from "./Lens.svelte";
 import taps from "../data/tap-targets.json";
-import SectionNumber from "./art/SectionNumber.astro";
 import { boards } from "../data/boards";
-import { coachboard, drills, email, evidence, github, mailto, tactics } from "../data/links";
+import { coachboard, email, evidence, mailto } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const t = text(locale);
 const [atName, atDomain] = email.split("@");
-const [beforeGithub, githubLink, afterGithub] = t.footer.github;
-const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
-const [beforeProduct, productLink, afterProduct] = t.about.product;
 
 // The figures, each with its evidence.
 const figures = t.figures.map((figure, i) => ({ ...figure, href: evidence[i]! }));
@@ -36,13 +32,16 @@ const lensImage = { avif: avif.srcSet.attribute, webp: webp.srcSet.attribute, sr
 const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
   points ? { ...target, points: points.map((p) => p.map(Math.round).join(",")).join(" ") } : target,
 );
+
+// The work: each project with its address (Movva and Coachboard Lite come later, Kay).
+const sites: Record<string, string> = { Coachboard: coachboard[locale] };
 ---
 
 <BaseLayout title={t.title} description={t.description}>
   <Header />
   <main>
     {/* The hero (Hars, 15 November 2026): the board tells the story. The name is the page's
-        heading, for screen readers; on screen the header shows it (the header of Hars, step 6). */}
+        heading, for screen readers; on screen the header shows it. */}
     <section class="hero">
       <div class="container">
         <h1 class="visually-hidden">{t.name}</h1>
@@ -50,7 +49,7 @@ const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
       </div>
     </section>
 
-    {/* Three figures, each a link to its evidence in Coachboard (Hars, 15 November 2026). */}
+    {/* Three figures, each a link to its evidence in Coachboard. */}
     <section class="figures-section">
       <div class="container">
         <Figures client:visible={{ rootMargin: "200px" }} items={figures} />
@@ -60,78 +59,42 @@ const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
     {/* The lens over Coachboard's editor, with the touch targets measured on it. */}
     <section class="lens-section">
       <div class="container">
-        <h2 class="lens-heading">{t.lens.heading}</h2>
+        <h2 class="section-heading">{t.lens.heading}</h2>
         <Lens client:visible targets={lensTargets} image={lensImage} locale={locale} t={t.lens} />
       </div>
     </section>
 
-    <section class="coachboard">
+    {/* The work: each project, how far it is, and the technique behind it. */}
+    <section class="work-section">
       <div class="container">
-        <div class="card coachboard-grid">
-          <div class="coachboard-head">
-            <SectionNumber n={1} />
-            <h2>{t.coachboard.heading}</h2>
-          </div>
-          <div class="coachboard-text">
-            <p class="intro">{t.coachboard.intro}</p>
-            <p class="note">{beforeTactics}<a href={tactics[locale]}>{tacticsLink}</a>{betweenLinks}<a href={drills[locale]}>{drillsLink}</a>{afterDrills}</p>
-            <a class="outline-button" href={coachboard[locale]}>
-              {t.coachboard.button}
-              <svg class="arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                <path d="M2 8h11M9 3.5 13.5 8 9 12.5" />
-              </svg>
-            </a>
-          </div>
-        </div>
+        <h2 class="section-heading">{t.work.heading}</h2>
+        <ul class="work">
+          {
+            t.work.items.map((item) => (
+              <li>
+                <h3>
+                  <a href={sites[item.name]}>{item.name}</a>
+                </h3>
+                <p class="status">{item.status}</p>
+                <p class="tech">{item.tech}</p>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </section>
 
-    <section class="about">
+    {/* The close, on amber: one goal, a conversation. The address on one line; the <wbr>
+        only as a fallback on very narrow screens. Below 560 px the language switch is
+        here: the header has no room for it beside its button. */}
+    <section class="close">
       <div class="container">
-        <div class="card about-grid">
-          <Picture
-            src={portrait}
-            alt={t.about.photo}
-            formats={["avif", "webp"]}
-            widths={[300, 600, 900]}
-            sizes="min(300px, 70vw)"
-            width={300}
-            height={300}
-            loading="lazy"
-            decoding="async"
-            class="photo"
-          />
-          <div class="about-text">
-            <SectionNumber n={2} />
-            <h2 class="eyebrow">{t.about.heading}</h2>
-            {t.about.text.map((sentence) => <p class="big">{sentence}</p>)}
-            <p class="product">{beforeProduct}<a href={coachboard[locale]}>{productLink}</a>{afterProduct}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="contact">
-      <div class="container">
-        <div class="card">
-          <SectionNumber n={3} />
-          <h2 class="eyebrow">{t.contact.heading}</h2>
-          <p class="question">{t.contact.question}</p>
-          <p class="mail">{t.contact.mail}</p>
-          {/* On one line; the <wbr> only as a fallback on very narrow screens. */}
-          <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
-        </div>
+        <h2 class="close-heading">{t.close.heading}</h2>
+        <p><a class="email" href={mailto}>{atName}@<wbr />{atDomain}</a></p>
+        <Languages class="close-languages" />
       </div>
     </section>
   </main>
-
-  {/* The footer (phase 11): one small line, with the link to GitHub; LinkedIn comes later. */}
-  <footer class="site-footer">
-    <div class="container">
-      <p class="footer-line">{t.footer.line}</p>
-      <p class="footer-links">{beforeGithub}<a href={github} rel="me">{githubLink}</a>{afterGithub}</p>
-    </div>
-  </footer>
 </BaseLayout>
 
 <style>
@@ -147,27 +110,23 @@ const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
     }
   }
 
-  /* The figures and the lens on the ground of Hars: espresso, room text. The old
-     sections below them keep their 56 or 88 px apart, until they are rebuilt. */
+  /* The figures, the lens and the work on the ground: espresso, room text. */
   .figures-section,
-  .lens-section {
+  .lens-section,
+  .work-section {
     padding-block: 56px;
-    background: var(--espresso);
-    color: var(--room);
-  }
-
-  .lens-section {
-    margin-bottom: 56px;
   }
 
   @media (min-width: 860px) {
-    .figures-section {
-      padding-block: 88px 56px;
+    .figures-section,
+    .lens-section,
+    .work-section {
+      padding-block: 88px;
     }
 
-    .lens-section {
-      padding-block: 56px 88px;
-      margin-bottom: 88px;
+    .lens-section,
+    .work-section {
+      padding-top: 0;
     }
   }
 
@@ -223,8 +182,8 @@ const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
     color: var(--zand);
   }
 
-  /* The lens's heading: Barlow Condensed 800 in capitals. */
-  .lens-heading {
+  /* The headings of the lens and the work: Barlow Condensed 800 in capitals. */
+  .section-heading {
     margin-bottom: 40px;
     font-family: var(--font-display);
     font-weight: 800;
@@ -233,251 +192,128 @@ const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
     text-transform: uppercase;
   }
 
-  /* The three sections: a card each, 56 px apart on the phone, 88 px from 860 px. */
-  .coachboard,
-  .about,
-  .contact {
-    padding-bottom: 56px;
+  /* The work: a line per project, between lines in room. The name in Barlow Condensed
+     800, a link; the status a label in amber with its word (never colour alone); the
+     technique in JetBrains Mono, zand (11:1). */
+  .work {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid color-mix(in srgb, var(--room) 16%, transparent);
   }
 
+  .work li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 24px;
+    padding-block: 20px;
+    border-bottom: 1px solid color-mix(in srgb, var(--room) 16%, transparent);
+  }
+
+  .work h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .work h3 a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--room);
+    text-decoration: underline 3px var(--amber);
+    text-underline-offset: 6px;
+  }
+  .work h3 a:hover {
+    color: var(--amber);
+  }
+
+  .status {
+    padding: 4px 10px;
+    border: 2px solid var(--amber);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .tech {
+    grid-column: 1 / -1;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--zand);
+  }
+
+  /* From 860 px on one row: the name, the technique, the status. */
   @media (min-width: 860px) {
-    .coachboard,
-    .about,
-    .contact {
-      padding-bottom: 88px;
+    .work li {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    }
+
+    .tech {
+      grid-row: 1;
+      grid-column: 2;
+    }
+
+    .status {
+      grid-row: 1;
+      grid-column: 3;
     }
   }
 
-  /* 20 px inside on the phone: then the email address fits on one line at 320 px. */
-  .card {
-    padding: 20px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
+  /* The close: amber, with espresso text (10.5:1). */
+  .close {
+    padding-block: 64px 40px;
+    background: var(--amber);
+    color: var(--espresso);
+  }
+
+  @media (min-width: 860px) {
+    .close {
+      padding-block: 112px 64px;
+    }
+  }
+
+  .close-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(52px, 10vw, 136px);
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  /* The address, large: Barlow Condensed 700, on one line from 320 px (19 characters
+     at 30 px: about 250 px of the 288). The padding makes it 44 px high and more. */
+  .email {
+    display: inline-block;
+    margin-top: 24px;
+    padding-block: 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(30px, 8vw, 88px);
+    line-height: 1.1;
+    color: var(--espresso);
+    text-decoration: underline 4px var(--espresso);
+    text-underline-offset: 0.14em;
+  }
+  .email:hover {
+    text-decoration-thickness: 7px;
+  }
+
+  /* Below 560 px the language switch, in espresso; from 560 px it is in the header. */
+  .close :global(.close-languages) {
+    margin-top: 40px;
   }
 
   @media (min-width: 560px) {
-    .card {
-      padding: 40px;
+    .close :global(.close-languages) {
+      display: none;
     }
-  }
-
-  @media (min-width: 860px) {
-    .card {
-      padding: 56px;
-    }
-  }
-
-  /* The headings of About me and Contact, small above the big text: the mockup's
-     eyebrow, ink blue on the card (7.8:1). */
-  .eyebrow {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-accent);
-  }
-
-  /* The links in running text: dark and bold, underlined in ink blue. 17 × 1.6 =
-     27.2 px of text, plus the padding: 45 px (48.4 px at 19 px). The negative
-     margin keeps the line as high as the others; only the touch target grows. */
-  .note a,
-  .product a {
-    display: inline-block;
-    padding-block: 9px;
-    margin-block: -9px;
-    font-weight: 700;
-    color: var(--color-text);
-    text-decoration: underline 2px var(--color-accent);
-    text-underline-offset: 4px;
-  }
-  .note a:hover,
-  .product a:hover {
-    color: var(--color-accent);
-  }
-
-  /* Coachboard: the heading left, the text right from 860 px. "Coachboard" is one
-     word and must fit its column: 235 px at 40 px, 376 px at 64 px. */
-  .coachboard h2 {
-    font-weight: 800;
-    font-size: clamp(40px, 4.4vw, 64px);
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-
-  .coachboard-text {
-    margin-top: 24px;
-  }
-
-  @media (min-width: 860px) {
-    .coachboard-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: 64px;
-    }
-
-    .coachboard-text {
-      margin-top: 0;
-    }
-  }
-
-  .intro {
-    font-size: 19px;
-    line-height: 1.55;
-  }
-
-  .note {
-    margin-top: 16px;
-    color: var(--color-text-muted);
-  }
-
-  /* The mockup's second button: the page's colour on the card, an edge of 2 px,
-     ink blue under the pointer. */
-  .outline-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 52px;
-    margin-top: 32px;
-    padding: 0 24px;
-    border: 2px solid var(--color-line);
-    border-radius: var(--radius);
-    background: var(--color-bg);
-    color: var(--color-text);
-    font-weight: 700;
-    font-size: 17px;
-    line-height: 1.2;
-    text-decoration: none;
-  }
-  .outline-button:hover {
-    border-color: var(--color-accent);
-  }
-
-  .arrow {
-    flex: none;
-    width: 0.9em;
-    height: 0.9em;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  /* About me. One column on the phone and tablet: the photo above the text, at most 760 px wide. */
-  .about-text {
-    max-width: 760px;
-  }
-
-  /* Round, like a player in ink blue: an edge of 4 px, as in the mockup.
-     aspect-ratio keeps the square while it loads, and in WebKit also when it fails. */
-  .photo {
-    width: min(300px, 70vw);
-    aspect-ratio: 1;
-    object-fit: cover;
-    margin-bottom: 40px;
-    border: 4px solid var(--color-accent);
-    border-radius: 50%;
-  }
-
-  /* From 860 px: the photo left, the text right, centred on each other. */
-  @media (min-width: 860px) {
-    .about-grid {
-      display: grid;
-      grid-template-columns: 300px minmax(0, 760px);
-      gap: 64px;
-      align-items: center;
-    }
-
-    .photo {
-      width: 300px;
-      margin-bottom: 0;
-    }
-  }
-
-  .big {
-    margin-top: 16px;
-    font-weight: 800;
-    font-size: clamp(26px, 2.8vw, 38px);
-    line-height: 1.15;
-    letter-spacing: -0.025em;
-  }
-
-  /* Under the big sentence, after a line: what Kay makes, with the link. */
-  .product {
-    max-width: 620px;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--color-line);
-    font-size: 19px;
-  }
-
-  /* Contact: the last card. */
-  .question {
-    margin-top: 16px;
-    font-weight: 800;
-    font-size: clamp(30px, 4.4vw, 52px);
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-  }
-
-  .mail {
-    margin-top: 24px;
-    font-size: 19px;
-    color: var(--color-text-muted);
-  }
-
-  /* On one line from 320 px: 239 px at 22 px, and the card has 246 there. The
-     padding makes it 44 px high at 22 px. */
-  .email {
-    display: inline-block;
-    padding-block: 10px;
-    font-weight: 800;
-    font-size: clamp(22px, 6.8vw, 44px);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    color: var(--color-text);
-    text-decoration: underline 3px var(--color-accent);
-    text-underline-offset: 0.18em;
-  }
-  .email:hover {
-    color: var(--color-accent);
-  }
-
-  /* The footer: small and grey, after a line, below the last card's 56 or 88 px.
-     The link is 44 px high (15 × 1.6 = 24 px of text, plus the padding) without
-     a negative margin: the paragraph has only this line. */
-  .site-footer {
-    padding-block: 24px 40px;
-    border-top: 1px solid var(--color-line);
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--color-text-small);
-  }
-
-  .site-footer .container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4px 24px;
-  }
-
-  .footer-line,
-  .footer-links {
-    margin: 0;
-  }
-
-  .footer-links a {
-    display: inline-block;
-    padding-block: 10px;
-    font-weight: 700;
-    color: var(--color-text);
-    text-decoration: underline 2px var(--color-accent);
-    text-underline-offset: 4px;
-  }
-  .footer-links a:hover {
-    color: var(--color-accent);
   }
 </style>

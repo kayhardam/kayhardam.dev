@@ -138,3 +138,31 @@ for (const { path, t, locale } of pages) {
     });
   });
 }
+
+// The screenshot through astro:assets: AVIF and WebP at 393 and 786 px, each file there,
+// with its type and size, and without EXIF or ICC.
+test("the lens's screenshot: every file in its srcsets, with its type and size, without metadata", async ({ page }) => {
+  const sharp = (await import("sharp")).default;
+  await page.goto("/");
+  const sets = await page.locator(".lens-frame picture").evaluate((picture) =>
+    [...picture.querySelectorAll("source, img")].map((el) => [el.tagName.toLowerCase(), el.getAttribute("type"), el.getAttribute("srcset")!] as const),
+  );
+  expect(sets.map(([tag, type]) => [tag, type])).toEqual([
+    ["source", "image/avif"],
+    ["source", "image/webp"],
+    ["img", null],
+  ]);
+  const types: Record<string, string> = { avif: "image/avif", webp: "image/webp" };
+  for (const [, , srcset] of sets) {
+    const files = srcset.split(",").map((c) => c.trim().split(/\s+/) as [string, string]);
+    expect(files.map(([, d]) => d)).toEqual(["1x", "2x"]);
+    for (const [url, density] of files) {
+      const response = await page.request.get(url);
+      expect(response.status(), url).toBe(200);
+      expect(response.headers()["content-type"], url).toBe(types[url.split(".").pop()!]);
+      const { width, height, exif, icc } = await sharp(await response.body()).metadata();
+      const k = density === "2x" ? 2 : 1;
+      expect({ width, height, exif, icc }, url).toEqual({ width: 393 * k, height: 659 * k, exif: undefined, icc: undefined });
+    }
+  }
+});

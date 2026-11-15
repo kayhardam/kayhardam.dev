@@ -39,33 +39,14 @@ export const en: Text = {
     keys: "Move the lens with the arrow keys.",
     image: "Screenshot of Coachboard’s editor on a phone, with a new board.",
   },
-  coachboard: {
-    heading: "Coachboard",
-    intro:
-      "A digital tactics board for handball. Draw a play in a few taps and share it with a link or QR code. Your players don’t need an app or account.",
-    note: [
-      "Built from my own experience as a handball coach. Browse ",
-      "tactics",
-      " and ",
-      "drills",
-      ", each with a diagram you can open in the board. Got a drill that belongs in there? Email me.",
-    ],
-    button: "Go to Coachboard",
+  // work, talk and close: a proposal (15 November 2026), not yet agreed with Kay.
+  work: {
+    heading: "Work",
+    items: [{ name: "Coachboard", status: "Live", tech: "Astro · Svelte 5 · TypeScript · Cloudflare Workers" }],
   },
-  about: {
-    heading: "About me",
-    photo: "Portrait of Kay Hardam.",
-    text: ["Hi, I’m Kay. I help you explain handball so your whole team gets it."],
-    product: ["I make ", "Coachboard", ": a digital drawing board for when hands and feet aren’t enough."],
-  },
-  contact: {
-    heading: "Contact",
-    question: "Are you a coach yourself? I’d love to hear what you think of Coachboard.",
-    mail: "Questions or ideas are welcome too. Email me:",
-  },
-  footer: {
-    line: "Built when the gym is closed.",
-    github: ["Code on ", "GitHub", "."],
+  talk: "Book a call",
+  close: {
+    heading: "Book a call.",
   },
   notFound: {
     // The 404 page is one page with the Dutch title; this one isn't shown.

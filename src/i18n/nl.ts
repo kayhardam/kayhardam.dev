@@ -53,41 +53,18 @@ export const nl = {
     keys: "Verplaats de lens met de pijltjestoetsen.",
     image: "Schermafbeelding van de editor van Coachboard op een telefoon, met een nieuw bord.",
   },
-  coachboard: {
-    heading: "Coachboard",
-    intro:
-      "Een digitaal tactiekbord voor handbal. Teken een spelsituatie in een paar tikken en deel hem via een link of QR-code. Je spelers hebben geen app of account nodig.",
-    // Before the link to the tactics, the link, between, the link to the drills, after.
-    note: [
-      "Gebouwd vanuit de praktijk als handbaltrainer. Blader door ",
-      "tactieken",
-      " en ",
-      "oefeningen",
-      ", elk met een tekening die je opent in het bord. Heb je zelf een oefening die erin hoort? Mail hem me.",
-    ],
-    // The arrow after it is an SVG: U+2192 isn't in the font's Latin subset.
-    button: "Naar Coachboard",
+  // The work (Hars, 15 November 2026): each project, its status and the technique
+  // behind it. Movva and Coachboard Lite come later (Kay). The technique: a proposal,
+  // agreed with Kay on 15 November 2026.
+  work: {
+    heading: "Werk",
+    items: [{ name: "Coachboard", status: "Live", tech: "Astro · Svelte 5 · TypeScript · Cloudflare Workers" }],
   },
-  about: {
-    heading: "Over mij",
-    photo: "Portret van Kay Hardam.",
-    // The big sentence (Kay, 31 October 2026). The second one, with the club, and the
-    // example after the product went in phase 11 (Kay, 5 November 2026).
-    text: ["Hoi, ik ben Kay. Ik help je handbal zo uit te leggen dat je hele team het snapt."],
-    // Before the link to Coachboard, the link, after. The address is `coachboard` in src/data/links.ts.
-    product: ["Ik maak ", "Coachboard", ": een digitaal tekenbord voor als handen en voeten niet genoeg zijn."],
-  },
-  contact: {
-    heading: "Contact",
-    question: "Ben je zelf trainer? Ik hoor graag wat je van Coachboard vindt.",
-    // The email address follows as its own, large link.
-    mail: "Ook voor vragen of ideeën. Mail me:",
-  },
-  // The footer under Contact (phase 11, Kay's choice): one line, then the links.
-  // Before the link, the link, after it. LinkedIn comes later (Kay, 5 November 2026).
-  footer: {
-    line: "Gebouwd als de zaal dicht is.",
-    github: ["Code op ", "GitHub", "."],
+  // The button in the header and the close: one goal, a conversation (Kay). The line
+  // about availability comes later (Kay, 15 November 2026).
+  talk: "Plan een gesprek",
+  close: {
+    heading: "Plan een gesprek.",
   },
   notFound: {
     title: "Pagina niet gevonden | Kay Hardam",

@@ -13,8 +13,9 @@ for (const path of [...allPages(), missingPages[0]!]) {
 
   test(`${path}: every link and button is at least 44 px high`, async ({ page }) => {
     await page.goto(path);
+    // Every link and button on the screen: the language switch has one place per width (display: none at the other).
     const heights = await page.locator("a, button").evaluateAll((all) =>
-      all.map((el) => [el.textContent?.trim() || el.getAttribute("aria-label") || "", el.getBoundingClientRect().height] as const),
+      all.filter((el) => el.checkVisibility()).map((el) => [el.textContent?.trim() || el.getAttribute("aria-label") || "", el.getBoundingClientRect().height] as const),
     );
     for (const [name, height] of heights) expect(height, name).toBeGreaterThanOrEqual(44);
   });
@@ -25,7 +26,7 @@ for (const path of [...allPages(), missingPages[0]!]) {
     await page.goto(path);
     // Safari tabs to links only with Option (Alt) held.
     const key = browserName === "webkit" ? "Alt+Tab" : "Tab";
-    const count = await page.locator("a, button").count();
+    const count = await page.locator("a, button").evaluateAll((all) => all.filter((el) => el.checkVisibility()).length);
     const rings: { name: string; outline: string; offset: string; edge: string }[] = [];
     for (let i = 0; i < count; i++) {
       await page.keyboard.press(key);

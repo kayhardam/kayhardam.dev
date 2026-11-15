@@ -15,25 +15,25 @@ export const nl = {
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
-  // The first sentence dark, the second in ink blue. Shorter since phase 11: no
-  // job titles on the page, until the texts for employers come (Kay, 5 November 2026).
-  statement: ["Ik coach.", "Ik code."],
   hero: {
+    // The link under the step lines: it opens the attack in Coachboard.
     button: "Bewerk deze aanval in Coachboard",
   },
   board: {
     court: "Handbalveld",
-    // For screen readers, after the visible "1/4"; {n} and {count} as in Coachboard's viewer.step.
+    // The counter above the sentence, as Kay wrote it: "Stap n/4" (Hars, 15 November 2026).
+    counter: "Stap {n}/{count}",
+    // For screen readers, in place of the visible counter; {n} and {count} as in Coachboard's viewer.step.
     step: "Stap {n} van {count}",
-    legend: "Legenda",
-    // One text per kind of arrow in the legend; a kind without a text stops the build.
+    // The list of step lines, for screen readers.
+    steps: "Stappen",
+    // One text per kind of arrow, in the step lines; a kind without a text stops the build.
     kinds: { run: "Loop", pass: "Pass", shot: "Schot" },
-    // The buttons are icons only, with these as aria-label and title.
-    prev: "Vorige",
+    // The label that follows the ball: "bal [x; y]", in metres (Kay: "bal [x, y]").
+    ball: "bal",
+    // The play button is an icon, with these as aria-label and title.
     play: "Afspelen",
-    // From phase 5, when the board plays.
     stop: "Stoppen",
-    next: "Volgende",
   },
   coachboard: {
     heading: "Coachboard",

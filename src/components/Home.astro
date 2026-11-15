@@ -11,7 +11,6 @@ import { defaultLocale, text, type Locale } from "../i18n";
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const t = text(locale);
-const [lead, rest] = t.statement;
 const [atName, atDomain] = email.split("@");
 const [beforeGithub, githubLink, afterGithub] = t.footer.github;
 const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
@@ -21,30 +20,12 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
 <BaseLayout title={t.title} description={t.description}>
   <Header />
   <main>
+    {/* The hero (Hars, 15 November 2026): the board tells the story. The name is the page's
+        heading, for screen readers; on screen the header shows it (the header of Hars, step 6). */}
     <section class="hero">
-      <div class="container hero-grid">
-        <div class="hero-text">
-          <div class="name">
-            <Picture
-              src={portrait}
-              alt=""
-              formats={["avif", "webp"]}
-              widths={[64, 128, 192]}
-              sizes="64px"
-              width={64}
-              height={64}
-              loading="eager"
-              decoding="async"
-              class="avatar"
-            />
-            <h1>{t.name}</h1>
-          </div>
-          <p class="statement"><span class="lead">{lead}</span> <span class="rest">{rest}</span></p>
-          <a class="hero-button" href={boards[locale]}>{t.hero.button}</a>
-        </div>
-        <div class="hero-board">
-          <Board link={boards[locale]} t={t.board} />
-        </div>
+      <div class="container">
+        <h1 class="visually-hidden">{t.name}</h1>
+        <Board link={boards[locale]} edit={t.hero.button} t={t.board} />
       </div>
     </section>
 
@@ -118,160 +99,17 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
 </BaseLayout>
 
 <style>
-  /*
-   * The look of the mockup for employers (phase 10): a warm page, the sections
-   * as cards, Plus Jakarta Sans, ink blue as the one accent.
-   *
-   * The HTML keeps the reading order: the name, the statement, the button, then
-   * the board. That is the tab order too: the button, then the board's buttons.
-   * Phone and tablet: one column, the board first, the button under it, then the
-   * name and the statement. Only in CSS: .hero-text has no box of its own
-   * (display: contents), so its children are the column's items and `order`
-   * puts the board and the button first (phase 9).
-   * From 860 px: text left with the button under the statement, board right,
-   * centred; the board sets the row's height. The button under the statement,
-   * not under the board: on a laptop of 1366 × 768 the board's foot and a
-   * button under it fall below the edge (phase 9, Kay's choice B).
-   */
+  /* The hero on the stage: walnoot-donker, the court and the text in board.css. */
   .hero {
-    padding-block: 16px 56px;
-  }
-
-  .hero-grid {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .hero-text {
-    display: contents;
-  }
-
-  .hero-board {
-    order: -2;
-  }
-
-  .hero-button {
-    order: -1;
-  }
-
-  /* 32 px between the button and the name (was the margin of .hero-text). */
-  .name {
-    margin-top: 32px;
-  }
-
-  @media (min-width: 560px) {
-    .hero-board,
-    .hero-button {
-      max-width: 560px;
-    }
+    margin-bottom: 56px;
+    padding-block: 24px 40px;
+    background: var(--walnoot-donker);
   }
 
   @media (min-width: 860px) {
     .hero {
-      padding-block: 32px 88px;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 64px;
-      align-items: center;
-    }
-
-    /* Its own column again, with the button in it. */
-    .hero-text {
-      display: block;
-    }
-
-    .hero-board,
-    .hero-button {
-      order: 0;
-    }
-
-    .hero-button {
-      max-width: none;
-    }
-
-    .name {
-      margin-top: 0;
-    }
-  }
-
-  /* The photo and the name: the photo round like a player, 16 px to the name, centred. */
-  .name {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  /* 64 px with an ink-blue edge of 3 px inside it, like the photo in About me.
-     aspect-ratio keeps the square while it loads, and in WebKit also when it fails. */
-  .avatar {
-    width: 64px;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border: 3px solid var(--color-accent);
-    border-radius: 50%;
-  }
-
-  /* The name, as the logo's text: 800, dark. */
-  h1 {
-    font-weight: 800;
-    font-size: 22px;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-
-  /* The mockup's display type: 800, tight. The first sentence dark, on a line of
-     its own; the second in ink blue: four lines from 860 px. At most 56 px, so
-     the button stays on a laptop's first screen: 607 px at 1366 × 640, as in
-     phase 9. The longest word, "handbaltrainer.", fits its column: 270 px at
-     860 px (37.8 px) in 374, 400 px from 1280 px in 544. */
-  .statement {
-    margin-top: 20px;
-    font-weight: 800;
-    font-size: clamp(32px, 4.4vw, 56px);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-  }
-
-  .lead {
-    display: block;
-  }
-
-  .rest {
-    color: var(--color-accent);
-  }
-
-  /* Always 56 px: one line, or two balanced lines on narrow phones. On the phone
-     as wide as the board, 16 px under it; from 860 px as wide as its text, 32 px
-     under the statement. Ink blue with white text (8.7:1). */
-  .hero-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 56px;
-    margin-top: 16px;
-    padding: 0 16px;
-    border-radius: var(--radius);
-    background: var(--color-accent);
-    color: #fff;
-    font-weight: 700;
-    font-size: 17px;
-    line-height: 1.2;
-    text-align: center;
-    text-wrap: balance;
-    text-decoration: none;
-  }
-  .hero-button:hover {
-    background: var(--color-accent-dark);
-  }
-
-  @media (min-width: 860px) {
-    .hero-button {
-      display: inline-flex;
-      margin-top: 32px;
-      padding: 0 28px;
+      margin-bottom: 88px;
+      padding-block: 56px;
     }
   }
 

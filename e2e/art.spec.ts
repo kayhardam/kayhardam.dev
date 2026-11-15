@@ -39,9 +39,9 @@ for (const { path, t } of pages) {
         return { where, text: text.textContent, letterSpacing: getComputedStyle(text).letterSpacing };
       }),
     );
-    // The logo, the seven players on the board, the numbers 1 and 2, and at Contact number 3.
+    // The logo, the seven labels of players on the board and the ball's, the numbers 1 and 2, and at Contact number 3.
     expect(labels.filter((l) => l.where === "header").map((l) => l.text)).toEqual(["KH"]);
-    expect(labels.filter((l) => l.where === "board")).toHaveLength(7);
+    expect(labels.filter((l) => l.where === "board")).toHaveLength(8);
     expect(labels.filter((l) => l.where === "section").map((l) => l.text)).toEqual(["1", "2"]);
     expect(labels.filter((l) => l.where === "contact").map((l) => l.text)).toEqual(["3"]);
     expect(labels.filter((l) => !["normal", "0px"].includes(l.letterSpacing))).toEqual([]);
@@ -97,42 +97,25 @@ for (const { path } of pages) {
 }
 
 // Layout shifts while loading, with the fonts arriving late. Only Chromium:
-// WebKit has no Layout Instability API. The statement may still shift (phase 2,
-// CLS 0.028), and what is below it moves along; the header, the card, the button
-// and the numbers may not shift on their own. The statement may have a line more
-// or less in the fallback font, so the Coachboard section moves when Plus Jakarta
-// Sans comes, with number 1 in it. Each shift's rects tell how far: the numbers
-// may move only as far as the statement grew or shrank, straight up or down.
-// From 860 px the button is under the statement (phase 9), so there it may move
-// along too, the same way; on the phone it is above the statement and may not.
-type Shift = { html: string; dx: number; dy: number; below: boolean };
+// WebKit has no Layout Instability API. Since Hars (15 November 2026) the hero
+// has fixed heights: the court a fixed ratio, the sentence its two lines (three
+// for a longer one), the counter and the step lines their own. So nothing in the
+// header, the hero or the section numbers below it may shift at all.
+type Shift = { html: string; dx: number; dy: number };
 for (const path of ["/", "/en/"]) {
   for (const width of [393, 1280]) {
-    test(`${path} at ${width} px: no layout shift in the header, the card or the numbers`, async ({ page, browserName }) => {
+    test(`${path} at ${width} px: no layout shift in the header, the hero or the numbers`, async ({ page, browserName }) => {
       test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
       await page.setViewportSize({ width, height: 900 });
       await page.addInitScript(() => {
         const shifts: Shift[] = [];
-        const w = window as unknown as { shifts: Shift[]; statementBefore: number };
-        w.shifts = shifts;
-        // The statement's height in the fallback font: the fonts come 500 ms later.
-        document.addEventListener("DOMContentLoaded", () => {
-          w.statementBefore = document.querySelector(".statement")!.getBoundingClientRect().height;
-        });
-        const protectedParts = "header, .board, .hero-button, .section-number";
+        (window as unknown as { shifts: Shift[] }).shifts = shifts;
         new PerformanceObserver((list) => {
           for (const entry of list.getEntries() as unknown as { sources: { node?: Node; previousRect: DOMRectReadOnly; currentRect: DOMRectReadOnly }[] }[]) {
             for (const { node, previousRect, currentRect } of entry.sources) {
               const el = node instanceof Element ? node : node?.parentElement;
-              if (!el?.closest(protectedParts)) continue;
-              shifts.push({
-                html: el.outerHTML.slice(0, 80),
-                dx: currentRect.x - previousRect.x,
-                dy: currentRect.y - previousRect.y,
-                // Below the statement in the page: the numbers, and from 860 px the button; not
-                // the header or the card.
-                below: !!el.closest(".section-number") || (innerWidth >= 860 && !!el.closest(".hero-button")),
-              });
+              if (!el?.closest("header, .hero, .section-number")) continue;
+              shifts.push({ html: el.outerHTML.slice(0, 80), dx: currentRect.x - previousRect.x, dy: currentRect.y - previousRect.y });
             }
           }
         }).observe({ type: "layout-shift", buffered: true });
@@ -144,14 +127,8 @@ for (const path of ["/", "/en/"]) {
       await page.goto(path);
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(500);
-      const { shifts, statementBefore } = await page.evaluate(() => {
-        const w = window as unknown as { shifts: Shift[]; statementBefore: number };
-        return { shifts: w.shifts, statementBefore: w.statementBefore };
-      });
-      const statementAfter = await page.locator(".statement").evaluate((el) => el.getBoundingClientRect().height);
-      const grew = statementAfter - statementBefore;
-      const onTheirOwn = shifts.filter((s) => !s.below || Math.abs(s.dx) > 1 || Math.abs(s.dy - grew) > 1);
-      expect(onTheirOwn.map((s) => `${s.html} (${s.dx}, ${s.dy}; the statement ${grew})`)).toEqual([]);
+      const shifts = await page.evaluate(() => (window as unknown as { shifts: Shift[] }).shifts);
+      expect(shifts.map((s) => `${s.html} (${s.dx}, ${s.dy})`)).toEqual([]);
     });
   }
 }

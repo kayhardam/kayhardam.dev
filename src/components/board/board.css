@@ -1,38 +1,75 @@
 /*
- * The board card. Every row has a fixed height, except the step's sentence,
- * which is at least two lines (47.6 px). So with normal text the card's height
- * depends only on its width B:
- *   H = 14 + 24 + 10 + 47.6 + 10 + (B − 28) × 174/216 + 12 + foot + 14
- * with the foot 44 px from a card width of 420 px, and 24 + 8 + 44 = 76 px below.
- * Only when the text comes out larger (a larger text size, a wider font) does
- * the sentence grow, and the card with it: then nothing of it is cut off.
- * e2e/board-box.spec.ts checks this formula.
+ * The hero (Hars, 15 November 2026), drawn by BoardCard.svelte: the text and
+ * the court. Global, every rule under .board, as BoardViewer.css is in
+ * Coachboard: the hero is a Svelte component, an island.
  *
- * Global, every rule under .board, as BoardViewer.css is in Coachboard: the
- * card is a Svelte component (BoardCard.svelte), an island since phase 5.
- *
- * In the palette Hars (Kay, 15 November 2026): the card is the stage
- * (walnoot-donker), the court walnoot. Its edge is a shadow, not a border, so
- * the formula above stays as it is.
+ * Narrow screens: one column, the court first (order), then the text, at
+ * most 600 px wide (on a tablet the court would be taller than the screen).
+ * From 860 px: the text left, the court right, centred on each other.
+ * Nothing in the hero changes its size while it plays: the court has a fixed
+ * ratio, the sentence two lines, the counter and the step lines fixed heights
+ * (e2e/board-box.spec.ts).
  */
 .board {
-  /* The card's own width, for the foot below. */
-  container-type: inline-size;
-  font-family: var(--font-text);
-  font-weight: 500;
-  background: var(--walnoot-donker);
-  color: var(--room);
-  border-radius: var(--radius-card);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--room) 14%, transparent);
-}
-
-.board .board-body {
   display: flex;
   flex-direction: column;
-  padding: 14px;
+  gap: 32px;
+  max-width: 600px;
+  color: var(--room);
 }
 
-.board :is(.board-label, .board-legend, .board-controls) svg {
+.board .board-court {
+  order: -1;
+}
+
+@media (min-width: 860px) {
+  .board {
+    display: grid;
+    max-width: none;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 64px;
+    align-items: center;
+  }
+
+  .board .board-court {
+    order: 0;
+  }
+}
+
+/* The play button and "Stap 1/4": 44 px high. */
+.board .board-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: var(--tap);
+}
+
+/* Barlow Condensed 700 in capitals, amber: 9.4:1 on walnoot-donker. */
+.board .board-count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.board .play {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--amber);
+  color: var(--espresso);
+  cursor: pointer;
+}
+
+.board :is(.play, .board-steps) svg {
   flex: none;
   fill: none;
   stroke: currentColor;
@@ -41,62 +78,149 @@
   stroke-linejoin: round;
 }
 
-/* The mark, the label and the counter. */
-.board .board-head {
-  display: flex;
+.board .play svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Off without JavaScript: only the icon fades, the button keeps its amber. */
+.board .play:disabled {
+  cursor: default;
+}
+
+.board .play:disabled svg {
+  opacity: 0.4;
+}
+
+/* The step's sentence: Barlow Condensed 800 in capitals, two lines, a word on
+   each ("AI / verkent."), so the text below it never moves. Its longest word,
+   "controleer.", fits a column of 288 px at 52 px. Only a larger text size can
+   make it grow. */
+.board .board-step {
+  min-height: 2em;
+  margin-top: 16px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(52px, 7.4vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+
+.board .board-step span {
+  display: block;
+}
+
+/* A board with longer sentences (the English one, for now): smaller, wrapped,
+   three lines high. */
+.board .board-step.long {
+  min-height: 3.15em;
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+/* The step lines: JetBrains Mono, one button per step, each 48 px high. The
+   number in amber, where the arrow goes in zand, the kind in room. The step on
+   the court: amber, with espresso text (10.5:1). The columns have fixed widths
+   and nothing wraps, so no part moves when a weight of the font comes later
+   than another (e2e/art.spec.ts): the number 2ch, the kind 6ch, from its left. */
+.board .board-steps {
+  display: grid;
+  gap: 4px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board .board-steps button {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) 6ch;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  height: 24px;
-}
-
-/* The label on one line, cut off with an ellipsis if it doesn't fit. */
-.board .board-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 700;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--room) 16%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--room);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: clamp(12px, 3.6vw, 14px);
   line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
 }
 
-.board .board-label svg {
-  width: 20px;
-  height: 20px;
+.board .board-steps button:not(:disabled):hover {
+  border-color: var(--amber);
+}
+
+.board .board-steps button:disabled {
+  cursor: default;
+}
+
+.board .board-steps .n {
+  font-weight: 700;
+  white-space: nowrap;
   color: var(--amber);
 }
 
-.board .board-label span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.board .board-steps .data {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
   white-space: nowrap;
-}
-
-/* 1/4, worked out from the step and the number of steps. Zand: 9.9:1 on walnoot-donker. */
-.board .board-count {
-  flex: none;
-  font-size: 14px;
-  line-height: 1.2;
   color: var(--zand);
-  font-variant-numeric: tabular-nums;
 }
 
-/* The step's sentence: at least two lines of 17 px; it grows only with larger text. */
-.board .board-step {
-  min-height: 2.8em;
-  margin-top: 10px;
-  font-size: 17px;
+.board .board-steps .data svg {
+  width: 1.15em;
+  height: 0.6em;
+  stroke-width: 1.5;
+}
+
+.board .board-steps .kind {
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.board .board-steps [aria-current="step"] {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--espresso);
+}
+
+.board .board-steps [aria-current="step"] :is(.n, .data) {
+  color: var(--espresso);
+}
+
+/* The link to Coachboard: Barlow 600, room, underlined in amber; 44 px high. */
+.board .board-edit {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  margin-top: 16px;
+  font-family: var(--font-text);
   font-weight: 600;
-  line-height: 1.4;
+  font-size: var(--text);
+  color: var(--room);
+  text-decoration: underline 2px var(--amber);
+  text-underline-offset: 5px;
+}
+
+.board .board-edit:hover {
+  color: var(--amber);
 }
 
 /* The viewBox from the brief: -8 -14 216 174. The court's SVG sits on top of
-   the box, so nothing in it can change the box's height. */
+   the box, so nothing in it can change the box's height. The layers over it
+   (the ball's ring, its label) too. */
 .board .board-court {
   position: relative;
   aspect-ratio: 216 / 174;
-  margin-top: 10px;
 }
 
 .board .board-court > svg {
@@ -104,106 +228,25 @@
   inset: 0;
 }
 
-/* The legend and the buttons: two rows on a narrow card, one row from 420 px. */
-.board .board-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+/* The label that follows the ball: JetBrains Mono 700, room with an edge of
+   espresso around each letter (17.5:1), in real pixels. */
+.board .board-ball {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-/* On one line, in columns of a fixed width, so an item doesn't move when Barlow
-   comes and the text before it gets wider or narrower (e2e/art.spec.ts): three
-   columns of 4.9em (68.6 px) and two gaps of 12 px make 230 px. A card of 288 px
-   has 260; in one row with the buttons, from a card of 420 px, there are 232. */
-.board .board-legend {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 4.9em;
-  align-items: center;
-  column-gap: 12px;
-  height: 24px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-  line-height: 1.2;
-  color: var(--zand);
-  white-space: nowrap;
-}
-
-.board .board-legend li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.board .board-legend svg {
-  width: 18px;
-  height: 18px;
-  color: var(--room);
-}
-
-/* Previous, Play and Next, on the right, also below the legend. */
-.board .board-controls {
-  display: flex;
-  align-self: flex-end;
-  gap: 6px;
-  height: var(--tap);
-}
-
-.board .board-controls button {
-  display: grid;
-  place-items: center;
-  width: var(--tap);
-  height: var(--tap);
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--room) 35%, transparent);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--room);
-  font: inherit;
-  cursor: pointer;
-}
-
-.board .board-controls .play {
-  border-color: var(--amber);
-  background: var(--amber);
-  color: var(--espresso);
-}
-
-/* Off: all three without JavaScript (disabled); once mounted, a button with
-   nothing to do (aria-disabled, so the focus stays on it). Only the icon and the
-   edge fade, not the button: the focus ring keeps its full colour. */
-.board .board-controls button:is(:disabled, [aria-disabled="true"]) {
-  cursor: default;
-}
-
-.board .board-controls button:is(:disabled, [aria-disabled="true"]) svg {
-  opacity: 0.4;
-}
-
-.board .board-controls button:not(.play):is(:disabled, [aria-disabled="true"]) {
-  border-color: color-mix(in srgb, var(--room) 14%, transparent);
-}
-
-.board .board-controls svg {
-  width: 22px;
-  height: 22px;
-}
-
-@container (min-width: 420px) {
-  .board .board-foot {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    height: var(--tap);
-  }
-
-  .board .board-controls {
-    align-self: auto;
-  }
+.board .board-ball text {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  fill: var(--room);
+  stroke: var(--espresso);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
 }
 
 /*

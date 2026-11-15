@@ -30,10 +30,12 @@ describe("texts", () => {
         expect(list.filter(([, value]) => /\b(gratis|free)\b/i.test(value))).toEqual([]);
       });
 
-      it("has the places {n} and {count} in the board's counter", () => {
-        const step = list.find(([key]) => key === "board.step")![1];
-        expect(step).toContain("{n}");
-        expect(step).toContain("{count}");
+      it("has the places {n} and {count} in the board's counters", () => {
+        for (const key of ["board.counter", "board.step"]) {
+          const counter = list.find(([k]) => k === key)![1];
+          expect(counter).toContain("{n}");
+          expect(counter).toContain("{count}");
+        }
       });
 
       // What a search result shows without cutting it off.
@@ -54,10 +56,10 @@ describe("texts", () => {
   });
 
   // No job titles on the page until the texts for employers come (Kay, 5 November 2026):
-  // not in the statement, not in About me. The title and the JSON-LD keep them.
-  it("has no job title in the statement or in About me", () => {
+  // not in About me. The title and the JSON-LD keep them.
+  it("has no job title in About me", () => {
     for (const t of [nl, en]) {
-      for (const text of [...t.statement, ...t.about.text]) expect(text).not.toMatch(/gymleraar|handbaltrainer|PE teacher|handball coach/i);
+      for (const text of t.about.text) expect(text).not.toMatch(/gymleraar|handbaltrainer|PE teacher|handball coach/i);
     }
   });
 

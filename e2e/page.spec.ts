@@ -31,7 +31,6 @@ for (const { path, t, locale } of pages) {
     for (const value of texts) await expect(page.getByText(value, { exact: true })).toBeVisible();
     expect(await page.locator(".about .big").allTextContents()).toEqual(t.about.text);
     await expect(page.locator("h1")).toHaveText(t.name);
-    await expect(page.locator(".statement")).toHaveText(t.statement.join(" "));
     await expect(page.locator(".note")).toHaveText(t.coachboard.note.join(""));
     await expect(page.locator(".product")).toHaveText(t.about.product.join(""));
     await expect(page.locator(".footer-links")).toHaveText(t.footer.github.join(""));

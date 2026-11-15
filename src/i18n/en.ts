@@ -11,19 +11,19 @@ export const en: Text = {
   site: "kayhardam.dev",
   languages: "Language",
   name: "Kay Hardam",
-  statement: ["I coach.", "I code."],
   hero: {
     button: "Edit this play in Coachboard",
   },
   board: {
     court: "Handball court",
+    // counter, steps and ball: a proposal (Hars, 15 November 2026), not yet agreed with Kay.
+    counter: "Step {n}/{count}",
     step: "Step {n} of {count}",
-    legend: "Legend",
+    steps: "Steps",
     kinds: { run: "Run", pass: "Pass", shot: "Shot" },
-    prev: "Previous",
+    ball: "ball",
     play: "Play",
     stop: "Stop",
-    next: "Next",
   },
   coachboard: {
     heading: "Coachboard",

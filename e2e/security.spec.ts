@@ -33,6 +33,8 @@ test("the fonts load from the site itself", async ({ page }) => {
   const loaded = await page.evaluate(() =>
     [...document.fonts].filter((f) => f.status === "loaded").map((f) => `${f.family.replaceAll('"', "")} ${f.weight}`),
   );
-  // Plus Jakarta Sans: 500 for running text, 700 for the buttons, 800 for the statement and the headings.
-  expect(loaded).toEqual(expect.arrayContaining(["Plus Jakarta Sans 500", "Plus Jakarta Sans 700", "Plus Jakarta Sans 800"]));
+  // The fonts of "Hars", self-hosted: Barlow 500 for running text at least, and nothing but the six weights.
+  const hars = ["Barlow 500", "Barlow 600", "Barlow Condensed 700", "Barlow Condensed 800", "JetBrains Mono 400", "JetBrains Mono 700"];
+  expect(loaded).toContain("Barlow 500");
+  expect(loaded.filter((font) => !hars.includes(font))).toEqual([]);
 });

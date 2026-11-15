@@ -31,14 +31,15 @@ import { gzipSync } from "node:zlib";
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS in phase 1, icons in phase 3, JS and HTML in phase 5,
 // the photo in phase 7, the share image with the photo in "De keten: vindbaarheid" (27 October 2026), the
-// fonts in phase 10 (Plus Jakarta Sans, half the size of Barlow Condensed: the budget went down with them).
+// fonts in phase 10 (Plus Jakarta Sans, half the size of Barlow Condensed: the budget went down with them), and
+// up again for the fonts of "Hars" (Kay, 15 November 2026: Barlow Condensed, Barlow and JetBrains Mono).
 export const BUDGETS = {
   js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
   lazyJs: 0, // 0 KB: no dynamic imports
   allJs: 24_400, // 21.24 KB: the island's three files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
   html: 11_100, // 10.13 KB for / in phase 10 (10.07 before), the largest page, with all texts, CSS and SVGs, the board's step 1, its props, Astro's two scripts and the two photos' <picture>s
-  font: 14_200, // 12.3 KB for Plus Jakarta Sans 500, the largest of the three (500, 700, 800)
+  font: 26_200, // 22.77 KB for Barlow 600, the largest of the six (Barlow 500/600, Barlow Condensed 700/800, JetBrains Mono 400/700)
   icon: 5_600, // 4.7 KB for apple-touch-icon.png, the largest (phase 10: the logo with the ball)
   shareImage: 163_800, // 146.3 KB for og.png in phase 10: the photo, the logo and kayhardam.dev (WhatsApp takes up to about 300 KB)
   // The largest file per format: the photo in About me at 799 px, from an original of 799 px.

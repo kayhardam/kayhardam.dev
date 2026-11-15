@@ -14,8 +14,7 @@ html {
   background: var(--color-bg);
 }
 
-/* Plus Jakarta Sans 500 for running text, as in the mockup (it loads 500, 700
-   and 800: BaseLayout.astro). */
+/* Barlow 500 for running text (BaseLayout.astro loads the fonts of "Hars"). */
 body {
   font-family: var(--font-sans);
   font-weight: 500;

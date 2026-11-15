@@ -1149,3 +1149,60 @@ Het statement is nu twee korte regels, ook vanaf 860 px. In px vanaf de bovenkan
 - `npm run verify` groen.
 - `texts.test.ts`: de harde spaties van de club zijn weg met de zin; in plaats daarvan faalt de test op een functietitel in het statement of in Over mij.
 - `e2e/page.spec.ts`: de teksten, de footerregel, de GitHub-link met `rel="me"` in de footer; `e2e/art.spec.ts`: Contact is een sectie.
+
+## Hars: de homepage als portfolio (15 november 2026)
+
+Branch `ccr-564779e8-91b6g5`. De homepage opnieuw opgebouwd in het palet "Hars" (Kay, 15 november 2026): een portfolio voor front-end vacatures bij bureaus, met één doel, een gesprek. Kopbalk, hero met het bord, drie cijfers, de lens, Werk en het slotvlak. Gemeten in Chromium 153 (Playwright 1.64.1) in een Linux-container, tegen `wrangler dev` op de build van commit `566ec0d`. Niet gemeten: WebKit (de container kan het niet downloaden: de downloadhosts van Playwright zijn niet toegestaan) en de preview-URL van Cloudflare.
+
+### Geen overloop, tikvlakken, axe
+
+Per breedte, NL en EN, met reduced motion (in rust) en zonder (tijdens het afspelen, halverwege een stap). Eerst de hele pagina doorgescrold, zodat de drie eilanden gehydrateerd zijn. axe met de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` en `wcag22aa`.
+
+| Breedte | Horizontaal scrollen | Elementen buiten beeld | Tikvlakken onder 44 px | axe in rust | axe tijdens afspelen |
+|--:|--:|--:|--:|--:|--:|
+| 320 | 0 | 0 | 0 van 18 | 0 | 0 |
+| 390 | 0 | 0 | 0 van 18 | 0 | 0 |
+| 700 | 0 | 0 | 0 van 18 | 0 | 0 |
+| 1024 | 0 | 0 | 0 van 18 | 0 | 0 |
+| 1440 | 0 | 0 | 0 van 18 | 0 | 0 |
+
+- **Tikvlakken:** elke zichtbare link, knop en elk element met `tabindex`. De taalkeuze telt één keer: in de kopbalk vanaf 560 px, onderaan het slotvlak daaronder.
+- **Fijnmaziger:** van 320 tot 1440 px per 10 px (113 breedtes, beide talen): nergens horizontaal scrollen.
+
+### Lighthouse mobiel
+
+Lighthouse 12.8.2, het standaardprofiel mobiel, tegen `wrangler dev` (dus zonder het netwerk naar Cloudflare). Twee keer per methode.
+
+| Pagina | Methode | Performance | Accessibility | LCP | CLS | TBT | FCP |
+|---|---|--:|--:|--:|--:|--:|--:|
+| `/` | gesimuleerd | 99, 99 | 100, 100 | 1,7 s | 0 | 0, 60 ms | 1,4 s |
+| `/` | devtools | 100, 100 | 100, 100 | 0,9 s | 0 | 90, 10 ms | 0,9 s |
+| `/en/` | gesimuleerd | 99, 99 | 100, 100 | 1,7 s | 0 | 0, 70 ms | 1,4 s |
+| `/en/` | devtools | 100, 100 | 100, 100 | 0,9 s | 0 | 20, 70 ms | 0,9 s |
+
+### Groottes
+
+`npm run budget`:
+
+| Meting | Vóór (fase 11) | Hars | Budget |
+|---|--:|--:|--:|
+| JS van de eilanden (gzip) | 21,2 KB (één eiland) | 24,7 KB (drie) | 28,4 KB |
+| HTML `/` (gzip) | 10,1 KB | 13,2 KB | 15,2 KB |
+| Grootste lettertype | 12,3 KB | 22,8 KB (Barlow 600) | 26,2 KB |
+| Screenshot van de lens, AVIF 1× / 2× | — | 12,0 / 23,9 KB | 34,1 KB |
+| Screenshot van de lens, WebP 1× / 2× | — | 18,5 / 40,0 KB | 68,0 KB |
+
+### De tikvlakken van Coachboard
+
+Gemeten met `scripts/measure-coachboard.mjs` op Coachboard @ `03be23b`, in de editor op 393 × 659, met de standaardopstelling: 32 tikvlakken per taal (`src/data/tap-targets.json`).
+
+- **Knoppen en links:** alle 44 px hoog. De smalste is de stapknop "Stap 1": 40 × 44 px.
+- **Stukken:** het vlak waarin een tik dat stuk raakt, volgens `hit.ts`: het dichtstbijzijnde stuk binnen 13 dm (45,4 px) wint.
+  - Een los stuk: 45,4 px.
+  - CL, tussen twee dekkers: 34,9 px.
+  - MO en de bal, vlak naast elkaar: 22,4 px elk.
+
+### Tests
+
+- `npm run verify` groen: 167 unittests, links, budget.
+- e2e in de container, alleen project `android` (geen WebKit): alle 224 groen. De volledige e2e in beide projecten: CI op de pull request.

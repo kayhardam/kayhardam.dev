@@ -39,7 +39,7 @@ export const BUDGETS = {
   lazyJs: 0, // 0 KB: no dynamic imports
   allJs: 28_400, // 24.7 KB: the three islands' files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 16_700, // 14.5 KB for / with Hars (15 November 2026; 10.13 KB in phase 10): the hero, the figures and the lens with their props (the lens's measured areas), and the old sections until step 6
+  html: 15_200, // 13.2 KB for / with Hars (15 November 2026; 10.13 KB in phase 10): the hero, the figures, the lens with its props (the measured areas), the work and the close
   font: 26_200, // 22.77 KB for Barlow 600, the largest of the six (Barlow 500/600, Barlow Condensed 700/800, JetBrains Mono 400/700)
   icon: 5_600, // 4.7 KB for apple-touch-icon.png, the largest (phase 10: the logo with the ball)
   shareImage: 163_800, // 146.3 KB for og.png in phase 10: the photo, the logo and kayhardam.dev (WhatsApp takes up to about 300 KB)

@@ -1,5 +1,5 @@
 import { boards } from "../src/data/boards";
-import { coachboard, drills, email, github, mailto, tactics } from "../src/data/links";
+import { coachboard, drills, email, evidence, github, mailto, tactics } from "../src/data/links";
 import { en } from "../src/i18n/en";
 import { nl } from "../src/i18n/nl";
 import { expect, test } from "./helpers";
@@ -36,15 +36,16 @@ for (const { path, t, locale } of pages) {
     await expect(page.locator(".footer-links")).toHaveText(t.footer.github.join(""));
   });
 
-  test(`${path}: the headings: the name, then the three sections`, async ({ page }) => {
+  test(`${path}: the headings: the name, then the lens and the three sections`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("h1, h2, h3, h4, h5, h6")).toHaveText([
       t.name,
+      t.lens.heading,
       t.coachboard.heading,
       t.about.heading,
       t.contact.heading,
     ]);
-    expect(await page.locator("h2").count()).toBe(3);
+    expect(await page.locator("h2").count()).toBe(4);
   });
 
   test(`${path}: every link has its name and address`, async ({ page }) => {
@@ -55,6 +56,7 @@ for (const { path, t, locale } of pages) {
       ["NL", "/"],
       ["EN", "/en/"],
       [t.hero.button, boards[locale]],
+      ...t.figures.map((f, i) => [`${f.value} ${f.rest} ${f.was}`, evidence[i]!]),
       [t.coachboard.note[1], tactics[locale]],
       [t.coachboard.note[3], drills[locale]],
       [t.coachboard.button, coachboard[locale]],

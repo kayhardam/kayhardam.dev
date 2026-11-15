@@ -148,21 +148,21 @@ for (const { path, t, locale } of pages) {
     });
   }
 
-  test(`${path}: loads only the island's scripts: the hero, the renderer and Svelte's runtime`, async ({ page }) => {
+  test(`${path}: loads only the islands' scripts: the hero, the figures, the lens, the renderer and Svelte's runtime`, async ({ page }) => {
     const scripts: string[] = [];
     page.on("request", (request) => {
       if (request.resourceType() === "script") scripts.push(new URL(request.url()).pathname);
     });
     await page.goto(path);
+    // Down to the lens, so all three hydrate.
+    await page.locator(".lens-frame").scrollIntoViewIfNeeded();
     await page.waitForLoadState("networkidle");
-    const island = page.locator("astro-island");
-    await expect(island).toHaveCount(1);
-    await expect(island).toHaveAttribute("client", "visible");
+    const islands = page.locator("astro-island");
+    await expect(islands).toHaveCount(3);
+    for (const island of await islands.all()) await expect(island).toHaveAttribute("client", "visible");
     await expect(page.locator("script[src]")).toHaveCount(0);
-    const card = (await island.getAttribute("component-url"))!;
-    const renderer = (await island.getAttribute("renderer-url"))!;
-    expect(scripts).toHaveLength(3);
-    expect(scripts).toEqual(expect.arrayContaining([card, renderer]));
+    const own = await islands.evaluateAll((all) => all.flatMap((el) => [el.getAttribute("component-url")!, el.getAttribute("renderer-url")!]));
+    expect(scripts).toEqual(expect.arrayContaining(own));
     for (const src of scripts) expect(src).toMatch(/^\/_astro\/[^/]+\.js$/);
   });
 

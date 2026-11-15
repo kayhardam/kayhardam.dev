@@ -1,12 +1,17 @@
 ---
-import { Picture } from "astro:assets";
+import { getImage, Picture } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import portrait from "../assets/kay-hardam.jpg";
+import editorNl from "../assets/coachboard-editor-nl.png";
+import editorEn from "../assets/coachboard-editor-en.png";
 import Header from "./Header.astro";
 import Board from "./board/Board.astro";
+import Figures from "./Figures.svelte";
+import Lens from "./Lens.svelte";
+import taps from "../data/tap-targets.json";
 import SectionNumber from "./art/SectionNumber.astro";
 import { boards } from "../data/boards";
-import { coachboard, drills, email, github, mailto, tactics } from "../data/links";
+import { coachboard, drills, email, evidence, github, mailto, tactics } from "../data/links";
 import { defaultLocale, text, type Locale } from "../i18n";
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
@@ -15,6 +20,22 @@ const [atName, atDomain] = email.split("@");
 const [beforeGithub, githubLink, afterGithub] = t.footer.github;
 const [beforeTactics, tacticsLink, betweenLinks, drillsLink, afterDrills] = t.coachboard.note;
 const [beforeProduct, productLink, afterProduct] = t.about.product;
+
+// The figures, each with its evidence.
+const figures = t.figures.map((figure, i) => ({ ...figure, href: evidence[i]! }));
+
+// The lens: the editor's screenshot in this language, as AVIF and WebP at 1× and 2× of
+// its 393 px (the frame shows it at most 320 px wide), and the targets measured on it.
+const editor = locale === "nl" ? editorNl : editorEn;
+const shot = async (format: "avif" | "webp") => getImage({ src: editor, format, width: 393, densities: [1, 2] });
+const [avif, webp] = await Promise.all([shot("avif"), shot("webp")]);
+const lensImage = { avif: avif.srcSet.attribute, webp: webp.srcSet.attribute, src: webp.src, sizes: "320px" };
+// A piece's area as one string, as SVG's points, in whole pixels: Astro writes a prop's
+// every number with a type of its own, so the arrays were most of the page's HTML. To
+// draw it a pixel is enough; its measures (size, width, height) keep their decimal.
+const lensTargets = taps[locale].targets.map(({ points, ...target }) =>
+  points ? { ...target, points: points.map((p) => p.map(Math.round).join(",")).join(" ") } : target,
+);
 ---
 
 <BaseLayout title={t.title} description={t.description}>
@@ -26,6 +47,21 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
       <div class="container">
         <h1 class="visually-hidden">{t.name}</h1>
         <Board link={boards[locale]} edit={t.hero.button} t={t.board} />
+      </div>
+    </section>
+
+    {/* Three figures, each a link to its evidence in Coachboard (Hars, 15 November 2026). */}
+    <section class="figures-section">
+      <div class="container">
+        <Figures client:visible={{ rootMargin: "200px" }} items={figures} />
+      </div>
+    </section>
+
+    {/* The lens over Coachboard's editor, with the touch targets measured on it. */}
+    <section class="lens-section">
+      <div class="container">
+        <h2 class="lens-heading">{t.lens.heading}</h2>
+        <Lens client:visible targets={lensTargets} image={lensImage} locale={locale} t={t.lens} />
       </div>
     </section>
 
@@ -101,16 +137,100 @@ const [beforeProduct, productLink, afterProduct] = t.about.product;
 <style>
   /* The hero on the stage: walnoot-donker, the court and the text in board.css. */
   .hero {
-    margin-bottom: 56px;
     padding-block: 24px 40px;
     background: var(--walnoot-donker);
   }
 
   @media (min-width: 860px) {
     .hero {
-      margin-bottom: 88px;
       padding-block: 56px;
     }
+  }
+
+  /* The figures and the lens on the ground of Hars: espresso, room text. The old
+     sections below them keep their 56 or 88 px apart, until they are rebuilt. */
+  .figures-section,
+  .lens-section {
+    padding-block: 56px;
+    background: var(--espresso);
+    color: var(--room);
+  }
+
+  .lens-section {
+    margin-bottom: 56px;
+  }
+
+  @media (min-width: 860px) {
+    .figures-section {
+      padding-block: 88px 56px;
+    }
+
+    .lens-section {
+      padding-block: 56px 88px;
+      margin-bottom: 88px;
+    }
+  }
+
+  /* The figures: three in a row from 860 px, one under the other below it. Each a link:
+     the figure in amber, Barlow Condensed 800 (10.5:1 on espresso), on a line of its own,
+     so its width while counting moves nothing; the sentence in room, underlined in amber;
+     what it was in zand (11:1). */
+  .figures-section :global(.figures) {
+    display: grid;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 860px) {
+    .figures-section :global(.figures) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 48px;
+    }
+  }
+
+  .figures-section :global(.figures a) {
+    display: block;
+    font-size: var(--text);
+    line-height: 1.5;
+    color: var(--room);
+    text-decoration: none;
+  }
+
+  .figures-section :global(.figure-value) {
+    display: block;
+    margin-bottom: 12px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(72px, 9vw, 112px);
+    line-height: 1;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .figures-section :global(.figure-rest) {
+    font-weight: 600;
+    text-decoration: underline 2px var(--amber);
+    text-underline-offset: 5px;
+  }
+
+  .figures-section :global(.figures a:hover .figure-rest) {
+    color: var(--amber);
+  }
+
+  .figures-section :global(.figure-was) {
+    color: var(--zand);
+  }
+
+  /* The lens's heading: Barlow Condensed 800 in capitals. */
+  .lens-heading {
+    margin-bottom: 40px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1;
+    text-transform: uppercase;
   }
 
   /* The three sections: a card each, 56 px apart on the phone, 88 px from 860 px. */

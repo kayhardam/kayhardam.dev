@@ -35,6 +35,24 @@ export const nl = {
     play: "Afspelen",
     stop: "Stoppen",
   },
+  // The three figures under the hero, word for word from Kay (Hars, 15 November 2026). The
+  // figure counts up from 0 to its first number; each links to its evidence (src/data/links.ts).
+  figures: [
+    { value: "12/12", rest: "schermen met elke knop in beeld.", was: "Dat waren er 3." },
+    { value: "4", rest: "handelingen om een aanval te tekenen en te delen.", was: "Dat waren er 6." },
+    { value: "1 px", rest: "verspringt het veld hooguit bij het laden.", was: "Dat was 52 px." },
+  ],
+  // The lens over Coachboard's editor (Hars). heading, target and hint from Kay; target's
+  // {name} is a measured target's name (src/data/tap-targets.json). label, keys and image:
+  // a proposal (15 November 2026), not yet agreed with Kay.
+  lens: {
+    heading: "Ik meet wat de agent oplevert.",
+    target: "Tikvlak {name}",
+    hint: "Ga met de lens over het bord.",
+    label: "Lens over de editor van Coachboard",
+    keys: "Verplaats de lens met de pijltjestoetsen.",
+    image: "Schermafbeelding van de editor van Coachboard op een telefoon, met een nieuw bord.",
+  },
   coachboard: {
     heading: "Coachboard",
     intro:

@@ -51,12 +51,15 @@ async function chosen(page: Page, selector: string) {
 }
 
 for (const { path, t } of pages) {
-  test(`${path}: one image, in About me, with its alt text`, async ({ page }) => {
+  test(`${path}: two images: the editor's screenshot in the lens, and the photo in About me, each with its alt text`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole("img", { name: t.about.photo, exact: true })).toHaveCount(1);
     expect(
-      await page.locator("img").evaluateAll((all) => all.map((img) => [img.getAttribute("alt"), img.closest(".hero, .about")!.classList[0]])),
-    ).toEqual([[t.about.photo, "about"]]);
+      await page.locator("img").evaluateAll((all) => all.map((img) => [img.getAttribute("alt"), img.closest(".lens-section, .about")!.classList[0]])),
+    ).toEqual([
+      [t.lens.image, "lens-section"],
+      [t.about.photo, "about"],
+    ]);
   });
 
   test(`${path}: the photo loads as AVIF or WebP from /_astro/, without CSP violations`, async ({ page }) => {

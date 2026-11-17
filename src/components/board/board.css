@@ -124,7 +124,10 @@
    number in amber, where the arrow goes in zand, the kind in room. The step on
    the court: amber, with espresso text (10.5:1). The columns have fixed widths
    and nothing wraps, so no part moves when a weight of the font comes later
-   than another (e2e/art.spec.ts): the number 2ch, the kind 6ch, from its left. */
+   than another, or when the fallback font is wider (e2e/art.spec.ts). All in
+   em, not ch: a ch is the font's own, and changes with it. JetBrains Mono is
+   0.6em a character: the number 2 (1.2em), the kind 6 (3.6em), and where the
+   arrow starts 12, the longest "[11,5; 10,5]" (7.2em), so the arrow stays put. */
 .board .board-steps {
   display: grid;
   gap: 4px;
@@ -135,7 +138,7 @@
 
 .board .board-steps button {
   display: grid;
-  grid-template-columns: 2ch minmax(0, 1fr) 6ch;
+  grid-template-columns: 1.2em minmax(0, 1fr) 3.6em;
   align-items: center;
   gap: 12px;
   width: 100%;
@@ -170,9 +173,14 @@
 .board .board-steps .data {
   display: flex;
   align-items: center;
-  gap: 0.5ch;
+  gap: 0.3em;
   white-space: nowrap;
   color: var(--zand);
+}
+
+.board .board-steps .from {
+  flex: none;
+  width: 7.2em;
 }
 
 .board .board-steps .data svg {

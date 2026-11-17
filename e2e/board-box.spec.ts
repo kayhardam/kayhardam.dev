@@ -61,6 +61,38 @@ for (const path of ["/", "/en/"]) {
         for (const key of ["x", "y", "height"] as const) expect(after[part][key], `${part} ${key}`).toBeCloseTo(before[part][key], 0);
       }
     });
+
+    // The fallback font differs per machine: in CI's Chromium it was wider than JetBrains Mono, and
+    // the arrows moved 6 px when the font came (17 November 2026). So the first measure is in a
+    // serif alone, far from a mono (and not in JetBrains Mono itself, which a machine may have
+    // installed): the number, the arrow and the kind of every step line still stand where they
+    // stand in JetBrains Mono.
+    test(`${path} at ${screen} px: the step lines' parts don't move when the font comes, whatever the fallback`, async ({ page }) => {
+      await page.setViewportSize({ width: screen, height: 900 });
+      const parts = () =>
+        page.locator(".board-steps button").evaluateAll((all) =>
+          all.map((b) => [".n", ".data svg", ".kind"].map((selector) => Math.round(b.querySelector(selector)!.getBoundingClientRect().left * 2) / 2)),
+        );
+      /** The width of the first line's own text, "[10,0; 13,0]", not of its box. */
+      const width = () =>
+        page.locator(".board-steps .from").first().evaluate((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getBoundingClientRect().width;
+        });
+      await page.route("**/*.{woff,woff2}", (route) => route.abort());
+      await page.goto(path);
+      await page.evaluate(() => document.documentElement.style.setProperty("--font-mono", "serif"));
+      const before = await parts();
+      const serif = await width();
+
+      await page.unroute("**/*.{woff,woff2}");
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      // The text itself is a different width in the two fonts: the measure means something.
+      expect(Math.abs((await width()) - serif)).toBeGreaterThan(5);
+      expect(await parts()).toEqual(before);
+    });
   }
 }
 

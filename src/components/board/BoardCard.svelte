@@ -278,7 +278,7 @@
         <li>
           <button type="button" aria-current={i === step ? "step" : undefined} disabled={!ready} onclick={() => goto(i)}>
             <span class="n">{String(i + 1).padStart(2, "0")}</span>
-            <span class="data" aria-hidden="true">{line.from}<svg viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h13M10.5 1 14 4l-3.5 3" /></svg>{line.to}</span>
+            <span class="data" aria-hidden="true"><span class="from">{line.from}</span><svg viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h13M10.5 1 14 4l-3.5 3" /></svg>{line.to}</span>
             <span class="kind">{line.kind}</span>
           </button>
         </li>
@@ -298,10 +298,14 @@
     </svg>
     <!-- The ball keeps its label (Kay: colour is never the only sign). Only to see: it changes every frame.
          A layer without a viewBox, so the text is in real pixels while x and y follow the court in
-         percent: SVG attributes, not a style attribute, which the CSP doesn't allow. -->
+         percent: SVG attributes, not a style attribute, which the CSP doesn't allow. The percent
+         is on a nested <svg>, whose x and y every browser takes in percent; WebKit ignores a
+         percent in a <text>'s own x (CI, 17 November 2026: the label stood at the court's left edge). -->
     {#if label}
       <svg class="board-ball" aria-hidden="true">
-        <text x="{label.left}%" y="{label.top}%" dx={label.flipX ? -12 : 12} dy={label.flipY ? 24 : -16} text-anchor={label.flipX ? "end" : "start"}>{label.text}</text>
+        <svg x="{label.left}%" y="{label.top}%" width="1" height="1" overflow="visible">
+          <text x={label.flipX ? -12 : 12} y={label.flipY ? 24 : -16} text-anchor={label.flipX ? "end" : "start"}>{label.text}</text>
+        </svg>
       </svg>
     {/if}
   </div>

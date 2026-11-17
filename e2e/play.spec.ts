@@ -6,7 +6,7 @@ import { nl } from "../src/i18n/nl";
 import type { Board, Frame } from "../src/lib/board/format";
 import { moment } from "../src/lib/board/play";
 import { moveFor, stillFor } from "../src/lib/board/viewer";
-import { expect, test } from "./helpers";
+import { expect, glyphBox, test } from "./helpers";
 
 // The board plays (phase 5, in the hero of Hars since 15 November 2026): by itself
 // in a loop, Stop, the step lines (in place of Next and Previous), reduced motion,
@@ -310,7 +310,7 @@ for (const { path, t, locale } of pages) {
         const [where] = (await onCourt(page)).balls;
         await expect(label).toHaveText(`${t.board.ball} ${metres(where!)}`);
         const b = (await ball.boundingBox())!;
-        const l = (await label.boundingBox())!;
+        const l = await glyphBox(label);
         expect(Math.abs(l.x - (b.x + b.width / 2)), `${ms} ms`).toBeLessThan(30);
         expect(Math.abs(l.y + l.height - b.y), `${ms} ms`).toBeLessThan(30);
       }

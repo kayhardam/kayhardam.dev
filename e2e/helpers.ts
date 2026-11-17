@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 export { expect, test } from "@playwright/test";
 
@@ -32,3 +32,16 @@ export async function watchViolations(page: Page) {
   });
   return () => page.evaluate(() => (window as unknown as { cspViolations: string[] }).cspViolations);
 }
+
+/**
+ * The box of a text's own glyphs, in the window. Not locator.boundingBox(): for a <text> in
+ * a nested <svg>, WebKit's box of the element leaves out the text's own x and y (CI, 17
+ * November 2026: the ball's label was drawn in the right place, and measured 28 px lower).
+ */
+export const glyphBox = (locator: Locator) =>
+  locator.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const r = range.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+  });

@@ -3,7 +3,7 @@ import { boardFrom, boards, stepsFor } from "../src/data/boards";
 import { en } from "../src/i18n/en";
 import { nl } from "../src/i18n/nl";
 import { arrowPath } from "../src/lib/board/geometry";
-import { expect, test } from "./helpers";
+import { expect, glyphBox, test } from "./helpers";
 
 // The hero (Hars, 15 November 2026): step 1 of the share link, rendered at build
 // time: the counter with the play button, the sentence, the four step lines, the
@@ -118,25 +118,13 @@ for (const { path, t, locale } of pages) {
       await expect(label).toHaveText(`${t.board.ball} ${locale === "nl" ? "[11,0; 12,2]" : "[11.0, 12.2]"}`);
       await expect(page.locator(".board-ball")).toHaveAttribute("aria-hidden", "true");
       const ball = (await page.locator('.board-court [data-kind="ball"] circle:not([fill="transparent"])').boundingBox())!;
-      const text = (await label.boundingBox())!;
-      // Every measure of the label, in each failure's message: the browsers don't agree on a
-      // text's box (WebKit in CI, 17 November 2026), and CI is the only place WebKit runs.
-      const seen = JSON.stringify({
-        ball,
-        text,
-        ...(await label.evaluate((el: SVGTextElement) => {
-          const flat = (r: DOMRect) => ({ x: r.x, y: r.y, width: r.width, height: r.height });
-          const range = document.createRange();
-          range.selectNodeContents(el);
-          return { glyphs: flat(range.getBoundingClientRect()), bbox: flat(el.getBBox()), origin: flat(el.ownerSVGElement!.getBoundingClientRect()), size: getComputedStyle(el).fontSize };
-        })),
-      });
+      const text = await glyphBox(label);
       // Above the ball and to its right, within 24 px of it.
-      expect(text.x, seen).toBeGreaterThan(ball.x + ball.width / 2);
-      expect(text.x - (ball.x + ball.width), seen).toBeLessThan(24);
-      expect(text.y + text.height, seen).toBeLessThan(ball.y + ball.height);
-      expect(ball.y - (text.y + text.height), seen).toBeLessThan(24);
-      expect(text.x + text.width, seen).toBeLessThanOrEqual(width);
+      expect(text.x).toBeGreaterThan(ball.x + ball.width / 2);
+      expect(text.x - (ball.x + ball.width)).toBeLessThan(24);
+      expect(text.y + text.height).toBeLessThan(ball.y + ball.height);
+      expect(ball.y - (text.y + text.height)).toBeLessThan(24);
+      expect(text.x + text.width).toBeLessThanOrEqual(width);
     });
   }
 

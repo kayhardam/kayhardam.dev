@@ -122,12 +122,16 @@
 
 /* The step lines: JetBrains Mono, one button per step, each 48 px high. The
    number in amber, where the arrow goes in zand, the kind in room. The step on
-   the court: amber, with espresso text (10.5:1). The columns have fixed widths
-   and nothing wraps, so no part moves when a weight of the font comes later
-   than another, or when the fallback font is wider (e2e/art.spec.ts). All in
-   em, not ch: a ch is the font's own, and changes with it. JetBrains Mono is
-   0.6em a character: the number 2 (1.2em), the kind 6 (3.6em), and where the
-   arrow starts 12, the longest "[11,5; 10,5]" (7.2em), so the arrow stays put. */
+   the court: amber, with espresso text (10.5:1). The columns have fixed widths,
+   so no part moves when a weight of the font comes later than another, or when
+   the fallback font is wider (e2e/art.spec.ts). All in em, not ch: a ch is the
+   font's own, and changes with it. JetBrains Mono is 0.6em a character: the
+   number 2 (1.2em), the kind 6 (3.6em), and the two places 12 each, the longest
+   "[11,5; 10,5]" (7.2em). Where the arrow starts has 7.7em and where it goes at
+   least 7.2em: room for a fallback font up to 6% wider, on one line. A reader's
+   own text spacing (WCAG 1.4.12: letters 0.12em, words 0.16em) makes a place
+   8.8em: then it wraps after the ";" inside its own column, and the line grows,
+   so no part covers another (e2e/spacing.spec.ts). */
 .board .board-steps {
   display: grid;
   gap: 4px;
@@ -140,17 +144,17 @@
   display: grid;
   grid-template-columns: 1.2em minmax(0, 1fr) 3.6em;
   align-items: center;
-  gap: 12px;
+  gap: min(12px, 2.5vw); /* 8 px at 320 px: both places fit on one line */
   width: 100%;
   min-height: 48px;
-  padding: 0 12px;
+  padding: 0 min(12px, 2.5vw);
   border: 1px solid color-mix(in srgb, var(--room) 16%, transparent);
   border-radius: 6px;
   background: transparent;
   color: var(--room);
   font-family: var(--font-mono);
   font-weight: 400;
-  font-size: clamp(12px, 3.6vw, 14px);
+  font-size: clamp(11.5px, 3.6vw, 14px);
   line-height: 1.2;
   text-align: start;
   cursor: pointer;
@@ -171,16 +175,11 @@
 }
 
 .board .board-steps .data {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 7.7em) 1.15em minmax(7.2em, 1fr);
   align-items: center;
   gap: 0.3em;
-  white-space: nowrap;
   color: var(--zand);
-}
-
-.board .board-steps .from {
-  flex: none;
-  width: 7.2em;
 }
 
 .board .board-steps .data svg {

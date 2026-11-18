@@ -278,7 +278,7 @@
         <li>
           <button type="button" aria-current={i === step ? "step" : undefined} disabled={!ready} onclick={() => goto(i)}>
             <span class="n">{String(i + 1).padStart(2, "0")}</span>
-            <span class="data" aria-hidden="true"><span class="from">{line.from}</span><svg viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h13M10.5 1 14 4l-3.5 3" /></svg>{line.to}</span>
+            <span class="data" aria-hidden="true"><span class="from">{line.from}</span><svg viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h13M10.5 1 14 4l-3.5 3" /></svg><span class="to">{line.to}</span></span>
             <span class="kind">{line.kind}</span>
           </button>
         </li>

@@ -46,8 +46,10 @@
         if (t < 1) frame = requestAnimationFrame(tick);
       };
       frame = requestAnimationFrame(tick);
-    }, { threshold: 0.4 });
-    observer.observe(list);
+    }, { threshold: 0.5 });
+    // Half of the first figure, not a share of the whole list: in one column the list is some
+    // 500 px high, more than a low window (400% zoom) ever shows, and the figures stayed at 0.
+    observer.observe(list.querySelector(".figure-value")!);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);

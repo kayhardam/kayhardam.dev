@@ -64,6 +64,18 @@ for (const { path, t, locale } of pages) {
         expect(await shown(page)).toEqual(t.figures.map((f) => f.value));
       });
 
+      // 400% zoom on a laptop: a window lower than the list ever fits in. The count starts on the
+      // first figure, so the figures never stay at 0 (18 November 2026).
+      test("in a low window, the figures still count up to their values", async ({ page }) => {
+        await page.setViewportSize({ width: 320, height: 164 });
+        await page.goto(path);
+        const top = await page.locator(".figures").evaluate((el) => el.getBoundingClientRect().top + scrollY);
+        await page.evaluate((y) => scrollTo(0, y), top - 164 - 100);
+        await expect.poll(() => shown(page)).toEqual(["0/12", "0", "0 px"]);
+        await page.locator(".figure-value").first().scrollIntoViewIfNeeded();
+        await expect.poll(() => shown(page)).toEqual(t.figures.map((f) => f.value));
+      });
+
       test("already in view when it loads, the figures don't count", async ({ page }) => {
         await page.setViewportSize({ width: 1440, height: 1600 });
         await page.goto(path);

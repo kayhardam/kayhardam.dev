@@ -80,8 +80,9 @@
       text: `${t.ball} ${point(ball, locale)}`,
       left: ((x - cropX) / cropW) * 100,
       top: ((y - cropY) / cropH) * 100,
-      // Left of the ball near the right side line, below it near the goal: always inside the court's box.
-      flipX: x > 130,
+      // Left of the ball in the court's right half, below it near the goal: whole on the page from
+      // 320 px on, where "ball [12.5, 9.7]" is 115 px beside a court of 288 (e2e/narrow.spec.ts).
+      flipX: x > 110,
       flipY: y < 40,
     };
   });

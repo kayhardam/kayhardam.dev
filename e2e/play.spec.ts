@@ -311,7 +311,9 @@ for (const { path, t, locale } of pages) {
         await expect(label).toHaveText(`${t.board.ball} ${metres(where!)}`);
         const b = (await ball.boundingBox())!;
         const l = await glyphBox(label);
-        expect(Math.abs(l.x - (b.x + b.width / 2)), `${ms} ms`).toBeLessThan(30);
+        // Beside the ball: its near end, right of the ball or (in the court's right half) left of it.
+        const centre = b.x + b.width / 2;
+        expect(Math.min(Math.abs(l.x - centre), Math.abs(l.x + l.width - centre)), `${ms} ms`).toBeLessThan(30);
         expect(Math.abs(l.y + l.height - b.y), `${ms} ms`).toBeLessThan(30);
       }
     });

@@ -80,6 +80,7 @@ for (const { path, t, locale } of pages) {
         await page.setViewportSize({ width: 1440, height: 1600 });
         await page.goto(path);
         await expect(page.locator(".figures")).toBeInViewport();
+        await expect(page.locator("astro-island:has(.figures)")).not.toHaveAttribute("ssr");
         for (let i = 0; i < 5; i++) {
           expect(await shown(page)).toEqual(t.figures.map((f) => f.value));
           await page.waitForTimeout(200);

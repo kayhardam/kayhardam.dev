@@ -116,7 +116,7 @@ describe("boards", () => {
     await expect(boardFrom("https://handballcoachboard.com/nl/board/")).rejects.toThrow("Not a board");
   });
 
-  // The title is the label above the court: without one there is nothing to show there.
+  // The title names the board when the hero's link opens it in Coachboard (boards.ts).
   it("stops on a link without a title", async () => {
     const untitled = structuredClone(decoded.nl);
     delete untitled.title;

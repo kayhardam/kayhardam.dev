@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 
-/** The largest size: three times the 300 px on the page. */
+/** The largest size: three times the 300 px it had on the page (phase 7). Since Hars only og.png uses it, at 260 px. */
 export const MAX = 900;
 
 /** The description in an ICC profile: a 'desc' tag (v2, ASCII) or 'mluc' (v4, UTF-16BE). */

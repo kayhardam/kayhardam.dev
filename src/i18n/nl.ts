@@ -1,6 +1,6 @@
 // Dutch texts, word for word from the brief. Change a text only after Kay agrees.
-// Addresses are in src/data/links.ts and src/data/boards.ts, not here, and so is
-// the label above the court: the title in the share link.
+// Addresses are in src/data/links.ts and src/data/boards.ts, not here; neither is
+// the board's title, which is in the share link.
 export const nl = {
   // The <title> and og:title of the home page; the description also goes in og:description.
   // The description is the first mention of Coachboard, so it has the full name,

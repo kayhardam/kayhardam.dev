@@ -30,7 +30,7 @@ for (const { path, t } of pages) {
   });
 
   // A label in an SVG is in user units, scaled with its SVG: an inherited
-  // letter-spacing (the header's 0.06em) pulls it apart, "K H" instead of "KH".
+  // letter-spacing (the counter's 0.06em) pulls it apart, "A I" instead of "AI".
   test(`${path}: no label in an SVG inherits letter-spacing`, async ({ page }) => {
     await page.goto(path);
     const labels = await page.locator("svg text").evaluateAll((all) =>
@@ -50,7 +50,7 @@ for (const { path, t } of pages) {
 // WebKit has no Layout Instability API. Since Hars (15 November 2026) the hero
 // has fixed heights: the court a fixed ratio, the sentence its two lines (three
 // for a longer one), the counter and the step lines their own. So nothing in the
-// header, the hero or the section numbers below it may shift at all.
+// header or the hero may shift at all.
 type Shift = { html: string; dx: number; dy: number };
 for (const path of ["/", "/en/"]) {
   for (const width of [393, 1280]) {

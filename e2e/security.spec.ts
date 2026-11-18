@@ -16,18 +16,21 @@ for (const path of [...allPages(), ...missingPages]) {
   });
 }
 
-test("security headers on every response", async ({ request }) => {
-  const response = await request.get("/");
+for (const path of ["/", "/en/", missingPages[0]!, "/favicon.svg"]) {
+  test(`${path}: the security headers`, async ({ request }) => {
+    const response = await request.get(path);
   const headers = response.headers();
+  expect(headers["permissions-policy"]).toBe("camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()");
   expect(headers["content-security-policy"]).toBe("frame-ancestors 'none'");
   expect(headers["x-frame-options"]).toBe("DENY");
   expect(headers["x-content-type-options"]).toBe("nosniff");
   expect(headers["strict-transport-security"]).toBe("max-age=31536000");
   expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
   expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
-});
+  });
+}
 
-test("the fonts load from the site itself", async ({ page }) => {
+test("the fonts that load are the six weights of Hars, Barlow 500 among them", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const loaded = await page.evaluate(() =>

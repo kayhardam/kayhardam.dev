@@ -1,7 +1,7 @@
 // Checks the built site against size budgets. Run after `astro build`:
 //   node scripts/check-budget.mjs
 // After Coachboard's scripts/check-budget.mjs (commit 4ceafd4), cut down to
-// what this site has: one island, the board card (phase 5).
+// what this site has: three islands (the board card since phase 5; Hars added two).
 //
 // - The only JavaScript is the islands (Hars, 15 November 2026): the hero
 //   (BoardCard), the figures (Figures) and the lens (Lens), each at most once on
@@ -43,11 +43,13 @@ export const BUDGETS = {
   font: 26_200, // 22.77 KB for Barlow 600, the largest of the six (Barlow 500/600, Barlow Condensed 700/800, JetBrains Mono 400/700)
   icon: 5_600, // 4.7 KB for apple-touch-icon.png, the largest (phase 10: the logo with the ball)
   shareImage: 163_800, // 146.3 KB for og.png in phase 10: the photo, the logo and kayhardam.dev (WhatsApp takes up to about 300 KB)
-  // The largest file per format: the photo in About me at 799 px, from an original of 799 px.
+  // The largest file per format. Since Hars the only image is the lens's screenshot of Coachboard's
+  // editor, at 2× (786 px): the Dutch one is the largest (18 November 2026; until then these were
+  // still the budgets of the photo in About me, 34.1 and 68.0 KB).
   photo: {
-    avif: 34_100, // 29.61 KB
-    webp: 68_000, // 59.09 KB
-    jpeg: 106_600, // 92.69 KB
+    avif: 27_500, // 23.9 KB
+    webp: 46_000, // 40.0 KB
+    jpeg: 106_600, // no JPEG on the page since Hars; phase 7's budget (the photo, 92.69 KB), for one that comes back
   },
 };
 

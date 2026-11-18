@@ -70,7 +70,7 @@ for (const code of locales) {
       expect(board.frames.map((_, s) => moves(board, s))).toEqual([true, true, true, true]);
     });
 
-    it("has a run, a pass and a shot in its legend, each with a text in both languages", () => {
+    it("has a run, a pass and a shot as its kinds of arrow (the step lines' kinds), each with a text in both languages", () => {
       const legend = legendOf(decoded[code]);
       expect(legend).toEqual(["run", "pass", "shot"]);
       for (const language of locales) {

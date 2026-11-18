@@ -1,27 +1,48 @@
 import { expect, test } from "./helpers";
 
-// Narrow phones: nothing sticks out, the step lines keep their height and fit,
-// the email address stays on one line.
+// Nothing sticks out, from 320 to 1440 px, on every step of the attack; on narrow phones the
+// step lines keep their height and fit, and the email address stays on one line.
+// Reduced motion: the board stands still, so each step is checked on purpose, not whichever
+// one happens to play when the test looks.
+test.use({ reducedMotion: "reduce" });
 
 const widths = [320, 340, 360, 375, 390, 393, 412, 430];
+const wide = [480, 560, 700, 860, 1024, 1280, 1440];
 
 for (const path of ["/", "/en/"]) {
-  for (const width of widths) {
+  for (const width of [...widths, ...wide]) {
     test(`${path} at ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto(path);
       await page.evaluate(() => document.fonts.ready);
+      const steps = page.locator(".board-steps button");
+      await expect(steps.first()).toBeEnabled();
 
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-      const outside = await page.evaluate(() =>
-        [...document.body.querySelectorAll("*")]
-          .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 0.5)
-          .map((el) => `${el.tagName.toLowerCase()}.${el.className}`),
-      );
-      expect(outside).toEqual([]);
+      for (let step = 0; step < 4; step++) {
+        await steps.nth(step).click();
+        await expect(steps.nth(step)).toHaveAttribute("aria-current", "step");
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `step ${step + 1}`).toBeLessThanOrEqual(width);
+        const outside = await page.evaluate(() =>
+          [...document.body.querySelectorAll("*")]
+            .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 0.5)
+            .map((el) => `${el.tagName.toLowerCase()}.${el.getAttribute("class")}`),
+        );
+        expect(outside, `step ${step + 1}`).toEqual([]);
+        // The ball's label, by its glyphs (an SVG's text counts for no scroll width): whole on the
+        // page, left and right. At 320 px it may stand a few px in the gutter beside the court.
+        const label = await page.evaluate(() => {
+          const range = document.createRange();
+          range.selectNodeContents(document.querySelector(".board-ball text")!);
+          const text = range.getBoundingClientRect();
+          return { left: text.left, right: window.innerWidth - text.right };
+        });
+        expect(label.left, `label, step ${step + 1}`).toBeGreaterThanOrEqual(0);
+        expect(label.right, `label, step ${step + 1}`).toBeGreaterThanOrEqual(0);
+      }
+      if (!widths.includes(width)) return;
 
       // The step lines: 48 px each, on one line, with nothing cut off.
-      const lines = await page.locator(".board-steps button").evaluateAll((all) =>
+      const lines = await steps.evaluateAll((all) =>
         all.map((b) => ({ height: b.getBoundingClientRect().height, fits: b.scrollWidth <= b.clientWidth && b.scrollHeight <= b.clientHeight })),
       );
       expect(lines).toEqual(Array(4).fill({ height: 48, fits: true }));

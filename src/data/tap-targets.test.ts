@@ -37,7 +37,7 @@ describe("tap-targets.json", () => {
         expect(areas.filter((t) => t.kind === "player")).toHaveLength(13);
         expect(areas.filter((t) => t.kind === "ball")).toHaveLength(1);
         for (const t of areas) {
-          // HIT_R is 13 dm: 45.4 px here. No area is larger, and its smallest width is at most its box.
+          // HIT_R, the reach round a piece, is 13 dm: an area 45.4 px wide here. No area is larger, and its smallest width is at most its box.
           expect(t.width, t.name).toBeLessThanOrEqual(45.5);
           expect(t.height, t.name).toBeLessThanOrEqual(45.5);
           expect(t.size!, t.name).toBeLessThanOrEqual(Math.max(t.width, t.height) + 0.1);
@@ -56,7 +56,8 @@ describe("tap-targets.json", () => {
         expect(boxes.length).toBeGreaterThan(0);
         for (const t of boxes) {
           expect(["link", "button"]).toContain(t.kind);
-          expect(Math.min(t.width, t.height), t.name).toBeGreaterThanOrEqual(40);
+          expect(t.width, t.name).toBeGreaterThanOrEqual(40);
+          expect(t.height, t.name).toBeGreaterThanOrEqual(44);
         }
       });
 

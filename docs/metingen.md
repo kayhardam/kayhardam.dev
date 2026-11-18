@@ -1196,8 +1196,8 @@ Lighthouse 12.8.2, het standaardprofiel mobiel, tegen `wrangler dev` (dus zonder
 
 Gemeten met `scripts/measure-coachboard.mjs` op Coachboard @ `03be23b`, in de editor op 393 × 659, met de standaardopstelling: 32 tikvlakken per taal (`src/data/tap-targets.json`).
 
-- **Knoppen en links:** alle 44 px hoog. De smalste is de stapknop "Stap 1": 40 × 44 px.
-- **Stukken:** het vlak waarin een tik dat stuk raakt, volgens `hit.ts`: het dichtstbijzijnde stuk binnen 13 dm (45,4 px) wint.
+- **Knoppen en links:** minstens 44 px hoog (de soortbalk 48 px). De smalste is de stapknop "Stap 1": 40 × 44 px.
+- **Stukken:** het vlak waarin een tik dat stuk raakt, volgens `hit.ts`: het dichtstbijzijnde stuk binnen 13 dm (22,7 px) wint: een vlak van 45,4 px breed.
   - Een los stuk: 45,4 px.
   - CL, tussen twee dekkers: 34,9 px.
   - MO en de bal, vlak naast elkaar: 22,4 px elk.
@@ -1206,3 +1206,15 @@ Gemeten met `scripts/measure-coachboard.mjs` op Coachboard @ `03be23b`, in de ed
 
 - `npm run verify` groen: 167 unittests, links, budget.
 - e2e in de container, alleen project `android` (geen WebKit): alle 224 groen. De volledige e2e in beide projecten: CI op de pull request.
+
+### Na de meting: wat de CI en de controle vonden (17 en 18 november 2026)
+
+De metingen hierboven zijn van commit `566ec0d`. Daarna veranderd, elk met een test:
+
+| Commit | Wat | Gemeten |
+|---|---|---|
+| `b6a6086` | WebKit negeert een percentage in de `x` van een `<text>`: het ballabel stond aan de linkerrand. Nu op een geneste `<svg>`. De pijlen in de stapregels versprongen 6 px met een breder terugvallettertype (Chromium 156 in de CI): kolommen in em. | CI groen in Chromium 156 en WebKit 27.2 |
+| `4ca8361` | De test van het ballabel mat in WebKit 28 px te laag: nu op de glyphs (`glyphBox()`). | idem |
+| `c4173ee` | Focus onder de kopbalk (WCAG 2.4.11): met Shift+Tab stond stap 01 op y 0–48 onder de kopbalk van 65 px, 0 px zichtbaar (390 × 844). Nu `scroll-padding-top`. De lens stond aan de randen van de schermafbeelding +9, −11, +10 en −12 px naast de wijzer: nu gerekend over de afbeelding, minder dan 1 px. | Chromium 153, lokaal |
+| `0364708` | De cijfers bleven op 0 in een venster lager dan ±198 px (gemeten bij 390 × 180 en 320 × 164): de telling start nu op het eerste cijfer. Met de tekstafstand van WCAG 1.4.12 liep de beginplek tot 18 px over de pijl en het doel tot 21 px in het soort: nu breekt een plek binnen zijn eigen kolom. Bij 320 px raakte het doel het soort (1,4 px): niet meer. | Chromium 153, lokaal, 320 tot 1440 px |
+| daarna | Het ballabel staat in de rechterhelft van het veld links van de bal: het Engelse label liep bij stap 4 tot 320,5 px bij 320 px breed (er scrolde niets). Beeldbudget op de schermafbeelding van de lens: AVIF 23,9 KB (budget 27,5), WebP 40,0 KB (budget 46,0). | Chromium 153, lokaal |

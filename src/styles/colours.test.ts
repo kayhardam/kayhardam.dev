@@ -10,6 +10,8 @@ import { describe, expect, it } from "vitest";
 //   its Hars token; never as a value;
 // - BaseLayout.astro: theme-color, as a <meta> can't read a custom property; it
 //   must be espresso.
+// Two more things are skipped: a comment line, which paints nothing, and public/,
+// where the favicons are still phase 10's images (ink blue) until they are made in Hars.
 
 const root = new URL("../../", import.meta.url).pathname;
 const hex = /#[0-9a-f]{3,8}\b/gi;

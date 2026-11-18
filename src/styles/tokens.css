@@ -38,6 +38,7 @@
   --container: 1200px;
   --gutter: 16px;
   --tap: 44px; /* minimum touch target */
+  --header: 65px; /* the sticky header: 10 + 44 + 10 and its line (e2e/narrow.spec.ts) */
 }
 
 @media (min-width: 560px) {

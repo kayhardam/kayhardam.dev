@@ -104,6 +104,35 @@ for (const { path, t, locale } of pages) {
       await expect(page.locator(".lens-name")).toHaveAttribute("aria-live", "polite");
     });
 
+    // The lens's centre is the pointer, to the screenshot's edges: the place is counted over the
+    // image, not over the frame with its edge of 10 px (it stood up to 12 px off, 18 November 2026).
+    test("the lens is under the pointer, also at the screenshot's edges", async ({ page }) => {
+      await page.goto(path);
+      await page.locator(".lens-frame").scrollIntoViewIfNeeded();
+      await expect(page.locator("astro-island:has(.lens-frame)")).not.toHaveAttribute("ssr");
+      const img = (await page.locator(".lens-frame img").boundingBox())!;
+      const ring = () =>
+        page.locator(".lens-ring").evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return [r.x + r.width / 2, r.y + r.height / 2] as const;
+        });
+      for (const [fx, fy] of [[0.01, 0.5], [0.99, 0.5], [0.5, 0.01], [0.5, 0.99], [0.5, 0.5]] as const) {
+        const x = img.x + img.width * fx;
+        const y = img.y + img.height * fy;
+        await page.mouse.move(x, y);
+        await expect(async () => {
+          const [cx, cy] = await ring();
+          expect(Math.abs(cx - x), `x at ${fx}, ${fy}`).toBeLessThan(1);
+          expect(Math.abs(cy - y), `y at ${fx}, ${fy}`).toBeLessThan(1);
+        }).toPass({ timeout: 2000 });
+      }
+      // Just inside a button (3 px into More), the lens names that button, not its neighbour.
+      const more = taps[locale].targets.find((target) => target.name === (locale === "nl" ? "Meer" : "More"))!;
+      const scale = img.width / 393;
+      await page.mouse.move(img.x + (more.x + 3) * scale, img.y + (more.y + more.height / 2) * scale);
+      await expect(page.locator(".lens-name")).toHaveText(t.lens.target.replace("{name}", more.name));
+    });
+
     test("the lens with the arrow keys: the frame takes the focus, and the lens moves", async ({ page }) => {
       await page.goto(path);
       const frame = page.locator(".lens-frame");

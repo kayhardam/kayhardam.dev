@@ -61,7 +61,7 @@
 
   let x = $state(start()[0]);
   let y = $state(start()[1]);
-  let frame: HTMLElement;
+  let shot: HTMLImageElement;
 
   /** Whether (px, py) is inside `poly` (even–odd). */
   function inside(poly: number[][], px: number, py: number) {
@@ -87,9 +87,9 @@
 
   const clamp = (v: number, max: number) => Math.min(max, Math.max(0, v));
 
-  /** The pointer's place on the screenshot. */
+  /** The pointer's place on the screenshot: the image's box, not the frame's, which has an edge around it. */
   function follow(e: PointerEvent) {
-    const r = frame.getBoundingClientRect();
+    const r = shot.getBoundingClientRect();
     x = clamp(((e.clientX - r.left) / r.width) * W, W);
     y = clamp(((e.clientY - r.top) / r.height) * H, H);
   }
@@ -114,7 +114,6 @@
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <div
     class="lens-frame"
-    bind:this={frame}
     role="application"
     aria-label={t.label}
     aria-describedby="{id}-keys"
@@ -126,7 +125,7 @@
     <picture>
       <source type="image/avif" srcset={image.avif} sizes={image.sizes} />
       <source type="image/webp" srcset={image.webp} sizes={image.sizes} />
-      <img src={image.src} srcset={image.webp} sizes={image.sizes} alt={t.image} width={W} height={H} loading="lazy" decoding="async" />
+      <img src={image.src} srcset={image.webp} sizes={image.sizes} alt={t.image} bind:this={shot} width={W} height={H} loading="lazy" decoding="async" />
     </picture>
     <svg class="lens-layer" viewBox="0 0 {W} {H}" aria-hidden="true">
       <defs>
@@ -203,8 +202,9 @@
   .lens-layer {
     position: absolute;
     inset: 9px;
-    width: calc(100% - 20px);
-    height: calc(100% - 20px);
+    /* The screenshot's box: 100% is the frame without its border, less the padding on both sides. */
+    width: calc(100% - 18px);
+    height: calc(100% - 18px);
     overflow: visible;
     pointer-events: none;
   }

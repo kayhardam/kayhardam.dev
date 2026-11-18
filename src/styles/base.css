@@ -13,6 +13,9 @@
 /* The ground of Hars: espresso, with room text (17.5:1). */
 html {
   background: var(--espresso);
+  /* What gets the focus is scrolled clear of the sticky header, with room for its ring
+     (WCAG 2.2, 2.4.11 Focus Not Obscured; e2e/a11y.spec.ts). */
+  scroll-padding-top: calc(var(--header) + 16px);
 }
 
 /* Barlow 500 for running text (BaseLayout.astro loads the fonts of "Hars"). */

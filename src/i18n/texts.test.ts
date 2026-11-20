@@ -55,11 +55,13 @@ describe("texts", () => {
     expect(languages.en.filter(([, value]) => /trainer/i.test(value))).toEqual([]);
   });
 
-  // No job titles on the page until the texts for employers come (Kay, 5 November 2026):
-  // the title, the description and the JSON-LD keep them, nothing else says them.
-  it("has a job title only in the title, the description and the JSON-LD", () => {
+  // No job titles on the full page until the texts for employers come (Kay, 5 November 2026):
+  // the title, the description and the JSON-LD keep them. The holding page says who Kay is
+  // again, in the first sentence of his statement (20 November 2026); nothing else says them.
+  it("has a job title only in the title, the description, the JSON-LD and the holding page's statement", () => {
     for (const [code, list] of Object.entries(languages)) {
-      const said = list.filter(([key, value]) => !["title", "description", "jobTitle"].includes(key) && /gymleraar|handbaltrainer|PE teacher|handball coach/i.test(value));
+      const allowed = (key: string) => ["title", "description", "jobTitle"].includes(key) || key.startsWith("holding.statement.0.");
+      const said = list.filter(([key, value]) => !allowed(key) && /gymleraar|handbaltrainer|PE teacher|handball coach/i.test(value));
       expect(said, code).toEqual([]);
     }
   });

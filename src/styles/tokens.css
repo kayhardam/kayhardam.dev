@@ -1,16 +1,29 @@
 /*
  * Design tokens.
  *
- * The palette "Hars" (Kay, 15 November 2026): eight colours and nothing else,
- * except transparencies of these eight (color-mix with transparent). No loose
- * hex value anywhere outside this block; src/styles/tokens.test.ts checks the
- * values and the contrasts the page relies on.
+ * Two palettes, and nothing else except transparencies of their colours
+ * (color-mix with transparent). No loose hex value anywhere outside the two
+ * blocks below; src/styles/tokens.test.ts checks the values and the contrasts
+ * the pages rely on. The site is in one palette at a time: src/data/palette.ts.
  *
  * Breakpoints are mobile-first and can't be custom properties, so every
  * media query uses one of these two literally, as in Coachboard:
  *   @media (min-width: 560px)  — large phone / small tablet
  *   @media (min-width: 860px)  — tablet landscape and up
  */
+
+/* The palette "Inkt" (Kay, 20 November 2026): five colours, for the holding page
+   and the 404 page. The ink blue is the favicons' and the share image's. */
+:root {
+  --papier: #fdfbf8; /* the ground, text on ink blue */
+  --linnen: #f5f1eb; /* the stage */
+  --inkt: #1f1a17; /* text */
+  --grafiet: #4a433d; /* secondary text */
+  --inktblauw: #1e40af; /* the accent: the statement's second sentence, the foot, the lines under links, the focus ring */
+}
+
+/* The palette "Hars" (Kay, 15 November 2026): eight colours, for the full page,
+   which isn't built while the holding page is up (AGENTS.md). */
 :root {
   --espresso: #16110d; /* the ground, text on amber, defenders, the goal */
   --walnoot-donker: #261b12; /* the stage: the hero */
@@ -20,8 +33,29 @@
   --room: #fff6e8; /* text, the court's lines, arrows, the players' edges */
   --zand: #d3c4b0; /* secondary text */
   --gloed: #ff5a2b; /* only the ball, with an edge in espresso */
+}
 
-  /* The focus ring: 3 px amber with an espresso edge around it (base.css). */
+/* What the parts that every page shares use (base.css, Header.astro, 404.astro):
+   five roles, filled by the site's palette. Inkt, unless BaseLayout.astro has put
+   data-palette="hars" on <html>. */
+:root {
+  --ground: var(--papier);
+  --on-ground: var(--inkt); /* text on the ground */
+  --second: var(--grafiet); /* secondary text on the ground */
+  --accent: var(--inktblauw);
+  --on-accent: var(--papier); /* text on the accent */
+}
+
+:root[data-palette="hars"] {
+  --ground: var(--espresso);
+  --on-ground: var(--room);
+  --second: var(--zand);
+  --accent: var(--amber);
+  --on-accent: var(--espresso);
+}
+
+:root {
+  /* The focus ring: 3 px of the accent with an edge in the ground's colour around it (base.css). */
   --ring: 3px;
   --ring-edge: 2px;
 

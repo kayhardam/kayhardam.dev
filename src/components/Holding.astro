@@ -1,0 +1,193 @@
+---
+// The holding page (Kay, 20 November 2026): what the site shows while Kay redesigns it,
+// in place of Home.astro. The header without its button, Kay's statement, his sentence
+// about Coachboard with the link to it, and the address on ink blue at the foot, in the
+// palette Inkt (tokens.css). The texts are `holding` in nl.ts and en.ts. No island: the
+// page has no JavaScript at all (scripts/check-budget.mjs fails on a script without an
+// island). And nothing on it moves when a font comes: no text has anything after it on
+// its line (e2e/holding.spec.ts).
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "./Header.astro";
+import { coachboard, email, mailto } from "../data/links";
+import { defaultLocale, text, type Locale } from "../i18n";
+
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
+const t = text(locale);
+---
+
+<BaseLayout title={t.title} description={t.description}>
+  <div class="page">
+    <Header talk={false} />
+    <main>
+      {/* The name is the page's heading, for screen readers; on screen the header shows it.
+          The statement: a sentence is its lines with a space between, so it reads as one. */}
+      <section class="who">
+        <div class="container stage">
+          <h1 class="visually-hidden">{t.name}</h1>
+          <p class="statement">{t.holding.statement.map((lines) => <span class="sentence">{lines.map((line, i) => <>{i > 0 && " "}<span class="line">{line}</span></>)}</span>)}</p>
+          <div class="more">
+            <p class="product">{t.holding.product}</p>
+            <a class="go" href={coachboard[locale]}>{t.holding.button}</a>
+          </div>
+        </div>
+      </section>
+
+      {/* The address in one piece, without the full page's <wbr>: what follows a <wbr> moves
+          when the font before it comes (Lighthouse: a layout shift of 0.0015 to 0.003). */}
+      <section class="close">
+        <div class="container">
+          <p><a class="email" href={mailto}>{email}</a></p>
+        </div>
+      </section>
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  /* The page fills the window: the header, the stage, and the foot down to the window's
+     foot. svh where a browser knows it: a phone's window without its bars. */
+  .page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* The stage, on linnen. At least 70% of the window's height with the header: so the
+     foot starts at the same place whatever the text does, and nothing in the foot moves
+     when a font comes (in a window too low for that, the stage is its text). */
+  .who {
+    min-height: calc(70vh - var(--header));
+    min-height: calc(70svh - var(--header));
+    padding-block: 40px 48px;
+    background: var(--linnen);
+  }
+
+  @media (min-width: 860px) {
+    .who {
+      padding-block: 56px;
+    }
+  }
+
+  /* Narrow screens: the statement, then the sentence and the link. From 860 px beside each
+     other, both from the top: the statement's box has a fixed width (below), so the
+     sentence starts at the same place whichever font has loaded. */
+  .stage {
+    display: grid;
+    gap: 28px;
+  }
+
+  @media (min-width: 860px) {
+    .stage {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 32px;
+    }
+  }
+
+  /* Kay's statement: Barlow Condensed 800 in capitals, the first sentence in inkt, the
+     page's text colour (15.3:1 on linnen), the second in ink blue (7.8:1). Four lines at
+     every width, each on one line, in a box of 8.8em, so its size is the same before and
+     after the font loads. The
+     longest line, "HANDBALTRAINER.", is 6.7em; with a reader's own spacing (WCAG 1.4.12:
+     letters 0.12em, words 0.16em) the longest, "HANDBALL COACH.", is 8.6em, so nothing is
+     cut off. Only a line in the wider fallback font is, until Barlow Condensed has loaded,
+     as the header's name. The size follows the window so that 8.8em fits: 287 px of the
+     288 at 320 px. */
+  .statement {
+    width: 8.8em;
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: min(10.2vw, 58px);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 860px) {
+    .statement {
+      font-size: clamp(52px, 6.4vw, 84px);
+    }
+  }
+
+  .sentence {
+    display: block;
+  }
+
+  .sentence:last-child {
+    color: var(--inktblauw);
+  }
+
+  .line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* His sentence about Coachboard: Barlow 500, inkt. */
+  .product {
+    max-width: 32em;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1.4;
+  }
+
+  /* The link to Coachboard: Barlow 600, inkt, underlined in ink blue; 44 px high. No
+     arrow after it: it would move when the font comes. */
+  .go {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--inkt);
+    text-decoration: underline 2px var(--inktblauw);
+    text-underline-offset: 5px;
+  }
+
+  .go:hover {
+    color: var(--inktblauw);
+  }
+
+  /* The foot: ink blue, with papier text (8.4:1). It takes the room that is left, down to
+     the window's foot. */
+  .close {
+    flex: 1;
+    padding-block: 32px;
+    background: var(--inktblauw);
+    color: var(--papier);
+  }
+
+  @media (min-width: 860px) {
+    .close {
+      padding-block: 56px;
+    }
+  }
+
+  /* The address, large: Barlow Condensed 700, on one line from 320 px (19 characters
+     at 30 px: about 250 px of the 288). The padding makes it 44 px high and more. Only
+     where it doesn't fit (a wider fallback font or a reader's own spacing, on a narrow
+     screen) it breaks, wherever the line ends, and the foot grows down. */
+  .email {
+    display: inline-block;
+    max-width: 100%;
+    padding-block: 8px;
+    overflow-wrap: anywhere;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(30px, 8vw, 88px);
+    line-height: 1.1;
+    color: var(--papier);
+    text-decoration: underline 4px var(--papier);
+    text-underline-offset: 0.14em;
+  }
+
+  .email:hover {
+    text-decoration-thickness: 7px;
+  }
+</style>

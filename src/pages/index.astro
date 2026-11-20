@@ -1,5 +1,9 @@
 ---
-import Home from "../components/Home.astro";
+// The holding page while Kay redesigns the site (20 November 2026). The full page is
+// ../components/Home.astro: to bring it back, import it here and in en/index.astro, and
+// set the palette to "hars" in ../data/palette.ts (AGENTS.md, "The holding page").
+// playwright.config.ts and ../data/palette.test.ts read this file.
+import Page from "../components/Holding.astro";
 ---
 
-<Home />
+<Page />

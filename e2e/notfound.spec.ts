@@ -1,4 +1,4 @@
-import { expect, missingPages, test } from "./helpers";
+import { expect, missingPages, paletteOf, test } from "./helpers";
 
 // One 404 page for every missing URL: Dutch first, then English.
 
@@ -20,14 +20,16 @@ for (const path of missingPages) {
   });
 }
 
-// The links as the hero's: room, Barlow 600, underlined in amber (Hars).
-test("the links: room, 600, underlined in amber", async ({ page }) => {
+// The links as the home page's: the text's colour, Barlow 600, underlined in the accent of the
+// site's palette (inkt and ink blue in Inkt, room and amber in Hars).
+test("the links: the text's colour, 600, underlined in the accent", async ({ page }) => {
   await page.goto(missingPages[0]!);
+  const palette = await paletteOf(page);
   const styles = await page.locator("main a").evaluateAll((all) =>
     all.map((a) => {
       const s = getComputedStyle(a);
       return { color: s.color, weight: s.fontWeight, line: s.textDecorationLine, lineColor: s.textDecorationColor };
     }),
   );
-  expect(styles).toEqual(Array(2).fill({ color: "rgb(255, 246, 232)", weight: "600", line: "underline", lineColor: "rgb(255, 179, 0)" }));
+  expect(styles).toEqual(Array(2).fill({ color: palette.text, weight: "600", line: "underline", lineColor: palette.accent }));
 });

@@ -10,9 +10,10 @@
   margin: 0;
 }
 
-/* The ground of Hars: espresso, with room text (17.5:1). */
+/* The ground of the site's palette (tokens.css): papier with inkt text in Inkt (16.7:1),
+   espresso with room text in Hars (17.5:1). */
 html {
-  background: var(--espresso);
+  background: var(--ground);
   /* What gets the focus is scrolled clear of the sticky header, with room for its ring
      (WCAG 2.2, 2.4.11 Focus Not Obscured; e2e/a11y.spec.ts). */
   scroll-padding-top: calc(var(--header) + 16px);
@@ -23,8 +24,8 @@ body {
   font-family: var(--font-text);
   font-weight: 500;
   font-size: var(--text);
-  color: var(--room);
-  background: var(--espresso);
+  color: var(--on-ground);
+  background: var(--ground);
   line-height: 1.6;
   overflow-wrap: break-word;
   -webkit-text-size-adjust: 100%;
@@ -54,13 +55,15 @@ a {
   color: inherit;
 }
 
-/* The focus ring of Hars: 3 px amber, 2 px out, with an edge of espresso around
-   it (the shadow, 2 px beyond the ring), so it shows on every background: amber
-   is 9.4:1 on the hero, 10.5:1 on the ground; on amber the espresso edge shows. */
+/* The focus ring: 3 px of the accent, 2 px out, with an edge in the ground's colour
+   around it (the shadow, 2 px beyond the ring), so it shows on every background. In
+   Inkt: ink blue is 8.4:1 on the ground and 7.8:1 on the stage; on the ink-blue foot
+   the papier edge shows. In Hars: amber is 9.4:1 on the hero, 10.5:1 on the ground;
+   on amber the espresso edge shows. */
 :focus-visible {
-  outline: var(--ring) solid var(--amber);
+  outline: var(--ring) solid var(--accent);
   outline-offset: var(--ring-edge);
-  box-shadow: 0 0 0 calc(var(--ring-edge) + var(--ring) + var(--ring-edge)) var(--espresso);
+  box-shadow: 0 0 0 calc(var(--ring-edge) + var(--ring) + var(--ring-edge)) var(--ground);
 }
 
 .container {

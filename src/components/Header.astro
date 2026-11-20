@@ -2,12 +2,20 @@
 // The header of Hars (15 November 2026): sticky, on espresso. "Kay Hardam" on the
 // left, a link to the home page; on the right the language switch (from 560 px;
 // below it the page's foot has it) and the button "Plan een gesprek", amber with
-// espresso text, which opens an email to Kay.
+// espresso text, which opens an email to Kay. The holding page (20 November 2026)
+// has the header without the button (talk={false}): then the language switch has
+// room at every width.
 import { getRelativeLocaleUrl } from "astro:i18n";
 import Languages from "./Languages.astro";
 import { mailto } from "../data/links";
 import { defaultLocale, text } from "../i18n";
 
+interface Props {
+  /** The button "Plan een gesprek"; without it the language switch shows at every width. */
+  talk?: boolean;
+}
+
+const { talk = true } = Astro.props;
 const locale = Astro.currentLocale ?? defaultLocale;
 const t = text(locale);
 ---
@@ -15,20 +23,21 @@ const t = text(locale);
 <header class="site-header">
   <div class="container bar">
     <a href={getRelativeLocaleUrl(locale)} class="name">{t.name}</a>
-    <div class="end">
+    <div class:list={["end", { alone: !talk }]}>
       <Languages class="header-languages" />
-      <a class="talk" href={mailto}>{t.talk}</a>
+      {talk && <a class="talk" href={mailto}>{t.talk}</a>}
     </div>
   </div>
 </header>
 <style>
-  /* Sticky on espresso, 64 px high: 10 + 44 + 10. A line in room below it. */
+  /* Sticky on the ground's colour, 64 px high: 10 + 44 + 10. A line in the text's colour
+     below it. The colours are the palette's roles (tokens.css): the header is on every page. */
   .site-header {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: var(--espresso);
-    border-bottom: 1px solid color-mix(in srgb, var(--room) 12%, transparent);
+    background: var(--ground);
+    border-bottom: 1px solid color-mix(in srgb, var(--on-ground) 12%, transparent);
   }
 
   .bar {
@@ -46,8 +55,9 @@ const t = text(locale);
     text-decoration: none;
   }
 
-  /* The name: Barlow Condensed 800 in capitals, room (17.5:1). Until the font
-     loads, the name may be wider: it is cut off, the page doesn't scroll. */
+  /* The name: Barlow Condensed 800 in capitals, in the text's colour (16.7:1 in Inkt,
+     17.5:1 in Hars). Until the font loads, the name may be wider: it is cut off, the
+     page doesn't scroll. */
   .name {
     min-width: 0;
     overflow: hidden;
@@ -58,7 +68,7 @@ const t = text(locale);
     letter-spacing: 0.02em;
     text-transform: uppercase;
     white-space: nowrap;
-    color: var(--room);
+    color: var(--on-ground);
   }
 
   .end {
@@ -68,10 +78,10 @@ const t = text(locale);
     gap: 8px;
   }
 
-  /* The language switch: zand, the current one room; only from 560 px. */
+  /* The language switch: the secondary text's colour, the current one the text's; only from 560 px. */
   .end :global(.header-languages) {
     display: none;
-    color: var(--zand);
+    color: var(--second);
   }
 
   @media (min-width: 560px) {
@@ -80,11 +90,16 @@ const t = text(locale);
     }
   }
 
-  .end :global(.header-languages a[aria-current="page"]) {
-    color: var(--room);
+  /* Without the button (the holding page): the switch is in the header at every width. */
+  .end.alone :global(.header-languages) {
+    display: block;
   }
 
-  /* The button: amber with espresso text (10.5:1), Barlow Condensed 700 in capitals.
+  .end :global(.header-languages a[aria-current="page"]) {
+    color: var(--on-ground);
+  }
+
+  /* The button, only on the full page: amber with espresso text (10.5:1), Barlow Condensed 700 in capitals.
      A fixed width, so nothing in the header moves when the font comes (in the fallback
      font the text is wider, and cut off until then): 168 px in Barlow Condensed for
      "Plan een gesprek", 122 px for "Book a call" (e2e/narrow.spec.ts checks it fits). */
@@ -94,8 +109,8 @@ const t = text(locale);
     overflow: hidden;
     padding: 0 8px;
     border-radius: 6px;
-    background: var(--amber);
-    color: var(--espresso);
+    background: var(--accent);
+    color: var(--on-accent);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: clamp(16px, 5vw, 18px); /* 16 px at 320 px: the name and the button fit beside each other */
@@ -105,7 +120,7 @@ const t = text(locale);
     white-space: nowrap;
   }
   .talk:hover {
-    background: var(--room);
+    background: var(--on-ground);
   }
 
   :global(html[lang="en"]) .talk {

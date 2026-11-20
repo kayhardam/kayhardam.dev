@@ -15,6 +15,21 @@ export const nl = {
   site: "kayhardam.dev",
   languages: "Taal",
   name: "Kay Hardam",
+  // The holding page (20 November 2026), the site while Kay redesigns it: Kay's own texts
+  // from earlier versions, word for word. statement: the hero's, 27 October to 5 November;
+  // product: About me, 31 October to 15 November; button: the Coachboard section, 18 October
+  // to 15 November. Which of his texts stand here is a proposal, not yet agreed with Kay.
+  holding: {
+    // Two sentences, the first in inkt, the second in ink blue; each in the two lines it has
+    // on the page, so no line break depends on the font that has loaded (Holding.astro).
+    statement: [
+      ["Gymleraar en", "handbaltrainer."],
+      ["Ik bouw tools", "voor sport."],
+    ],
+    product: "Ik maak Coachboard: een digitaal tekenbord voor als handen en voeten niet genoeg zijn.",
+    // The link to Coachboard, without an arrow after it (Holding.astro).
+    button: "Naar Coachboard",
+  },
   hero: {
     // The link under the step lines: it opens the attack in Coachboard.
     button: "Bewerk deze aanval in Coachboard",

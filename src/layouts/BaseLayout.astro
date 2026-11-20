@@ -1,11 +1,16 @@
 ---
-// Plus Jakarta Sans, Latin only, self-hosted (CSP 'self'): 500 for running text,
-// 700 for buttons and labels, 800 for the name, the statement and the headings
-// (the mockup, phase 10). 800 is preloaded: the statement is the hero's text.
-import "@fontsource/plus-jakarta-sans/latin-500.css";
-import "@fontsource/plus-jakarta-sans/latin-700.css";
-import "@fontsource/plus-jakarta-sans/latin-800.css";
-import heavy from "@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2?url";
+// The fonts of "Hars" (Kay, 15 November 2026), Latin only, self-hosted (CSP 'self'),
+// each with font-display: swap (Fontsource's CSS): Barlow Condensed 700/800 for
+// headings and figures, Barlow 500/600 for running text, JetBrains Mono 400/700
+// for the step lines and measures. A browser fetches a weight only when the page
+// uses it. Barlow Condensed 800 is preloaded: the hero's sentence is in it.
+import "@fontsource/barlow-condensed/latin-700.css";
+import "@fontsource/barlow-condensed/latin-800.css";
+import "@fontsource/barlow/latin-500.css";
+import "@fontsource/barlow/latin-600.css";
+import "@fontsource/jetbrains-mono/latin-400.css";
+import "@fontsource/jetbrains-mono/latin-700.css";
+import heavy from "@fontsource/barlow-condensed/files/barlow-condensed-latin-800-normal.woff2?url";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
@@ -55,7 +60,8 @@ const person = JSON.stringify({
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={xDefault} />}
-    <meta name="theme-color" content="#fdfbf8" />
+    {/* The ground of Hars, espresso: a <meta> can't read a custom property (src/styles/colours.test.ts). */}
+    <meta name="theme-color" content="#16110d" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

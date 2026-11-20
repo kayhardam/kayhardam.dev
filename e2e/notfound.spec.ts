@@ -20,8 +20,8 @@ for (const path of missingPages) {
   });
 }
 
-// The link like the GitHub link at Contact: dark, bold, underlined in ink blue (phase 10).
-test("the links: dark, bold, underlined in ink blue", async ({ page }) => {
+// The links as the hero's: room, Barlow 600, underlined in amber (Hars).
+test("the links: room, 600, underlined in amber", async ({ page }) => {
   await page.goto(missingPages[0]!);
   const styles = await page.locator("main a").evaluateAll((all) =>
     all.map((a) => {
@@ -29,5 +29,5 @@ test("the links: dark, bold, underlined in ink blue", async ({ page }) => {
       return { color: s.color, weight: s.fontWeight, line: s.textDecorationLine, lineColor: s.textDecorationColor };
     }),
   );
-  expect(styles).toEqual(Array(2).fill({ color: "rgb(31, 26, 23)", weight: "700", line: "underline", lineColor: "rgb(30, 64, 175)" }));
+  expect(styles).toEqual(Array(2).fill({ color: "rgb(255, 246, 232)", weight: "600", line: "underline", lineColor: "rgb(255, 179, 0)" }));
 });

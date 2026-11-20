@@ -1,13 +1,14 @@
 // Checks the built site against size budgets. Run after `astro build`:
 //   node scripts/check-budget.mjs
 // After Coachboard's scripts/check-budget.mjs (commit 4ceafd4), cut down to
-// what this site has: one island, the board card (phase 5).
+// what this site has: three islands (the board card since phase 5; Hars added two).
 //
-// - The only JavaScript is the board's island: at most one <astro-island> per
-//   page, and it is BoardCard with client="visible". The 404 page has none.
-//   An inline <script> only on a page with the island: Astro's own, at most
-//   two. No <script src> and no modulepreload. JSON-LD is allowed.
-// - The island's JS: the files from its component-url and renderer-url plus
+// - The only JavaScript is the islands (Hars, 15 November 2026): the hero
+//   (BoardCard), the figures (Figures) and the lens (Lens), each at most once on
+//   a page, each with client="visible". The 404 page has none. An inline
+//   <script> only on a page with an island: Astro's own, at most two. No
+//   <script src> and no modulepreload. JSON-LD is allowed.
+// - The islands' JS: the files from their component-url and renderer-url plus
 //   everything they import statically. Dynamic imports count as lazy JS.
 // - All JS: every .js file in _astro/, so code moved into a lazy chunk still counts.
 // - CSS and HTML per page. Astro inlines small stylesheets, so the HTML budget
@@ -31,21 +32,24 @@ import { gzipSync } from "node:zlib";
 // Raise a budget only on purpose, and give the reason in the pull request.
 // Measured (docs/metingen.md) plus about 15%: CSS in phase 1, icons in phase 3, JS and HTML in phase 5,
 // the photo in phase 7, the share image with the photo in "De keten: vindbaarheid" (27 October 2026), the
-// fonts in phase 10 (Plus Jakarta Sans, half the size of Barlow Condensed: the budget went down with them).
+// fonts in phase 10 (Plus Jakarta Sans, half the size of Barlow Condensed: the budget went down with them), and
+// up again for the fonts of "Hars" (Kay, 15 November 2026: Barlow Condensed, Barlow and JetBrains Mono).
 export const BUDGETS = {
-  js: 24_400, // 21.24 KB: the card (6.34), Svelte's runtime (14.40) and Astro's renderer (0.50)
+  js: 28_400, // 24.7 KB with Hars (15 November 2026): the hero, the figures and the lens, Svelte's runtime and Astro's renderer (21.24 KB with the board's card alone)
   lazyJs: 0, // 0 KB: no dynamic imports
-  allJs: 24_400, // 21.24 KB: the island's three files are all there is
+  allJs: 28_400, // 24.7 KB: the three islands' files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
-  html: 11_100, // 10.13 KB for / in phase 10 (10.07 before), the largest page, with all texts, CSS and SVGs, the board's step 1, its props, Astro's two scripts and the two photos' <picture>s
-  font: 14_200, // 12.3 KB for Plus Jakarta Sans 500, the largest of the three (500, 700, 800)
+  html: 15_200, // 13.2 KB for / with Hars (15 November 2026; 10.13 KB in phase 10): the hero, the figures, the lens with its props (the measured areas), the work and the close
+  font: 26_200, // 22.77 KB for Barlow 600, the largest of the six (Barlow 500/600, Barlow Condensed 700/800, JetBrains Mono 400/700)
   icon: 5_600, // 4.7 KB for apple-touch-icon.png, the largest (phase 10: the logo with the ball)
   shareImage: 163_800, // 146.3 KB for og.png in phase 10: the photo, the logo and kayhardam.dev (WhatsApp takes up to about 300 KB)
-  // The largest file per format: the photo in About me at 799 px, from an original of 799 px.
+  // The largest file per format. Since Hars the only image is the lens's screenshot of Coachboard's
+  // editor, at 2× (786 px): the Dutch one is the largest (18 November 2026; until then these were
+  // still the budgets of the photo in About me, 34.1 and 68.0 KB).
   photo: {
-    avif: 34_100, // 29.61 KB
-    webp: 68_000, // 59.09 KB
-    jpeg: 106_600, // 92.69 KB
+    avif: 27_500, // 23.9 KB
+    webp: 46_000, // 40.0 KB
+    jpeg: 106_600, // no JPEG on the page since Hars; phase 7's budget (the photo, 92.69 KB), for one that comes back
   },
 };
 
@@ -58,9 +62,10 @@ export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
 /** The share image in the root of the site, one for both languages. */
 export const SHARE_IMAGE = "og.png";
 
-/** The one island: the board card, hydrated when it comes into view. */
-export const ISLAND = { name: "BoardCard", client: "visible" };
-/** Astro's inline scripts on a page with an island: its loader and the one for client:visible. */
+/** The islands, each hydrated when it comes into view: the hero, the figures and the lens. */
+export const ISLANDS = ["BoardCard", "Figures", "Lens"];
+export const ISLAND_CLIENT = "visible";
+/** Astro's inline scripts on a page with islands: its loader and the one for client:visible. */
 export const ISLAND_SCRIPTS = 2;
 
 const TAG = /<(script|astro-island|link|img|source)\b([^>]*)>/gi;
@@ -162,7 +167,7 @@ export function checkBudget(dist, budgets = BUDGETS) {
     const stylesheets = [];
     const islands = [];
     const inline = [];
-    const forbid = (found, why = "the only JS is the board's island") => {
+    const forbid = (found, why = "the only JS is the islands") => {
       scripts++;
       errors.push(`${url}: ${why}, found ${found}`);
     };
@@ -196,18 +201,21 @@ export function checkBudget(dist, budgets = BUDGETS) {
     if (page === "404.html") {
       if (islands.length > 0) forbid("<astro-island>", "the 404 page ships no JS");
     } else {
-      if (islands.length > 1) forbid(`${islands.length} <astro-island>s`, "a page has at most one island");
+      const seen = new Set();
       for (const island of islands) {
         const name = islandName(island.opts);
-        if (name !== ISLAND.name || island.client !== ISLAND.client) {
-          forbid(`<astro-island> ${name ?? "without a name"} with client="${island.client ?? ""}"`, `the island is ${ISLAND.name} with client="${ISLAND.client}"`);
+        if (!ISLANDS.includes(name) || island.client !== ISLAND_CLIENT) {
+          forbid(`<astro-island> ${name ?? "without a name"} with client="${island.client ?? ""}"`, `an island is ${ISLANDS.join(", ")} or nothing, with client="${ISLAND_CLIENT}"`);
+        } else if (seen.has(name)) {
+          forbid(`a second ${name}`, "each island at most once on a page");
         }
+        seen.add(name);
       }
     }
     if (islands.length === 0) {
-      for (const tag of inline) forbid(tag, "an inline script only with the island");
+      for (const tag of inline) forbid(tag, "an inline script only with an island");
     } else {
-      for (const tag of inline.slice(ISLAND_SCRIPTS)) forbid(tag, `at most ${ISLAND_SCRIPTS} inline scripts with the island`);
+      for (const tag of inline.slice(ISLAND_SCRIPTS)) forbid(tag, `at most ${ISLAND_SCRIPTS} inline scripts with the islands`);
       const entries = islands
         .flatMap((a) => [a["component-url"], a["renderer-url"]])
         .filter(Boolean)

@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 
-// The photo in About me: the clean copy from scripts/clean-photo.mjs. The original
-// stays outside git (screenshots/foto/); only this copy goes to the build.
+// The photo in og.png (scripts/og-image.mjs): the clean copy from scripts/clean-photo.mjs.
+// The original stays outside git (screenshots/foto/). Since Hars no page shows the photo,
+// and the build doesn't use it.
 describe("src/assets/kay-hardam.jpg", () => {
   const jpeg = readFileSync(new URL("./kay-hardam.jpg", import.meta.url));
 

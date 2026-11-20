@@ -63,6 +63,14 @@ async function ink(png) {
 
 const source = readFileSync(join(dist, "index.html"), "utf8");
 const styles = [...source.matchAll(/<style[^>]*>[\s\S]*?<\/style>/g)].map((m) => m[0]).join("\n");
+// The image is still phase 10's, drawn with that design's tokens. Hars took them out of the
+// build (15 November 2026), so until the image is made in Hars this script can't draw it:
+// stop here, before public/og.png is overwritten with a broken one.
+const missing = ["--color-bg", "--color-text", "--color-accent", "--font-sans"].filter((token) => !styles.includes(`${token}:`));
+if (missing.length) {
+  console.error(`The build's CSS has no ${missing.join(", ")}: og-image.mjs still draws the phase-10 image. Nothing written.`);
+  process.exit(1);
+}
 const site = readFileSync(fileURLToPath(new URL("../src/i18n/nl.ts", import.meta.url)), "utf8").match(/site: "([^"]+)"/)[1];
 // The logo as in the header: the favicon's player with the ball, in the header's viewBox.
 const logo = readFileSync(join(dist, "favicon.svg"), "utf8")

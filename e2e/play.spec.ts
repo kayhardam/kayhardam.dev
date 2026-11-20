@@ -6,11 +6,12 @@ import { nl } from "../src/i18n/nl";
 import type { Board, Frame } from "../src/lib/board/format";
 import { moment } from "../src/lib/board/play";
 import { moveFor, stillFor } from "../src/lib/board/viewer";
-import { expect, test } from "./helpers";
+import { expect, glyphBox, test } from "./helpers";
 
-// The board plays (phase 5): by itself in a loop, Stop, Next and Previous,
-// reduced motion, pausing out of view and in a hidden tab, aria-live (off while
-// it plays by itself, polite once it stands still), and a card that doesn't move.
+// The board plays (phase 5, in the hero of Hars since 15 November 2026): by itself
+// in a loop, Stop, the step lines (in place of Next and Previous), reduced motion,
+// pausing out of view and in a hidden tab, aria-live (off while it plays by
+// itself, polite once it stands still), the ball's label, and a hero that doesn't move.
 // Playwright's clock is paused before the page loads; runFor() plays it frame
 // by frame. The first frame counts 0 ms, so the tests keep 50 ms of margin,
 // as viewer.spec.ts does in Coachboard.
@@ -30,7 +31,7 @@ const places = (frame: Frame): Places => ({ players: frame.players.map((p) => p.
 
 /** Where every player and ball is on the court now. */
 const onCourt = (page: Page): Promise<Places> =>
-  page.locator(".board-court svg").evaluate((svg) => {
+  page.locator(".board-court svg[role=img]").evaluate((svg) => {
     const at = (kind: string) =>
       [...svg.querySelectorAll(`[data-kind="${kind}"]`)].map((g) => {
         const [, x, y] = g.getAttribute("transform")!.match(/translate\(([-\d.e]+) ([-\d.e]+)\)/)!;
@@ -50,20 +51,21 @@ async function openPaused(page: Page, path: string) {
   await page.clock.install({ time: new Date("2026-10-19T12:00:00") });
   await page.clock.pauseAt(new Date("2026-10-19T12:00:01"));
   await page.goto(path);
-  await expect(page.locator(".board-controls .play")).toBeEnabled();
+  await expect(page.locator(".board-top .play")).toBeEnabled();
 }
 
-/** The parts of the card. */
+/** The parts of the hero. The counter reads "Stap 1/4" or "Step 1/4": the tests look at its end. */
 function card(page: Page) {
-  const buttons = page.locator(".board-controls button");
   return {
     counter: page.locator(".board-count [aria-hidden=true]"),
     sentence: page.locator(".board-step"),
-    prev: buttons.nth(0),
-    play: buttons.nth(1),
-    next: buttons.nth(2),
+    play: page.locator(".board-top .play"),
+    lines: page.locator(".board-steps button"),
   };
 }
+
+/** The counter's end: " 2/4". */
+const at = (n: number | string) => new RegExp(` ${n}/4$`);
 
 /** One round of the board: when each step starts and stands still, and when the shot ends (ms after mounting). */
 function timeline(board: Board) {
@@ -98,7 +100,7 @@ for (const { path, t, locale } of pages) {
       const c = card(page);
       await expect(c.play).toHaveAccessibleName(t.board.stop);
       await expect(c.play).toHaveAttribute("title", t.board.stop);
-      for (const button of [c.prev, c.play, c.next]) {
+      for (const button of [c.play, ...(await c.lines.all())]) {
         await expect(button).toBeEnabled();
         await expect(button).not.toHaveAttribute("aria-disabled");
       }
@@ -113,12 +115,12 @@ for (const { path, t, locale } of pages) {
 
       for (const [s, { start, still, move }] of steps.entries()) {
         await playTo(page, start + still - MARGIN);
-        await expect(c.counter).toHaveText(`${s + 1}/4`);
+        await expect(c.counter).toHaveText(at(s + 1));
         await expect(c.sentence).toHaveText(board.frames[s]!.text!);
         expect(await onCourt(page), `step ${s + 1}`).toEqual(places(board.frames[s]!));
 
         await playTo(page, start + still + move / 2);
-        await expect(c.counter).toHaveText(`${s + 1}/4`);
+        await expect(c.counter).toHaveText(at(s + 1));
         // Halfway, or at most 50 ms behind: as far as the fastest piece gets in that time.
         const half = await onCourt(page);
         const expected = places(moment(board, s, 0.5));
@@ -127,15 +129,15 @@ for (const { path, t, locale } of pages) {
         expect(distance(half, places(board.frames[s]!)), `halfway step ${s + 1}`).toBeGreaterThan(5);
       }
       await playTo(page, shot + MARGIN);
-      await expect(c.counter).toHaveText("4/4");
+      await expect(c.counter).toHaveText(at(4));
       expect((await onCourt(page)).balls).toEqual([[100, 0]]);
 
       await playTo(page, round - MARGIN);
-      await expect(c.counter).toHaveText("4/4");
+      await expect(c.counter).toHaveText(at(4));
       expect((await onCourt(page)).balls).toEqual([[100, 0]]);
 
       await playTo(page, round + MARGIN);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       await expect(c.sentence).toHaveText(board.frames[0]!.text!);
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
       await expect(c.play).toHaveAccessibleName(t.board.stop);
@@ -160,129 +162,160 @@ for (const { path, t, locale } of pages) {
 
       await playTo(page, steps[1]!.start + steps[1]!.still + 500);
       await c.play.click();
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
       await expect(c.play).toHaveAccessibleName(t.board.play);
       await expect(c.play).toHaveAttribute("title", t.board.play);
       await expect(c.sentence).toHaveAttribute("aria-live", "polite");
 
       await playTo(page, now + 10_000);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
 
       await c.play.click();
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       await expect(c.play).toHaveAccessibleName(t.board.stop);
       await expect(c.sentence).toHaveAttribute("aria-live", "off");
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
       await playTo(page, now + steps[0]!.still + MARGIN + steps[0]!.move);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
     });
 
-    test("Next, standing still: plays the move and stays on the new step", async ({ page }) => {
+    test("the next step's line, standing still: plays the move and stays on the new step", async ({ page }) => {
       const board = decoded[locale];
       await openPaused(page, path);
       const c = card(page);
       await c.play.click();
       await expect(c.play).toHaveAccessibleName(t.board.play);
 
-      await c.next.click();
+      await c.lines.nth(1).click();
       await playTo(page, now + 500);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(distance(await onCourt(page), places(board.frames[0]!))).toBeGreaterThan(5);
       await playTo(page, now + 500 + MARGIN);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
 
       await playTo(page, now + 5000);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
       await expect(c.play).toHaveAccessibleName(t.board.play);
     });
 
-    test("Next while it plays: stops, and goes to the next step at once", async ({ page }) => {
+    test("a step line while it plays: stops, and goes to that step at once", async ({ page }) => {
       const board = decoded[locale];
       await openPaused(page, path);
       const c = card(page);
       await playTo(page, 500);
-      await c.next.click();
-      await expect(c.counter).toHaveText("2/4");
+      await c.lines.nth(1).click();
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
       await expect(c.play).toHaveAccessibleName(t.board.play);
       await playTo(page, now + 5000);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
+
+      // Further on, standing still: there at once too.
+      await c.lines.nth(3).click();
+      await expect(c.counter).toHaveText(at(4));
+      expect(await onCourt(page)).toEqual(places(board.frames[3]!));
     });
 
-    test("Next on step 4 plays the shot; then Next is aria-disabled and keeps the focus", async ({ page }) => {
+    test("the line on the court is amber and aria-current; the keyboard works it and keeps the focus", async ({ page }) => {
       const board = decoded[locale];
       const { steps } = timeline(board);
       await openPaused(page, path);
       const c = card(page);
-      await playTo(page, steps[3]!.start + 500);
       await c.play.click();
-      await expect(c.counter).toHaveText("4/4");
+      await expect(c.play).toHaveAccessibleName(t.board.play);
 
-      // The keyboard, as Safari doesn't focus a button on a click.
-      await c.next.focus();
+      // The keyboard, as Safari doesn't focus a button on a click. Step 3 from step 1: at once.
+      await c.lines.nth(2).focus();
       await page.keyboard.press("Enter");
-      await playTo(page, now + steps[3]!.move + MARGIN);
-      expect((await onCourt(page)).balls).toEqual([[100, 0]]);
-      await expect(c.next).toHaveAttribute("aria-disabled", "true");
-      await expect(c.next).toBeFocused();
-      await expect(c.next).toHaveCSS("opacity", "0.4");
+      await expect(c.counter).toHaveText(at(3));
+      await expect(c.lines.nth(2)).toHaveAttribute("aria-current", "step");
+      await expect(c.lines.nth(2)).toHaveCSS("background-color", "rgb(255, 179, 0)");
+      await expect(c.lines.nth(2)).toHaveCSS("color", "rgb(22, 17, 13)");
+      await expect(c.lines.nth(2)).toBeFocused();
+      for (const i of [0, 1, 3]) await expect(c.lines.nth(i)).not.toHaveAttribute("aria-current");
 
+      // Step 4 from step 3, the step after it: its move plays, then it stays on step 4.
+      await page.keyboard.press("Tab");
+      await expect(c.lines.nth(3)).toBeFocused();
       await page.keyboard.press("Enter");
-      await playTo(page, now + 1000);
-      await expect(c.counter).toHaveText("4/4");
-      expect((await onCourt(page)).balls).toEqual([[100, 0]]);
-      await expect(c.next).toBeFocused();
+      await playTo(page, now + steps[2]!.move / 2);
+      await expect(c.counter).toHaveText(at(3));
+      await playTo(page, now + steps[2]!.move / 2 + MARGIN);
+      await expect(c.counter).toHaveText(at(4));
+      expect(await onCourt(page)).toEqual(places(board.frames[3]!));
+      await expect(c.lines.nth(3)).toHaveAttribute("aria-current", "step");
+      await expect(c.lines.nth(3)).toBeFocused();
     });
 
-    test("Previous: a step back, to the step's start while something moves, also while playing", async ({ page }) => {
+    test("a step line back: at once, to that step's start, also while something moves", async ({ page }) => {
       const board = decoded[locale];
       const { steps } = timeline(board);
       await openPaused(page, path);
       const c = card(page);
 
-      // Playing, step 2 still: one step back.
+      // Playing, step 2 still: step 1.
       await playTo(page, steps[1]!.start + 500);
-      await expect(c.counter).toHaveText("2/4");
-      await c.prev.click();
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(2));
+      await c.lines.nth(0).click();
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
       await expect(c.play).toHaveAccessibleName(t.board.play);
 
-      // Playing, step 2 moving: the start of step 2.
+      // Playing, step 2 moving: its own line, the start of step 2.
       await c.play.click();
       await expect(c.play).toHaveAccessibleName(t.board.stop);
       await playTo(page, now + steps[1]!.start + steps[1]!.still + 500);
-      await expect(c.counter).toHaveText("2/4");
-      await c.prev.click();
+      await expect(c.counter).toHaveText(at(2));
+      await c.lines.nth(1).click();
       await expect(c.play).toHaveAccessibleName(t.board.play);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
 
-      // Standing still on step 2: step 1; there Previous is aria-disabled.
-      await c.prev.click();
-      await expect(c.counter).toHaveText("1/4");
-      await expect(c.prev).toHaveAttribute("aria-disabled", "true");
-      // Playwright counts aria-disabled as off, so the click is forced: it does nothing.
-      await c.prev.click({ force: true });
-      await expect(c.counter).toHaveText("1/4");
+      // Standing still on step 2: step 1.
+      await c.lines.nth(0).click();
+      await expect(c.counter).toHaveText(at(1));
+      expect(await onCourt(page)).toEqual(places(board.frames[0]!));
     });
 
-    test("Previous after the shot: the start of step 4", async ({ page }) => {
+    test("step 4's line after the shot: the start of step 4", async ({ page }) => {
       const board = decoded[locale];
       const { shot } = timeline(board);
       await openPaused(page, path);
       const c = card(page);
       await playTo(page, shot + 500);
-      await expect(c.counter).toHaveText("4/4");
-      await c.prev.click();
+      await expect(c.counter).toHaveText(at(4));
+      await c.lines.nth(3).click();
       await expect(c.play).toHaveAccessibleName(t.board.play);
-      await expect(c.counter).toHaveText("4/4");
+      await expect(c.counter).toHaveText(at(4));
       expect(await onCourt(page)).toEqual(places(board.frames[3]!));
-      await expect(c.next).not.toHaveAttribute("aria-disabled");
+    });
+
+    test("the ball's label follows the ball, in metres", async ({ page }) => {
+      const board = decoded[locale];
+      const { steps } = timeline(board);
+      await openPaused(page, path);
+      const label = page.locator(".board-ball text");
+      const ball = page.locator('.board-court [data-kind="ball"] circle:not([fill="transparent"])');
+      const metres = ([x, y]: [number, number]) => {
+        const m = (v: number) => (Math.round(v) / 10 + 0).toFixed(1);
+        return locale === "nl" ? `[${m(x).replace(".", ",")}; ${m(y).replace(".", ",")}]` : `[${m(x)}, ${m(y)}]`;
+      };
+      // Halfway through the pass (step 3), and on step 4.
+      for (const ms of [steps[2]!.start + steps[2]!.still + steps[2]!.move / 2, steps[3]!.start + 100]) {
+        await playTo(page, ms);
+        const [where] = (await onCourt(page)).balls;
+        await expect(label).toHaveText(`${t.board.ball} ${metres(where!)}`);
+        const b = (await ball.boundingBox())!;
+        const l = await glyphBox(label);
+        // Beside the ball: its near end, right of the ball or (in the court's right half) left of it.
+        const centre = b.x + b.width / 2;
+        expect(Math.min(Math.abs(l.x - centre), Math.abs(l.x + l.width - centre)), `${ms} ms`).toBeLessThan(30);
+        expect(Math.abs(l.y + l.height - b.y), `${ms} ms`).toBeLessThan(30);
+      }
     });
 
     test("Stop after the shot: the board stays at the end; Play starts at step 1", async ({ page }) => {
@@ -294,12 +327,11 @@ for (const { path, t, locale } of pages) {
       await c.play.click();
       await expect(c.play).toHaveAccessibleName(t.board.play);
       await playTo(page, now + 5000);
-      await expect(c.counter).toHaveText("4/4");
+      await expect(c.counter).toHaveText(at(4));
       expect((await onCourt(page)).balls).toEqual([[100, 0]]);
-      await expect(c.next).toHaveAttribute("aria-disabled", "true");
 
       await c.play.click();
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
     });
 
@@ -314,17 +346,17 @@ for (const { path, t, locale } of pages) {
       await expect.poll(() => page.locator(".board").evaluate((el) => el.getBoundingClientRect().bottom)).toBeLessThan(0);
       await page.waitForTimeout(300); // real time, for the IntersectionObserver
       await playTo(page, now + 10_000);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(before);
       await expect(c.play).toHaveAccessibleName(t.board.stop);
 
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(300);
       await playTo(page, now + 500);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(distance(await onCourt(page), before)).toBeGreaterThan(5);
       await playTo(page, now + 300 + MARGIN);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
     });
 
     test("pauses in a hidden tab: nothing changes for 10 s, and visible again it goes on", async ({ page }) => {
@@ -343,7 +375,7 @@ for (const { path, t, locale } of pages) {
         }, hidden);
       await setHidden(true);
       await playTo(page, now + 10_000);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(before);
       await expect(c.play).toHaveAccessibleName(t.board.stop);
       await expect(c.sentence).toHaveAttribute("aria-live", "off");
@@ -352,7 +384,7 @@ for (const { path, t, locale } of pages) {
       await playTo(page, now + 500);
       expect(distance(await onCourt(page), before)).toBeGreaterThan(5);
       await playTo(page, now + 300 + MARGIN);
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(2));
     });
 
     test("reduced motion turned on while it plays: it stops on the step's start", async ({ page }) => {
@@ -363,18 +395,18 @@ for (const { path, t, locale } of pages) {
       await playTo(page, steps[0]!.still + 500);
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect(c.play).toHaveAccessibleName(t.board.play);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
       await playTo(page, now + 5000);
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
     });
 
-    test("the card and the hero button keep their box at every step, move, the end and Stop", async ({ page }) => {
+    test("the hero, its court, its step lines and its link keep their box at every step, move, the end and Stop", async ({ page }) => {
       const { steps, shot } = timeline(decoded[locale]);
       await openPaused(page, path);
       const boxes = () =>
         page.evaluate(() =>
-          [".board", ".hero-button"].map((selector) => {
+          [".board", ".board-court", ".board-steps", ".board-edit"].map((selector) => {
             const r = document.querySelector(selector)!.getBoundingClientRect();
             return [r.left, r.top, r.width, r.height];
           }),
@@ -398,7 +430,7 @@ for (const { path, t, locale } of pages) {
       await same("after Stop");
     });
 
-    test("aria-live: off while it plays by itself, polite for Next and Previous, set before the sentence changes", async ({ page }) => {
+    test("aria-live: off while it plays by itself, polite for a step line, set before the sentence changes", async ({ page }) => {
       const board = decoded[locale];
       const { steps, round } = timeline(board);
       await openPaused(page, path);
@@ -439,20 +471,20 @@ for (const { path, t, locale } of pages) {
 
       // A whole round by itself.
       await playTo(page, round + MARGIN);
-      await expect(c.counter).toHaveText("1/4");
-      // Next while it plays.
-      await c.next.click();
-      await expect(c.counter).toHaveText("2/4");
+      await expect(c.counter).toHaveText(at(1));
+      // Step 2's line while it plays.
+      await c.lines.nth(1).click();
+      await expect(c.counter).toHaveText(at(2));
       // Play.
       await c.play.click();
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       await expect(c.play).toHaveAccessibleName(t.board.stop);
       // Step 1 plays on.
       await playTo(page, now + steps[0]!.still + steps[0]!.move + MARGIN);
-      await expect(c.counter).toHaveText("2/4");
-      // Previous while it plays, step 2 standing still.
-      await c.prev.click();
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(2));
+      // Step 1's line while it plays, step 2 standing still.
+      await c.lines.nth(0).click();
+      await expect(c.counter).toHaveText(at(1));
 
       const { sentences, updates } = await page.evaluate(() => (window as unknown as { order: { sentences: [string, string][]; updates: string[] } }).order);
       const text = (s: number) => board.frames[s]!.text!;
@@ -466,7 +498,7 @@ for (const { path, t, locale } of pages) {
         [text(1), "off"],
         [text(0), "polite"],
       ]);
-      // Next, Play and Previous: aria-live in an update of its own, before the sentence's.
+      // A line, Play and a line: aria-live in an update of its own, before the sentence's.
       const update = (line: string) => Number(line.split(":")[0]);
       const changes = updates.filter((line) => line.includes("aria-live"));
       expect(changes.map((line) => line.split(": ")[1])).toEqual(["aria-live polite", "aria-live off", "aria-live polite"]);
@@ -487,11 +519,11 @@ for (const { path, t, locale } of pages) {
       expect((await axe(page)).violations).toEqual([]);
     });
 
-    test("axe: no violations at the end, with Next aria-disabled", async ({ page }) => {
+    test("axe: no violations at the end, stopped after the shot", async ({ page }) => {
       await openPaused(page, path);
       await playTo(page, timeline(decoded[locale]).shot + 500);
       await card(page).play.click();
-      await expect(card(page).next).toHaveAttribute("aria-disabled", "true");
+      await expect(card(page).play).toHaveAccessibleName(t.board.play);
       await page.clock.resume();
       expect((await axe(page)).violations).toEqual([]);
     });
@@ -507,20 +539,19 @@ test.describe("reduced motion", () => {
       await openPaused(page, path);
       const c = card(page);
       await page.clock.runFor(20_000);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
       expect(await onCourt(page)).toEqual(places(board.frames[0]!));
       await expect(c.play).toHaveAccessibleName(t.board.play);
       await expect(c.sentence).toHaveAttribute("aria-live", "polite");
-      await expect(c.prev).toHaveAttribute("aria-disabled", "true");
-      await expect(c.next).not.toHaveAttribute("aria-disabled");
+      for (const line of await c.lines.all()) await expect(line).toBeEnabled();
     });
 
-    test(`${path}: Next goes to step 2 at once`, async ({ page }) => {
+    test(`${path}: step 2's line goes there at once, without a move`, async ({ page }) => {
       const board = decoded[locale];
       await openPaused(page, path);
       const c = card(page);
-      await c.next.click();
-      await expect(c.counter).toHaveText("2/4");
+      await c.lines.nth(1).click();
+      await expect(c.counter).toHaveText(at(2));
       expect(await onCourt(page)).toEqual(places(board.frames[1]!));
     });
 
@@ -541,10 +572,10 @@ test.describe("reduced motion", () => {
         seen.add(where);
       }
       expect(seen.size).toBe(allowed.length);
-      await expect(c.counter).toHaveText("1/4");
+      await expect(c.counter).toHaveText(at(1));
     });
 
-    test(`${path}: the card keeps its box`, async ({ page }) => {
+    test(`${path}: the hero keeps its box`, async ({ page }) => {
       await openPaused(page, path);
       const box = () => page.locator(".board").boundingBox();
       const loaded = await box();
@@ -561,7 +592,7 @@ test.describe("reduced motion", () => {
 
 test.describe("hydrating", () => {
   for (const { path } of pages) {
-    test(`${path}: adds and removes no element, and keeps the card's box`, async ({ page }) => {
+    test(`${path}: adds and removes no element, and keeps the hero's box`, async ({ page }) => {
       // Holds the island's module until the observer watches the card.
       let release!: () => void;
       const held = new Promise<void>((resolve) => (release = resolve));
@@ -572,7 +603,7 @@ test.describe("hydrating", () => {
       await page.clock.install({ time: new Date("2026-10-19T12:00:00") });
       await page.clock.pauseAt(new Date("2026-10-19T12:00:01"));
       await page.goto(path, { waitUntil: "domcontentloaded" });
-      await expect(page.locator(".board-controls .play")).toBeDisabled();
+      await expect(page.locator(".board-top .play")).toBeDisabled();
       const before = await page.locator(".board").boundingBox();
       await page.evaluate(() => {
         const seen: string[] = [];
@@ -582,7 +613,7 @@ test.describe("hydrating", () => {
         }).observe(document.querySelector(".board")!, { childList: true, subtree: true });
       });
       release();
-      await expect(page.locator(".board-controls .play")).toBeEnabled();
+      await expect(page.locator(".board-top .play")).toBeEnabled();
       expect(await page.evaluate(() => (window as unknown as { childList: string[] }).childList)).toEqual([]);
       expect(await page.locator(".board").boundingBox()).toEqual(before);
     });
@@ -591,7 +622,7 @@ test.describe("hydrating", () => {
 
 // Layout shifts while it plays, in real time. Only Chromium: WebKit has no Layout
 // Instability API. With the paused clock the browser paints no moves, so no shifts either.
-test(`/: no layout shift in the card or the hero button during a round`, async ({ page, browserName }) => {
+test(`/: no layout shift in the hero during a round`, async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "WebKit has no Layout Instability API");
   test.setTimeout(60_000);
   await page.addInitScript(() => {
@@ -601,7 +632,7 @@ test(`/: no layout shift in the card or the hero button during a round`, async (
       for (const entry of list.getEntries() as unknown as { sources: { node?: Node }[] }[]) {
         for (const { node } of entry.sources) {
           const el = node instanceof Element ? node : node?.parentElement;
-          if (el?.closest(".board, .hero-button")) sources.push(el.outerHTML.slice(0, 80));
+          if (el?.closest(".board")) sources.push(el.outerHTML.slice(0, 80));
         }
       }
     }).observe({ type: "layout-shift", buffered: true });

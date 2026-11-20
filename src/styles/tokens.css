@@ -1,8 +1,10 @@
 /*
- * Design tokens, from the mockup for employers (phase 10): a warm off-white
- * page, cards a shade darker, and ink blue as the one accent. The board's card
- * keeps Coachboard's own look: white and slate, with green (board.css).
- * Components use these through scoped <style> blocks.
+ * Design tokens.
+ *
+ * The palette "Hars" (Kay, 15 November 2026): eight colours and nothing else,
+ * except transparencies of these eight (color-mix with transparent). No loose
+ * hex value anywhere outside this block; src/styles/tokens.test.ts checks the
+ * values and the contrasts the page relies on.
  *
  * Breakpoints are mobile-first and can't be custom properties, so every
  * media query uses one of these two literally, as in Coachboard:
@@ -10,43 +12,33 @@
  *   @media (min-width: 860px)  — tablet landscape and up
  */
 :root {
-  /* The page */
-  --color-bg: #fdfbf8;
-  --color-surface: #f5f1eb; /* the cards */
-  --color-line: #e6dfd5; /* the cards' edges and the lines in them */
-  --color-text: #1f1a17;
-  --color-text-muted: #4a433d;
-  --color-text-small: #655c55; /* small labels */
+  --espresso: #16110d; /* the ground, text on amber, defenders, the goal */
+  --walnoot-donker: #261b12; /* the stage: the hero */
+  --walnoot: #4a3421; /* the court */
+  --walnoot-licht: #63472d; /* the goal area */
+  --amber: #ffb300; /* the accent: the button, the figures, the active step, attackers */
+  --room: #fff6e8; /* text, the court's lines, arrows, the players' edges */
+  --zand: #d3c4b0; /* secondary text */
+  --gloed: #ff5a2b; /* only the ball, with an edge in espresso */
 
-  /* Ink blue: the buttons, the players (the logo and the section numbers), the
-     headings in colour, the lines under links and the focus ring. 8.4:1 on the
-     page, 7.8:1 on a card, 8.7:1 on the board's card, and white on it 8.7:1. */
-  --color-accent: #1e40af;
-  --color-accent-dark: #1e3a8a; /* the accent button under the pointer */
+  /* The focus ring: 3 px amber with an espresso edge around it (base.css). */
+  --ring: 3px;
+  --ring-edge: 2px;
 
-  /* The board's card: Coachboard's own look (board.css). */
-  --color-board-bg: #ffffff;
-  --color-board-border: #e2e8f0;
-  --color-board-text: #0f172a;
-  --color-board-text-muted: #475569;
-  --color-board-text-small: #64748b;
+  /* Barlow Condensed 700/800: headings and figures, in capitals. Barlow 500/600:
+     running text, 18 px. JetBrains Mono 400/700: the step lines and measures.
+     Latin only, self-hosted (BaseLayout.astro), font-display: swap. */
+  --font-display: "Barlow Condensed", system-ui, sans-serif;
+  --font-text: Barlow, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --text: 1.125rem; /* 18px */
+}
 
-  /* Green only for the board's card (board.css): it is Coachboard's own look,
-     the attack's colour on the court. The rest of the site has no green: it is
-     a club colour (Kay, phase 8). */
-  --color-green-dark: #15803d; /* the card's mark and Play button (white on it: 5.0:1) */
-
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* The board's card keeps the system font, as in Coachboard. */
-  --font-board: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-
-  --radius-card: 16px; /* the cards, and the board's card */
-  --radius: 12px; /* the buttons */
-  --radius-sm: 8px; /* the board's buttons and the language switch */
-
-  --gutter: 16px;
+:root {
   --container: 1200px;
+  --gutter: 16px;
   --tap: 44px; /* minimum touch target */
+  --header: 65px; /* the sticky header: 10 + 44 + 10 and its line (e2e/narrow.spec.ts) */
 }
 
 @media (min-width: 560px) {

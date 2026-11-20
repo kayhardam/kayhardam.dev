@@ -1,143 +1,125 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./helpers";
 
-// The board card has its final size from phase 2 on, while it is still empty.
-// Its height depends only on its width B (src/components/board/board.css):
-//   H = 131.6 + foot + (B − 28) × 174/216, with the foot 44 px from B = 420, else 76.
-// This test stays the same in phase 4: if it stays green, nothing shifts.
+// The hero's box (Hars, 15 November 2026). The court has a fixed ratio (216 by 174,
+// the viewBox), the text column fixed heights, so nothing moves while the fonts
+// load or the board plays (e2e/play.spec.ts). Narrow: the court above the text, as
+// wide as the column, at most 600 px; from 860 px the text left and the court right.
 
-/** Screen width → card width, from the plan. */
+/** Screen width → the court's width. */
 const widths: Record<number, number> = {
   320: 288,
-  360: 328,
   390: 358,
-  393: 361,
   412: 380,
-  430: 398,
   559: 527,
   560: 512,
-  859: 560,
-  860: 374,
-  1024: 456,
-  1280: 544,
-  1440: 544,
+  700: 600,
+  859: 600,
+  860: 408,
+  1024: 497.5,
+  1280: 593.5,
+  1440: 593.5,
 };
-
-const expectedHeight = (b: number) => 131.6 + (b >= 420 ? 44 : 76) + ((b - 28) * 174) / 216;
 
 async function boxes(page: Page) {
   const box = async (selector: string) => (await page.locator(selector).first().boundingBox())!;
-  return { board: await box(".board"), button: await box(".hero-button"), name: await box("h1"), statement: await box(".statement") };
+  return {
+    court: await box(".board-court"),
+    count: await box(".board-top"),
+    sentence: await box(".board-step"),
+    steps: await box(".board-steps"),
+    link: await box(".board-edit"),
+  };
 }
 
-// The button: on the phone and tablet as wide as the card, 16 px under it; from
-// 860 px under the statement, 32 px below it, as wide as its text (phase 9).
-for (const [screen, b] of Object.entries(widths).map(([s, w]) => [Number(s), w] as const)) {
-  test(`${screen} px: the card is ${b} px wide, with the height of the formula`, async ({ page }) => {
+for (const [screen, w] of Object.entries(widths).map(([s, w]) => [Number(s), w] as const)) {
+  test(`${screen} px: the court is ${w} px wide, 216 by 174`, async ({ page }) => {
     await page.setViewportSize({ width: screen, height: 900 });
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
-    const { board, button, name, statement } = await boxes(page);
-    expect(board.width).toBeCloseTo(b, 0);
-    expect(board.width).toBeLessThanOrEqual(560);
-    expect(Math.abs(board.height - expectedHeight(board.width))).toBeLessThanOrEqual(1);
-
-    if (screen < 860) {
-      // The button under the card, as wide; both above the name.
-      expect(button.y - (board.y + board.height)).toBeCloseTo(16, 0);
-      expect(button.width).toBeCloseTo(board.width, 0);
-      expect(button.y + button.height).toBeLessThan(name.y);
-    } else {
-      // The board beside the name: to the right of it, in the same row.
-      expect(board.x).toBeGreaterThan(name.x + name.width);
-      expect(board.y).toBeLessThan(name.y + name.height);
-      expect(board.y + board.height).toBeGreaterThan(name.y);
-      // The button under the statement, in the text column, narrower than the card.
-      expect(button.y - (statement.y + statement.height)).toBeCloseTo(32, 0);
-      expect(button.x).toBeCloseTo(statement.x, 0);
-      expect(button.x + button.width).toBeLessThan(board.x);
-      expect(button.width).toBeLessThan(board.width);
-    }
+    const { court } = await boxes(page);
+    expect(court.width).toBeCloseTo(w, 0);
+    expect(court.height).toBeCloseTo((w * 174) / 216, 0);
   });
 }
 
-for (const screen of [393, 1280]) {
-  test(`${screen} px: the card doesn't move when the fonts load`, async ({ page }) => {
-    await page.setViewportSize({ width: screen, height: 900 });
-    // Without the fonts (woff2 and the woff fallback): as before they load.
-    await page.route("**/*.{woff,woff2}", (route) => route.abort());
-    await page.goto("/");
-    const before = await boxes(page);
-    expect(await page.evaluate(() => [...document.fonts].some((f) => f.status === "loaded"))).toBe(false);
-
-    await page.unroute("**/*.{woff,woff2}");
-    await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
-    const after = await boxes(page);
-    for (const key of ["x", "y", "width", "height"] as const) {
-      expect(after.board[key], key).toBeCloseTo(before.board[key], 0);
-    }
-    // From 860 px the button is under the statement, which may be a line shorter
-    // in Plus Jakarta Sans: then the button moves up with it, and keeps its 32 px below it.
-    const gap = (b: Awaited<ReturnType<typeof boxes>>) => b.button.y - (b.statement.y + b.statement.height);
-    for (const key of screen < 860 ? (["x", "y", "width", "height"] as const) : (["x", "height"] as const)) {
-      expect(after.button[key], key).toBeCloseTo(before.button[key], 0);
-    }
-    if (screen >= 860) expect(gap(after)).toBeCloseTo(gap(before), 0);
-  });
-}
-
-test("1280×800: the photo, the name, the statement, the board and the button are on a laptop's first screen", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/");
-  await page.evaluate(() => document.fonts.ready);
-  const { button } = await boxes(page);
-  expect(button.y + button.height).toBeLessThanOrEqual(800);
-  for (const selector of [".hero img", "h1", ".statement", ".board"]) {
-    const box = (await page.locator(selector).boundingBox())!;
-    expect(box.y, selector).toBeGreaterThanOrEqual(0);
-    expect(box.y + box.height, selector).toBeLessThanOrEqual(800);
-  }
-});
-
-// In the projects' own windows. Pixel 7 (412 × 839) has room; in Safari on an iPhone 15
-// (393 × 659) the photo starts just below the edge, and that is accepted (Kay, phase 8).
 for (const path of ["/", "/en/"]) {
-  test(`${path}: the photo and the name are on the first screen`, async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "iphone", "Safari's window on an iPhone is too short (Kay, phase 8)");
+  for (const screen of [393, 1280]) {
+    test(`${path} at ${screen} px: nothing in the hero moves when the fonts load`, async ({ page }) => {
+      await page.setViewportSize({ width: screen, height: 900 });
+      // Without the fonts (woff2 and the woff fallback): as before they load.
+      await page.route("**/*.{woff,woff2}", (route) => route.abort());
+      await page.goto(path);
+      const before = await boxes(page);
+      expect(await page.evaluate(() => [...document.fonts].some((f) => f.status === "loaded"))).toBe(false);
+
+      await page.unroute("**/*.{woff,woff2}");
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const after = await boxes(page);
+      for (const part of ["court", "count", "sentence", "steps", "link"] as const) {
+        for (const key of ["x", "y", "height"] as const) expect(after[part][key], `${part} ${key}`).toBeCloseTo(before[part][key], 0);
+      }
+    });
+
+    // The fallback font differs per machine: in CI's Chromium it was wider than JetBrains Mono, and
+    // the arrows moved 6 px when the font came (17 November 2026). So the first measure is in a
+    // serif alone, far from a mono (and not in JetBrains Mono itself, which a machine may have
+    // installed): the number, the arrow and the kind of every step line still stand where they
+    // stand in JetBrains Mono.
+    test(`${path} at ${screen} px: the step lines' parts don't move when the font comes, whatever the fallback`, async ({ page }) => {
+      await page.setViewportSize({ width: screen, height: 900 });
+      const parts = () =>
+        page.locator(".board-steps button").evaluateAll((all) =>
+          all.map((b) => [".n", ".data svg", ".kind"].map((selector) => Math.round(b.querySelector(selector)!.getBoundingClientRect().left * 2) / 2)),
+        );
+      /** The width of the first line's own text, "[10,0; 13,0]", not of its box. */
+      const width = () =>
+        page.locator(".board-steps .from").first().evaluate((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getBoundingClientRect().width;
+        });
+      await page.route("**/*.{woff,woff2}", (route) => route.abort());
+      await page.goto(path);
+      await page.evaluate(() => document.documentElement.style.setProperty("--font-mono", "serif"));
+      const before = await parts();
+      const serif = await width();
+
+      await page.unroute("**/*.{woff,woff2}");
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      // The text itself is a different width in the two fonts: the measure means something.
+      expect(Math.abs((await width()) - serif)).toBeGreaterThan(5);
+      expect(await parts()).toEqual(before);
+    });
+  }
+}
+
+// A laptop: the whole hero on the first screen, the link included.
+for (const [width, height] of [
+  [1280, 800],
+  [1366, 768],
+] as const) {
+  test(`${width}×${height}: the whole hero is on a laptop's first screen`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    for (const [part, b] of Object.entries(await boxes(page))) {
+      expect(b.y, part).toBeGreaterThanOrEqual(0);
+      expect(b.y + b.height, part).toBeLessThanOrEqual(height);
+    }
+  });
+}
+
+// A phone, in the projects' own windows (Pixel 7: 412 × 839; iPhone 15: 393 × 659):
+// the court, the counter with the play button and the sentence on the first screen.
+for (const path of ["/", "/en/"]) {
+  test(`${path}: the court, the counter and the sentence are on the phone's first screen`, async ({ page }) => {
     await page.goto(path);
     await page.evaluate(() => document.fonts.ready);
     const height = await page.evaluate(() => window.innerHeight);
-    for (const selector of [".hero img", "h1"]) {
-      const box = (await page.locator(selector).boundingBox())!;
-      expect(box.y + box.height, selector).toBeLessThanOrEqual(height);
-    }
+    const { court, count, sentence } = await boxes(page);
+    for (const [part, b] of Object.entries({ court, count, sentence })) expect(b.y + b.height, part).toBeLessThanOrEqual(height);
   });
 }
-
-// A phone's whole screen, as a review measures it (Kay, 27 October 2026): below the
-// card and the button, the name and the statement's first line still fit. In
-// Safari's own window (390 × 664) they don't, as above.
-for (const path of ["/", "/en/"]) {
-  test(`${path} at 390×844: the name and the statement's first line are on the first screen`, async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(path);
-    await page.evaluate(() => document.fonts.ready);
-    const name = (await page.locator("h1").boundingBox())!;
-    expect(name.y + name.height).toBeLessThanOrEqual(844);
-    const firstLine = await page.locator(".statement").evaluate((statement) => {
-      const range = document.createRange();
-      range.selectNodeContents(statement);
-      return Math.min(...[...range.getClientRects()].map((r) => r.bottom));
-    });
-    expect(firstLine).toBeLessThanOrEqual(844);
-  });
-}
-
-test("the whole card and the button are on the first screen", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => document.fonts.ready);
-  const { button } = await boxes(page);
-  const height = await page.evaluate(() => window.innerHeight);
-  expect(button.y + button.height).toBeLessThanOrEqual(height);
-});

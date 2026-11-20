@@ -11,12 +11,12 @@ import { boardFrom, boards } from "./boards";
 
 /** How long each step shows still (ms): 60 per character, at least 1.2 s. */
 const still: Record<Locale, number[]> = {
-  nl: [2220, 1560, 1500, 1200],
+  nl: [1200, 1200, 1200, 1200],
   en: [2280, 1260, 1200, 1200],
 };
 
 /** One round of playing on the hero (ms): every step still and moving, and the hold after the shot. */
-const round: Record<Locale, number> = { nl: 13_080, en: 12_540 };
+const round: Record<Locale, number> = { nl: 11_400, en: 12_540 };
 
 const places = (frame: Frame) => ({ players: frame.players.map((p) => p.at), balls: frame.balls });
 
@@ -70,7 +70,7 @@ for (const code of locales) {
       expect(board.frames.map((_, s) => moves(board, s))).toEqual([true, true, true, true]);
     });
 
-    it("has a run, a pass and a shot in its legend, each with a text in both languages", () => {
+    it("has a run, a pass and a shot as its kinds of arrow (the step lines' kinds), each with a text in both languages", () => {
       const legend = legendOf(decoded[code]);
       expect(legend).toEqual(["run", "pass", "shot"]);
       for (const language of locales) {

@@ -1,12 +1,15 @@
 <!--
-  The board card in the hero: the label and the counter, the step's sentence,
-  the court, the legend and the buttons. An island with client:visible (phase 5).
-  On the server and in the first render in the browser it is the card without
-  JavaScript: step 1, with the buttons off. Once mounted the buttons work and
-  the board plays by itself, in a loop, except with reduced motion. The controls
-  follow Coachboard's BoardViewer.svelte (commit 4ceafd4), with the choices of
-  docs/plan-fase-5.md. The styles are global, in board.css, as BoardViewer.css
-  is in Coachboard.
+  The hero (Hars, 15 November 2026): left the counter with the play button, the
+  step's sentence, the four step lines and the link to Coachboard; right the
+  court that plays the attack, with a label that follows the ball. On narrow
+  screens the court is above the text (board.css). One island with
+  client:visible (phase 5). On the server and in the first render in the
+  browser it is the hero without JavaScript: step 1, with the buttons off; the
+  link works. Once mounted the buttons work and the board plays by itself, in a
+  loop, except with reduced motion. The playing is phase 5's, after Coachboard's
+  BoardViewer.svelte (commit 4ceafd4): advance(), play(), stop() and sync() are
+  unchanged; the step lines take the place of Previous and Next. The styles are
+  global, in board.css.
 -->
 <script module lang="ts">
   /** After the shot: the ball in the goal this long (ms), then from the start (brief). */
@@ -16,24 +19,31 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import type { Board } from "../../lib/board/format";
+  import { BALL_R } from "../../lib/board/geometry";
   import { moment } from "../../lib/board/play";
-  import { moveFor, moves, stillFor, type LegendItem } from "../../lib/board/viewer";
+  import { moveFor, moves, stillFor } from "../../lib/board/viewer";
+  import { point } from "../../lib/coords";
   import { viewerIcons as icons } from "../../lib/viewerIcons";
+  import type { StepLine } from "../../data/boards";
   import type { Text } from "../../i18n/nl";
   import Court from "./Court.svelte";
 
   interface Props {
-    /** With a title, the label above the court: boardFrom() in src/data/boards.ts stops the build without one. */
-    board: Board & { title: string };
-    /** The legend, with its texts: legendFor() in src/data/boards.ts. */
-    legend: { kind: LegendItem; text: string }[];
+    board: Board;
+    /** One line per step: stepsFor() in src/data/boards.ts. */
+    steps: StepLine[];
+    /** The share link, which opens the attack in Coachboard, and its text. */
+    link: string;
+    edit: string;
+    locale: "nl" | "en";
     t: Text["board"];
   }
 
-  let { board, legend, t }: Props = $props();
+  let { board, steps, link, edit, locale, t }: Props = $props();
 
   /** The court up to 16 metres (brief): the attack stays inside it (boards.test.ts). */
   const CROP = "-8 -14 216 174";
+  const [cropX, cropY, cropW, cropH] = CROP.split(" ").map(Number) as [number, number, number, number];
   /** A frame counts at most this long (ms): after a hang the board doesn't jump ahead. */
   const FRAME = 100;
 
@@ -45,11 +55,11 @@
   let ended = $state(false);
   /** What the court shows while moving or after the shot; null: the step itself. */
   let shown = $state.raw<Board | null>(null);
-  /** Playing every step in a loop ("all"), or the move of Next ("next"). */
+  /** Playing every step in a loop ("all"), or the move to the next step of a step line ("next"). */
   let playing = $state<"all" | "next" | null>(null);
 
   let card: HTMLElement;
-  /** The clock runs only while something plays and the card can be seen. */
+  /** The clock runs only while something plays and the hero can be seen. */
   let inView = true;
   let hidden = false;
   let running = false;
@@ -59,15 +69,35 @@
   let elapsed = 0;
   let reduce = false;
 
+  /** Where the balls are on the court now, for their rings in room. */
+  const balls = $derived((shown ?? board).frames[step]!.balls);
+  /** The label that follows the ball: where on the court box (%), and which way it sits from the ball. */
+  const label = $derived.by(() => {
+    const ball = balls[0];
+    if (!ball) return null;
+    const [x, y] = ball;
+    return {
+      text: `${t.ball} ${point(ball, locale)}`,
+      left: ((x - cropX) / cropW) * 100,
+      top: ((y - cropY) / cropH) * 100,
+      // Left of the ball in the court's right half, below it near the goal: whole on the page from
+      // 320 px on, where "ball [12.5, 9.7]" is 115 px beside a court of 288 (e2e/narrow.spec.ts).
+      flipX: x > 110,
+      flipY: y < 40,
+    };
+  });
   const lastStep = $derived(board.frames.length - 1);
   const count = $derived(board.frames.length);
-  const where = $derived(t.step.replace("{n}", String(step + 1)).replace("{count}", String(count)));
+  const fill = (template: string) => template.replace("{n}", String(step + 1)).replace("{count}", String(count));
+  /**
+   * The sentence in two lines, as Kay wrote it (Hars): a sentence of two words,
+   * "AI verkent.", gets a line per word. A board with a longer sentence (the
+   * English one, until Kay makes the English link) is "long": smaller, wrapped.
+   */
+  const long = $derived(board.frames.some((f) => (f.text ?? "").split(" ").length !== 2));
+  const words = $derived((board.frames[step]!.text ?? "").split(" "));
   /** Per step, whether anything moves from it: if not, nothing waits for it. */
   const moving = $derived(board.frames.map((_, i) => moves(board, i)));
-  /** Next has nothing left to play: past the shot, or on a last step that doesn't move. */
-  const done = $derived(ended || (step === lastStep && !moving[lastStep]));
-  /** Previous has nothing to do: still on step 1. */
-  const first = $derived(step === 0 && !ended && !playing);
   /** Read out only what the visitor asks for: off while the board plays by itself (Kay, 19 October 2026). */
   const live = $derived(playing === "all" ? "off" : "polite");
 
@@ -138,7 +168,7 @@
     advance(dt);
   }
 
-  /** Runs the clock while something plays and the card can be seen; pausing is not stopping. */
+  /** Runs the clock while something plays and the hero can be seen; pausing is not stopping. */
   function sync() {
     const go = !!playing && inView && !hidden;
     if (go === running) return;
@@ -171,29 +201,23 @@
   }
 
   /**
-   * Next: the move to the next step; on the last step the shot, after which the
-   * board stays there. While something plays, with reduced motion, or on a step
-   * where nothing moves, it goes there at once. Stopping first puts aria-live on
-   * polite; after tick() the new sentence comes, and is read out.
+   * A step line: to step `i`. From standing still on the step before it, its
+   * move plays, as Next did (phase 5), except with reduced motion. Anything
+   * else goes there at once: while something plays, which stops it, from
+   * further away, or back. Stopping first puts aria-live on polite; after
+   * tick() the new sentence comes, and is read out.
    */
-  async function next() {
-    if (done) return;
+  async function goto(i: number) {
     const was = playing;
+    const still = shown === null && !ended;
     halt();
     await tick();
-    if (was || reduce || !moving[step]) return step >= lastStep ? show(step, true) : show(step + 1);
-    show(step);
-    playing = "next";
-    sync();
-  }
-
-  /** Previous: the step before; after the shot, or while something moves, the start of this step. */
-  async function prev() {
-    if (first) return;
-    const moved = ended || shown !== null || playing === "next";
-    halt();
-    await tick();
-    show(moved ? step : Math.max(0, step - 1));
+    if (!was && still && !reduce && i === step + 1 && moving[step]) {
+      playing = "next";
+      sync();
+      return;
+    }
+    show(i);
   }
 
   onMount(() => {
@@ -206,7 +230,7 @@
     };
     motion.addEventListener("change", onMotion);
 
-    // Astro's observer for client:visible disconnects after the first time, so the card has its own.
+    // Astro's observer for client:visible disconnects after the first time, so the hero has its own.
     // Out of view and back quickly gives one callback two entries: the last is the one that holds.
     const observer = new IntersectionObserver((entries) => {
       inView = entries.at(-1)!.isIntersecting;
@@ -235,41 +259,55 @@
 </script>
 
 <div class="board" bind:this={card}>
-  <div class="board-body">
-    <div class="board-head">
-      <p class="board-label">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icons.court} /></svg>
-        <span>{board.title}</span>
-      </p>
-      <p class="board-count"><span aria-hidden="true">{step + 1}/{count}</span><span class="visually-hidden">{where}</span></p>
+  <div class="board-text">
+    <div class="board-top">
+      <!-- Off (disabled) without JavaScript. Before the counter, so the counter's width,
+           which changes when the font comes, never moves it. -->
+      <button type="button" class="play" aria-label={playing === "all" ? t.stop : t.play} title={playing === "all" ? t.stop : t.play} disabled={!ready} onclick={play}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={playing === "all" ? icons.stop : icons.play} /></svg>
+      </button>
+      <p class="board-count"><span aria-hidden="true">{fill(t.counter)}</span><span class="visually-hidden">{fill(t.step)}</span></p>
     </div>
-    <p class="board-step" aria-live={live}>{board.frames[step]!.text ?? ""}</p>
-    <div class="board-court">
-      <Court board={shown ?? board} frame={step} label={t.court} viewBox={CROP} />
-    </div>
-    <div class="board-foot">
-      <ul class="board-legend" aria-label={t.legend}>
-        {#each legend as item (item.kind)}
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d={icons[item.kind as keyof typeof icons]} stroke-dasharray={item.kind === "pass" || item.kind === "bounce" ? "3 3" : undefined} />
-            </svg>{item.text}
-          </li>
-        {/each}
-      </ul>
-      <!-- Off (disabled) without JavaScript. Once mounted a button with nothing to do
-           is aria-disabled, so the focus stays on it. -->
-      <div class="board-controls">
-        <button type="button" aria-label={t.prev} title={t.prev} disabled={!ready} aria-disabled={ready && first ? "true" : undefined} onclick={prev}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icons.prev} /></svg>
-        </button>
-        <button type="button" class="play" aria-label={playing === "all" ? t.stop : t.play} title={playing === "all" ? t.stop : t.play} disabled={!ready} onclick={play}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={playing === "all" ? icons.stop : icons.play} /></svg>
-        </button>
-        <button type="button" aria-label={t.next} title={t.next} disabled={!ready} aria-disabled={ready && done ? "true" : undefined} onclick={next}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icons.next} /></svg>
-        </button>
-      </div>
-    </div>
+    <!-- aria-atomic: a word per line, so a screen reader reads the whole sentence, not only the word that changed. -->
+    <p class="board-step" class:long aria-live={live} aria-atomic="true">
+      {#if long}{board.frames[step]!.text ?? ""}{:else}<span>{words[0]}</span> <span>{words[1]}</span>{/if}
+    </p>
+    <!-- Each line a button to its step; the one on the court is amber (aria-current). Off without JavaScript.
+         Its name is the number and the kind; where the arrow goes is only to see. -->
+    <ol class="board-steps" aria-label={t.steps}>
+      {#each steps as line, i (i)}
+        <li>
+          <button type="button" aria-current={i === step ? "step" : undefined} disabled={!ready} onclick={() => goto(i)}>
+            <span class="n">{String(i + 1).padStart(2, "0")}</span>
+            <span class="data" aria-hidden="true"><span class="from">{line.from}</span><svg viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h13M10.5 1 14 4l-3.5 3" /></svg><span class="to">{line.to}</span></span>
+            <span class="kind">{line.kind}</span>
+          </button>
+        </li>
+      {/each}
+    </ol>
+    <a class="board-edit" href={link}>{edit}</a>
+  </div>
+  <div class="board-court">
+    <Court board={shown ?? board} frame={step} label={t.court} viewBox={CROP} />
+    <!-- A ring in room around each ball, just outside its espresso edge: in the
+         goal area gloed is 2.7:1, the ring 7.9:1 (Hars, step 2). On top of
+         Court.svelte, which stays Coachboard's copy. -->
+    <svg class="board-rings" viewBox={CROP} aria-hidden="true">
+      {#each balls as [x, y], i (i)}
+        <circle cx={x} cy={y} r={BALL_R + 0.8} stroke-width="0.8" />
+      {/each}
+    </svg>
+    <!-- The ball keeps its label (Kay: colour is never the only sign). Only to see: it changes every frame.
+         A layer without a viewBox, so the text is in real pixels while x and y follow the court in
+         percent: SVG attributes, not a style attribute, which the CSP doesn't allow. The percent
+         is on a nested <svg>, whose x and y every browser takes in percent; WebKit ignores a
+         percent in a <text>'s own x (CI, 17 November 2026: the label stood at the court's left edge). -->
+    {#if label}
+      <svg class="board-ball" aria-hidden="true">
+        <svg x="{label.left}%" y="{label.top}%" width="1" height="1" overflow="visible">
+          <text x={label.flipX ? -12 : 12} y={label.flipY ? 24 : -16} text-anchor={label.flipX ? "end" : "start"}>{label.text}</text>
+        </svg>
+      </svg>
+    {/if}
   </div>
 </div>

@@ -45,13 +45,13 @@ describe("checkBudget", () => {
   });
 
   it.each([
-    ["an inline script without the island", "<script>console.log(1)</script>", /an inline script only with the island/],
-    ["a script file", `<script type="module" src="/_astro/x.js"></script>`, /the only JS is the board's island/],
-    ["a script file next to the island", `${island()}<script src="/_astro/x.js"></script>`, /the only JS is the board's island/],
-    ["a modulepreload", `<link rel="modulepreload" href="/_astro/x.js">`, /the only JS is the board's island/],
-    ["a second island", `${island()}${island()}`, /a page has at most one island/],
-    ["another island", island({ name: "Other" }), /the island is BoardCard with client="visible"/],
-    ["the island with client:load", island({ client: "load" }), /the island is BoardCard with client="visible"/],
+    ["an inline script without the island", "<script>console.log(1)</script>", /an inline script only with an island/],
+    ["a script file", `<script type="module" src="/_astro/x.js"></script>`, /the only JS is the islands/],
+    ["a script file next to the island", `${island()}<script src="/_astro/x.js"></script>`, /the only JS is the islands/],
+    ["a modulepreload", `<link rel="modulepreload" href="/_astro/x.js">`, /the only JS is the islands/],
+    ["the same island twice", `${island()}${island()}`, /each island at most once on a page/],
+    ["another island", island({ name: "Other" }), /an island is BoardCard, Figures, Lens or nothing, with client="visible"/],
+    ["the island with client:load", island({ client: "load" }), /an island is BoardCard, Figures, Lens or nothing, with client="visible"/],
     ["a third inline script", `${island()}<script>1</script><script>2</script><script>3</script>`, /at most 2 inline scripts/],
   ])("fails on %s", (_, html, why) => {
     const { rows, errors } = build({ "en/index.html": html, ...islandFiles });
@@ -62,6 +62,13 @@ describe("checkBudget", () => {
 
   it("allows the board's island with Astro's two inline scripts", () => {
     const html = `<script>a</script><script>b</script>${island()}`;
+    const { rows, errors } = build({ "index.html": html, ...islandFiles });
+    expect(errors).toEqual([]);
+    expect(row(rows, "Scripts").measured).toBe(0);
+  });
+
+  it("allows the three islands together, the hero, the figures and the lens, with Astro's two inline scripts", () => {
+    const html = `<script>a</script><script>b</script>${island()}${island({ name: "Figures" })}${island({ name: "Lens" })}`;
     const { rows, errors } = build({ "index.html": html, ...islandFiles });
     expect(errors).toEqual([]);
     expect(row(rows, "Scripts").measured).toBe(0);

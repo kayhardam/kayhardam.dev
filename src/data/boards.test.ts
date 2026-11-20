@@ -3,22 +3,21 @@ import { locales, type Locale } from "../i18n";
 import { encode, type Board, type Pt } from "../lib/board/format";
 import { BALL_R, PLAYER_R } from "../lib/board/geometry";
 import { moment } from "../lib/board/play";
-import { boardFrom, boards, legendFor } from "./boards";
+import { boardFrom, boards, stepsFor } from "./boards";
 
-// The two share links decode to the board the page shows: the brief's attack,
+// The two share links decode to the board the page shows: the same attack,
 // within the cropped court, in both languages.
 
-/** From the brief, word for word: the title (the label above the court), the sentence per step and the attack's labels. */
+/**
+ * Word for word: the title, the sentence per step and the attack's labels. Dutch:
+ * Kay's attack for Hars (15 November 2026). English: the brief's, until Kay makes
+ * the English link of that attack.
+ */
 const brief: Record<Locale, { title: string; steps: string[]; labels: string[] }> = {
   nl: {
-    title: "Kruising MO–LO",
-    steps: [
-      "MO gaat met de bal schuin naar links.",
-      "LO kruist achter MO langs.",
-      "MO speelt de bal naar LO.",
-      "LO schiet op doel.",
-    ],
-    labels: ["LH", "LO", "MO", "RO", "RH", "CL", "K"],
+    title: "Kruising AI–IK",
+    steps: ["AI verkent.", "Ik kies.", "AI bouwt.", "Ik controleer."],
+    labels: ["LH", "IK", "AI", "RO", "RH", "CL", "K"],
   },
   en: {
     title: "Crossing CB–LB",
@@ -80,16 +79,28 @@ describe("boards", () => {
         expect(out).toEqual([]);
       });
 
-      it("has the legend Coachboard's legendOf() gives, with a text for each item", () => {
-        expect(legendFor(decoded[code], code).map((item) => item.text)).toEqual(
-          code === "nl" ? ["Loop", "Pass", "Schot"] : ["Run", "Pass", "Shot"],
-        );
+      // Kay: "loop, loop, pass, schot", with where each arrow starts and ends, in metres.
+      it("has a step line per step: the arrow's kind, from where to where", () => {
+        const [run, pass, shot] = code === "nl" ? ["Loop", "Pass", "Schot"] : ["Run", "Pass", "Shot"];
+        const m = code === "nl" ? (x: string, y: string) => `[${x}; ${y}]` : (x: string, y: string) => `[${x.replace(",", ".")}, ${y.replace(",", ".")}]`;
+        expect(stepsFor(decoded[code], code)).toEqual([
+          { kind: run, from: m("10,0", "13,0"), to: m("7,5", "9,5") },
+          { kind: run, from: m("3,0", "11,8"), to: m("11,5", "10,5") },
+          { kind: pass, from: m("7,5", "9,5"), to: m("11,5", "10,5") },
+          { kind: shot, from: m("11,5", "10,5"), to: m("10,0", "0,0") },
+        ]);
       });
 
-      it("stops on a legend item without a text", () => {
-        const board = structuredClone(decoded[code]);
-        board.frames[0]!.arrows[0]!.kind = "dribble";
-        expect(() => legendFor(board, code)).toThrow(`No text for the legend item dribble (${code})`);
+      it("stops on a kind without a text, and on a step without exactly one arrow", () => {
+        const dribble = structuredClone(decoded[code]);
+        dribble.frames[0]!.arrows[0]!.kind = "dribble";
+        expect(() => stepsFor(dribble, code)).toThrow(`No text for the kind dribble (${code})`);
+        const two = structuredClone(decoded[code]);
+        two.frames[1]!.arrows.push(two.frames[1]!.arrows[0]!);
+        expect(() => stepsFor(two, code)).toThrow("Step 2 has 2 arrows, not 1");
+        const none = structuredClone(decoded[code]);
+        none.frames[2]!.arrows = [];
+        expect(() => stepsFor(none, code)).toThrow("Step 3 has 0 arrows, not 1");
       });
     });
   }
@@ -105,7 +116,7 @@ describe("boards", () => {
     await expect(boardFrom("https://handballcoachboard.com/nl/board/")).rejects.toThrow("Not a board");
   });
 
-  // The title is the label above the court: without one there is nothing to show there.
+  // The title names the board when the hero's link opens it in Coachboard (boards.ts).
   it("stops on a link without a title", async () => {
     const untitled = structuredClone(decoded.nl);
     delete untitled.title;

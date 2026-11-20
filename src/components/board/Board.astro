@@ -1,27 +1,29 @@
 ---
-// The board card in the hero. Decodes the share link at build time and makes
-// the legend; a broken link, a link without a title (the label above the court)
-// or a legend item without a text stops the build.
-// BoardCard.svelte draws the card: an island with client:visible, which gets the
-// decoded board as props, so the browser never decodes the link. Its HTML from
-// the server is the card without JavaScript: step 1, with the buttons off.
-// The styles are in board.css, shared with the island, as BoardViewer.css is in Coachboard.
+// The hero's board (Hars, 15 November 2026). Decodes the share link at build
+// time and makes the step lines; a broken link, a link without a title, a step
+// without exactly one arrow or an arrow without a text for its kind stops the
+// build. BoardCard.svelte draws the hero: an island with client:visible, which
+// gets the decoded board as props, so the browser never decodes the link. Its
+// HTML from the server is the hero without JavaScript: step 1, with the buttons
+// off. The styles are in board.css, shared with the island.
 import "./board.css";
 import BoardCard from "./BoardCard.svelte";
-import { boardFrom, legendFor } from "../../data/boards";
+import { boardFrom, stepsFor } from "../../data/boards";
 import { defaultLocale, type Locale } from "../../i18n";
 import type { Text } from "../../i18n/nl";
 
 interface Props {
-  /** The Coachboard share link, the same as the hero button's. */
+  /** The Coachboard share link: the board, and where the hero's link goes. */
   link: string;
+  /** The text of that link. */
+  edit: string;
   t: Text["board"];
 }
 
-const { link, t } = Astro.props;
+const { link, edit, t } = Astro.props;
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale;
 const board = await boardFrom(link);
-const legend = legendFor(board, locale);
+const steps = stepsFor(board, locale);
 ---
 
-<BoardCard client:visible board={board} legend={legend} t={t} />
+<BoardCard client:visible board={board} steps={steps} link={link} edit={edit} locale={locale} t={t} />

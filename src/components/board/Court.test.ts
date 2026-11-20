@@ -39,8 +39,8 @@ describe("Court.svelte", () => {
     expect(body.match(/data-kind="player"/g)).toHaveLength(13);
     expect([...body.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map((m) => m[1])).toEqual([
       "LH",
-      "LO",
-      "MO",
+      "IK",
+      "AI",
       "RO",
       "RH",
       "CL",

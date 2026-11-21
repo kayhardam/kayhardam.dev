@@ -2,19 +2,22 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The palette Hars (Kay, 15 November 2026): eight colours as custom properties in
-// tokens.css, and nowhere a loose hex value. Allowed, each for its reason:
-// - tokens.css: where the eight are defined (tokens.test.ts checks them);
+// The palettes Inkt (Kay, 20 November 2026) and Hars (Kay, 15 November 2026): their
+// colours as custom properties in tokens.css, and nowhere a loose hex value. Allowed,
+// each for its reason:
+// - tokens.css: where the colours are defined (tokens.test.ts checks them);
 // - Court.svelte: Coachboard's copy, unchanged (src/lib/coachboard.test.ts);
 // - board.css: Court.svelte's colours as selectors, [fill="#…"], which give each
 //   its Hars token; never as a value;
 // - BaseLayout.astro: theme-color, as a <meta> can't read a custom property; it
-//   must be espresso.
+//   must be the ground of the site's palette, papier or espresso.
 // Two more things are skipped: a comment line, which paints nothing, and public/,
-// where the favicons are still phase 10's images (ink blue) until they are made in Hars.
+// where the favicons are phase 10's images: the ink blue of Inkt.
 
 const root = new URL("../../", import.meta.url).pathname;
 const hex = /#[0-9a-f]{3,8}\b/gi;
+/** BaseLayout.astro's one line with hex values: each palette's ground. */
+const themeColor = 'const themeColor = palette === "hars" ? "#16110d" : "#fdfbf8";';
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
@@ -36,7 +39,7 @@ function loose(file: string): string[] {
     if (file.startsWith("public/")) return [];
     if (file === "src/styles/tokens.css" && /^\s*--[\w-]+:\s*#[0-9a-f]{6};/i.test(line)) return [];
     if (file === "src/components/board/board.css" && /^\.board .*\[(fill|stroke)="#[0-9a-f]{6}"\].*[{,]$/i.test(line.trim())) return [];
-    if (file === "src/layouts/BaseLayout.astro" && line.includes('name="theme-color" content="#16110d"')) return [];
+    if (file === "src/layouts/BaseLayout.astro" && line.includes(themeColor)) return [];
     // Comments that name a colour don't paint anything.
     if (/^\s*(\/\/|\*|\/\*)/.test(line)) return [];
     return [`${file}:${i + 1}: ${line.trim()}`];
@@ -44,14 +47,20 @@ function loose(file: string): string[] {
 }
 
 describe("colours", () => {
-  it("has no loose hex value: only the eight tokens of Hars", () => {
+  it("has no loose hex value: only the tokens of Inkt and Hars", () => {
     expect(files.flatMap(loose)).toEqual([]);
   });
 
-  it("has theme-color espresso", () => {
+  it("has the ground of the site's palette as theme-color: papier in Inkt, espresso in Hars", () => {
     const tokens = readFileSync(join(root, "src/styles/tokens.css"), "utf8");
+    expect(tokens).toMatch(/--papier: #fdfbf8;/);
     expect(tokens).toMatch(/--espresso: #16110d;/);
-    expect(readFileSync(join(root, "src/layouts/BaseLayout.astro"), "utf8")).toContain('content="#16110d"');
+    expect(tokens).toMatch(/:root \{\n  --ground: var\(--papier\);/);
+    expect(tokens).toMatch(/:root\[data-palette="hars"\] \{\n  --ground: var\(--espresso\);/);
+    const layout = readFileSync(join(root, "src/layouts/BaseLayout.astro"), "utf8");
+    expect(layout).toContain(themeColor);
+    expect(layout).toContain('<meta name="theme-color" content={themeColor} />');
+    expect(layout).toContain("<html lang={locale} data-palette={palette}>");
   });
 
   it("has no green anywhere but in Court.svelte's copy, and in board.css only as a selector", () => {

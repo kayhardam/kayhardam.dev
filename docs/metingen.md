@@ -1218,3 +1218,63 @@ De metingen hierboven zijn van commit `566ec0d`. Daarna veranderd, elk met een t
 | `c4173ee` | Focus onder de kopbalk (WCAG 2.4.11): met Shift+Tab stond stap 01 op y 0–48 onder de kopbalk van 65 px, 0 px zichtbaar (390 × 844). Nu `scroll-padding-top`. De lens stond aan de randen van de schermafbeelding +9, −11, +10 en −12 px naast de wijzer: nu gerekend over de afbeelding, minder dan 1 px. | Chromium 153, lokaal |
 | `0364708` | De cijfers bleven op 0 in een venster lager dan ±198 px (gemeten bij 390 × 180 en 320 × 164): de telling start nu op het eerste cijfer. Met de tekstafstand van WCAG 1.4.12 liep de beginplek tot 18 px over de pijl en het doel tot 21 px in het soort: nu breekt een plek binnen zijn eigen kolom. Bij 320 px raakte het doel het soort (1,4 px): niet meer. | Chromium 153, lokaal, 320 tot 1440 px |
 | daarna | Het ballabel staat in de rechterhelft van het veld links van de bal: het Engelse label liep bij stap 4 tot 320,5 px bij 320 px breed (er scrolde niets). Beeldbudget op de schermafbeelding van de lens: AVIF 23,9 KB (budget 27,5), WebP 40,0 KB (budget 46,0). | Chromium 153, lokaal |
+
+## Tussenpagina (20 november 2026)
+
+Branch `tussenpagina`. De site toont een tussenpagina in plaats van de homepage van Hars, terwijl Kay de site opnieuw opzet (Kay, 20 november 2026): de kopbalk zonder knop, Kays statement, zijn zin over Coachboard met de link, en het adres op inktblauw. In het palet Inkt, dat Kay koos uit drie voorstellen om van Hars af te zijn (20 november 2026). Geen eiland, geen script, geen afbeelding. De volledige pagina blijft in de repo en wordt niet gebouwd. Gemeten in Chromium 153 (Playwright 1.64.1) in een Linux-container, tegen `wrangler dev` op de build van deze branch. Niet gemeten: WebKit (de container kan het niet downloaden) en de preview-URL van Cloudflare.
+
+### Het palet Inkt
+
+Vijf kleuren in `src/styles/tokens.css`, naast de acht van Hars (die bij de volledige pagina horen). De pagina's die gebouwd worden, de tussenpagina en de 404-pagina, staan in Inkt. De pagina is eerst in Hars gebouwd en gemeten (walnoot-donker en amber), met dezelfde opbouw en dezelfde tests; alle cijfers hieronder zijn van Inkt.
+
+| Voorgrond | Achtergrond | Waar | Contrast |
+|---|---|---|--:|
+| inkt `#1f1a17` | papier `#fdfbf8` | de kopbalk, de 404-pagina | 16,7:1 |
+| inkt | linnen `#f5f1eb` | de eerste zin van het statement, de zin over Coachboard, de link | 15,3:1 |
+| grafiet `#4a433d` | papier | de andere taal in de kopbalk, de zin op de 404-pagina | 9,4:1 |
+| inktblauw `#1e40af` | linnen | de tweede zin van het statement, de lijn onder de link, de focusring | 7,8:1 |
+| inktblauw | papier | de focusring in de kopbalk en op de 404-pagina, de lijn onder een link daar | 8,4:1 |
+| papier | inktblauw | het adres op de voet, de rand van de focusring daar | 8,4:1 |
+
+`src/styles/tokens.test.ts` rekent ze na (tekst minstens 4,5:1, lijnen minstens 3:1). `theme-color` is papier. Het inktblauw is dat van de favicons en van `og.png` (fase 10), die niet veranderd zijn.
+
+### Geen overloop, tikvlakken, axe
+
+- **Breedtes:** 320, 340, 360, 375, 390, 393, 412, 430, 480, 560, 700, 859, 860, 1024, 1280 en 1440 px, NL en EN: nergens horizontaal scrollen, geen element buiten beeld, het statement op vier regels zonder afgekapte regel, het adres op één regel, de kopbalk 65 px.
+- **Tikvlakken:** 5 links (de naam, NL, EN, de link naar Coachboard, het adres), geen onder 44 px, op telefoonbreedte en op 1280 px.
+- **axe** (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`): 0 bevindingen, op telefoonbreedte en op 1280 px.
+- **Tekstafstand (WCAG 1.4.12):** met regelhoogte 1,5, letters 0,12em en woorden 0,16em is geen regel van het statement afgekapt, op 320, 393, 560, 860, 1280 en 1440 px. De langste regel is dan 8,6em ("HANDBALL COACH."); het vak is 8,8em.
+- **Zonder de lettertypen** (320, 375 en 1280 px): geen horizontaal scrollen; het statement blijft vier regels hoog, een te brede regel is afgekapt tot Barlow Condensed er is.
+
+### Lighthouse mobiel
+
+Lighthouse 12.8.2, het standaardprofiel mobiel (412 × 823), tegen `wrangler dev`. Twee keer per methode. Best Practices en SEO: 100 in elke run.
+
+| Pagina | Methode | Performance | Accessibility | LCP | CLS | TBT | FCP |
+|---|---|--:|--:|--:|--:|--:|--:|
+| `/` | gesimuleerd | 100, 100 | 100, 100 | 1,4 s | 0 | 0 ms | 1,4 s |
+| `/` | devtools | 100, 100 | 100, 100 | 0,8, 0,9 s | 0 | 0 ms | 0,8, 0,9 s |
+| `/en/` | gesimuleerd | 100, 100 | 100, 100 | 1,4 s | 0,001 | 0 ms | 1,4 s |
+| `/en/` | devtools | 100, 100 | 100, 100 | 0,9, 1,0 s | 0,001 | 0 ms | 0,9, 1,0 s |
+
+- **CLS 0,001 op `/en/`:** de link naar Coachboard schuift één regel op. De zin erboven heeft op 412 px in het terugvallettertype drie regels en in Barlow twee.
+- **Eerste meting (nog in Hars), vóór twee aanpassingen:** CLS 0,0015 (`/`) en 0,003 (`/en/`). Het adres had de `<wbr>` van de volledige pagina, en de link een pijl: wat op een regel na tekst komt, verspringt als het lettertype van die tekst binnenkomt. Het adres is nu één stuk en de link heeft geen pijl.
+- **Verkeer:** 7 verzoeken, 119,6 KB: het document (4,3 KB), vijf lettertypen (114,2 KB) en `favicon.svg` (1,1 KB). JetBrains Mono 400 laadt niet: de pagina gebruikt het niet.
+
+### Groottes
+
+`npm run budget`:
+
+| Meting | Vóór (Hars) | Tussenpagina | Budget |
+|---|--:|--:|--:|
+| JS op de pagina (gzip) | 24,8 KB (drie eilanden) | 0 KB | 28,4 KB |
+| Alle JS in `_astro/` (gzip) | 24,8 KB | 9,8 KB (de renderer van Svelte, door geen pagina geladen) | 28,4 KB |
+| HTML `/` (gzip) | 13,3 KB | 3,7 KB | 15,2 KB |
+
+De budgetten zijn niet aangepast: ze horen bij de volledige pagina.
+
+### Tests
+
+- `npm run verify` groen: 183 unittests, links (22 interne links in 3 pagina's), budget (18 controles).
+- e2e in de container, alleen project `android` (geen WebKit): alle 127 groen, waarvan 68 in `e2e/holding.spec.ts`. De specs van de volledige pagina draaien niet zolang de tussenpagina er staat (`playwright.config.ts`). De volledige e2e in beide projecten: CI op de pull request.
+- De weg terug, twee stappen: `Home.astro` weer in de twee paginabestanden en `"hars"` in `src/data/palette.ts`. Dan is `npm run verify` groen (183 unittests, 24 interne links, 30 budgetcontroles) en draaien de 272 tests van de volledige pagina groen (project `android`), in Hars als voorheen; `e2e/holding.spec.ts` draait niet. Met één van de twee stappen faalt `src/data/palette.test.ts`.

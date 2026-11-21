@@ -21,6 +21,22 @@ export function allPages(): string[] {
 /** A URL in each language that gets the 404 page. */
 export const missingPages = ["/does-not-exist/", "/en/does-not-exist/"];
 
+/**
+ * The colours the parts every page shares take from the site's palette (the roles in
+ * src/styles/tokens.css), as a browser reports them: the ground, the text on it and the
+ * accent. The page says which palette it is in, on <html> (src/data/palette.ts).
+ */
+const palettes = {
+  inkt: { ground: "rgb(253, 251, 248)", text: "rgb(31, 26, 23)", accent: "rgb(30, 64, 175)" },
+  hars: { ground: "rgb(22, 17, 13)", text: "rgb(255, 246, 232)", accent: "rgb(255, 179, 0)" },
+} as const;
+
+export async function paletteOf(page: Page) {
+  const name = await page.locator("html").getAttribute("data-palette");
+  if (name !== "inkt" && name !== "hars") throw new Error(`<html> has data-palette="${name}"`);
+  return palettes[name];
+}
+
 /** Collects CSP violations from the moment the document exists. From Coachboard's e2e/helpers.ts. */
 export async function watchViolations(page: Page) {
   await page.addInitScript(() => {

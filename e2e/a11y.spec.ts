@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { allPages, expect, missingPages, test } from "./helpers";
+import { allPages, expect, missingPages, paletteOf, test } from "./helpers";
 
 // The hero's buttons are off until its island has mounted: wait for it before tabbing, or Tab skips them.
 const hydrated = async (page: Page) => {
@@ -46,9 +46,10 @@ for (const path of [...allPages(), missingPages[0]!]) {
     });
   }
 
-  // The ring of Hars (Kay, 15 November 2026): 3 px amber, 2 px out, with an espresso edge around it (the shadow).
+  // The ring: 3 px of the accent, 2 px out, with an edge in the ground's colour around it (the shadow).
+  // In Inkt (Kay, 20 November 2026) ink blue with a papier edge; in Hars (Kay, 15 November 2026) amber with an espresso edge.
   // Tab reaches every link and button and the lens's frame, in the page's order, and each has the ring.
-  test(`${path}: Tab reaches every stop in order, each with the ring: 3 px of amber, 2 px out, with an espresso edge`, async ({ page, browserName }) => {
+  test(`${path}: Tab reaches every stop in order, each with the ring: 3 px of the accent, 2 px out, with an edge in the ground's colour`, async ({ page, browserName }) => {
     await page.goto(path);
     await hydrated(page);
     // Safari tabs to links only with Option (Alt) held.
@@ -77,8 +78,9 @@ for (const path of [...allPages(), missingPages[0]!]) {
       if (ring) rings.push(ring);
     }
     expect(rings.map((r) => r.stop)).toEqual(Array.from({ length: count }, (_, i) => String(i)));
+    const palette = await paletteOf(page);
     for (const { name, outline, offset, edge } of rings) {
-      expect({ outline, offset, edge }, name).toEqual({ outline: "3px solid rgb(255, 179, 0)", offset: "2px", edge: "rgb(22, 17, 13) 0px 0px 0px 7px" });
+      expect({ outline, offset, edge }, name).toEqual({ outline: `3px solid ${palette.accent}`, offset: "2px", edge: `${palette.ground} 0px 0px 0px 7px` });
     }
   });
 
@@ -91,8 +93,11 @@ for (const path of [...allPages(), missingPages[0]!]) {
     await hydrated(page);
     const key = browserName === "webkit" ? "Alt+Tab" : "Tab";
     const back = browserName === "webkit" ? "Alt+Shift+Tab" : "Shift+Tab";
-    // Every link and button, and the lens's frame.
-    const stops = await page.locator("a, button, [tabindex]").evaluateAll((all) => all.filter((el) => el.checkVisibility()).length);
+    // Every link and button, and the lens's frame; and how many of them are below the header.
+    const [stops, below] = await page.locator("a, button, [tabindex]").evaluateAll((all) => {
+      const shown = all.filter((el) => el.checkVisibility());
+      return [shown.length, shown.filter((el) => !el.closest(".site-header")).length];
+    });
     const covered: string[] = [];
     let seen = 0;
     const look = async (way: string) => {
@@ -116,7 +121,9 @@ for (const path of [...allPages(), missingPages[0]!]) {
       await look("back");
     }
     expect(covered).toEqual([]);
-    // The check saw the page's elements, twice over (the 404 page has no header to hide under).
-    if (await page.locator(".site-header").count()) expect(seen).toBeGreaterThan(stops);
+    // The check saw the page's elements, on the way down and on the way back (the 404 page has
+    // no header to hide under). Counted against the stops below the header, not all of them:
+    // the holding page has two there and three in its header.
+    if (await page.locator(".site-header").count()) expect(seen).toBeGreaterThan(below);
   });
 }

@@ -29,7 +29,7 @@ const blocks = locales.map((code) => ({ code, t: text(code).notFound, home: getR
   section + section {
     margin-top: 48px;
     padding-top: 48px;
-    border-top: 1px solid color-mix(in srgb, var(--room) 16%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--on-ground) 16%, transparent);
   }
 
   h1 {
@@ -42,21 +42,22 @@ const blocks = locales.map((code) => ({ code, t: text(code).notFound, home: getR
 
   p {
     margin-top: 12px;
-    color: var(--zand);
+    color: var(--second);
   }
 
-  /* Room and bold, underlined in amber, as the hero's link. */
+  /* The text's colour and bold, underlined in the accent, as the home page's link. The colours
+     are the palette's roles (tokens.css): inkt and ink blue in Inkt, room and amber in Hars. */
   a {
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
     margin-top: 8px;
     font-weight: 600;
-    color: var(--room);
-    text-decoration: underline 2px var(--amber);
+    color: var(--on-ground);
+    text-decoration: underline 2px var(--accent);
     text-underline-offset: 4px;
   }
   a:hover {
-    color: var(--amber);
+    color: var(--accent);
   }
 </style>

@@ -11,6 +11,15 @@ export const en: Text = {
   site: "kayhardam.dev",
   languages: "Language",
   name: "Kay Hardam",
+  // holding: Kay's own English texts from the same versions as the Dutch ones (nl.ts).
+  holding: {
+    statement: [
+      ["PE teacher and", "handball coach."],
+      ["I build tools", "for sports."],
+    ],
+    product: "I make Coachboard: a digital drawing board for when hands and feet aren’t enough.",
+    button: "Go to Coachboard",
+  },
   hero: {
     button: "Edit this play in Coachboard",
   },

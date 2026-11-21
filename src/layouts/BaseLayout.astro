@@ -15,6 +15,7 @@ import "../styles/tokens.css";
 import "../styles/base.css";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
 import { coachboardSite, github } from "../data/links";
+import { palette } from "../data/palette";
 import { defaultLocale, locales, text, type Locale } from "../i18n";
 
 /**
@@ -47,10 +48,12 @@ const person = JSON.stringify({
   url: canonical,
   sameAs: [github, coachboardSite],
 }).replaceAll("<", "\\u003c");
+// The ground of the site's palette, papier or espresso: a <meta> can't read a custom property (src/styles/colours.test.ts).
+const themeColor = palette === "hars" ? "#16110d" : "#fdfbf8";
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-palette={palette}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,8 +63,7 @@ const person = JSON.stringify({
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     {alternates.map(([hreflang, href]) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={xDefault} />}
-    {/* The ground of Hars, espresso: a <meta> can't read a custom property (src/styles/colours.test.ts). */}
-    <meta name="theme-color" content="#16110d" />
+    <meta name="theme-color" content={themeColor} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

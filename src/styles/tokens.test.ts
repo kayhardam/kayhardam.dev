@@ -1,12 +1,21 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// The palette "Hars" (Kay, 15 November 2026): eight colours as custom properties
-// in tokens.css, and the contrasts the page relies on (WCAG 2.2 AA): text at
-// least 4.5:1, large text and lines (players, the ball, the court's lines, the
-// focus ring) at least 3:1.
+// The two palettes in tokens.css, as custom properties, and the contrasts the pages
+// rely on (WCAG 2.2 AA): text at least 4.5:1, large text and lines (players, the
+// ball, the court's lines, the focus ring) at least 3:1. "Inkt" (Kay, 20 November
+// 2026) is the holding page's and the 404 page's; "Hars" (Kay, 15 November 2026)
+// is the full page's.
 
 const css = readFileSync(new URL("./tokens.css", import.meta.url), "utf8");
+
+const INKT = {
+  papier: "#fdfbf8",
+  linnen: "#f5f1eb",
+  inkt: "#1f1a17",
+  grafiet: "#4a433d",
+  inktblauw: "#1e40af",
+} as const;
 
 const HARS = {
   espresso: "#16110d",
@@ -19,12 +28,14 @@ const HARS = {
   gloed: "#ff5a2b",
 } as const;
 
-type Colour = keyof typeof HARS;
+const colours = { ...INKT, ...HARS };
+type Colour = keyof typeof colours;
 
-/** The colours in the first :root block of tokens.css: the palette. */
-function palette(): Record<string, string> {
-  const block = css.slice(css.indexOf(":root {"), css.indexOf("}", css.indexOf(":root {")));
-  return Object.fromEntries([...block.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,8})\b/gi)].map(([, name, hex]) => [name!, hex!.toLowerCase()]));
+/** The colours in the :root block that follows the comment naming the palette. */
+function palette(name: string): Record<string, string> {
+  const start = css.indexOf(":root {", css.indexOf(`The palette "${name}"`));
+  const block = css.slice(start, css.indexOf("}", start));
+  return Object.fromEntries([...block.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,8})\b/gi)].map(([, token, hex]) => [token!, hex!.toLowerCase()]));
 }
 
 function luminance(hex: string): number {
@@ -33,13 +44,59 @@ function luminance(hex: string): number {
 }
 
 function contrast(a: Colour, b: Colour): number {
-  const [hi, lo] = [luminance(HARS[a]), luminance(HARS[b])].sort((x, y) => y - x);
+  const [hi, lo] = [luminance(colours[a]), luminance(colours[b])].sort((x, y) => y - x);
   return (hi! + 0.05) / (lo! + 0.05);
 }
 
+describe("the tokens", () => {
+  it("have no hex value outside the two palettes", () => {
+    const all = [...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,8})\b/gi)].map(([, token, hex]) => [token!, hex!.toLowerCase()]);
+    expect(Object.fromEntries(all)).toEqual(colours);
+    expect(all).toHaveLength(Object.keys(colours).length);
+  });
+
+  // The roles the shared parts use (base.css, Header.astro, 404.astro), per palette.
+  it("fill the five roles from Inkt, and from Hars under data-palette", () => {
+    const roles = (selector: string) => {
+      const start = css.indexOf(`${selector} {\n  --ground`);
+      const block = css.slice(start, css.indexOf("}", start));
+      return Object.fromEntries([...block.matchAll(/--([\w-]+):\s*var\(--([\w-]+)\)/g)].map(([, role, token]) => [role!, token!]));
+    };
+    expect(roles(":root")).toEqual({ ground: "papier", "on-ground": "inkt", second: "grafiet", accent: "inktblauw", "on-accent": "papier" });
+    expect(roles(':root[data-palette="hars"]')).toEqual({ ground: "espresso", "on-ground": "room", second: "zand", accent: "amber", "on-accent": "espresso" });
+  });
+});
+
+describe("the palette Inkt", () => {
+  it("is exactly the five colours, as custom properties", () => {
+    expect(palette("Inkt")).toEqual(INKT);
+  });
+
+  // Text: the foreground on the background it stands on.
+  it.each<[Colour, Colour]>([
+    ["inkt", "papier"], // the header, the 404 page
+    ["inkt", "linnen"], // the statement's first sentence, the sentence about Coachboard, the link
+    ["grafiet", "papier"], // secondary text: the other language, the 404 page's sentence
+    ["inktblauw", "linnen"], // the statement's second sentence
+    ["inktblauw", "papier"], // a link under the pointer, on the 404 page
+    ["papier", "inktblauw"], // the address on the foot
+  ])("text: %s on %s is at least 4.5:1", (fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Lines: what has to be seen against what it touches.
+  it.each<[Colour, Colour]>([
+    ["inktblauw", "papier"], // the focus ring on the ground, the line under a link on the 404 page
+    ["inktblauw", "linnen"], // the focus ring on the stage, the line under the link
+    ["papier", "inktblauw"], // the ring's papier edge, on the ink-blue foot
+  ])("a line: %s on %s is at least 3:1", (fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe("the palette Hars", () => {
   it("is exactly the eight colours, as custom properties", () => {
-    expect(palette()).toEqual(HARS);
+    expect(palette("Hars")).toEqual(HARS);
   });
 
   // Text: the foreground on the background it stands on.

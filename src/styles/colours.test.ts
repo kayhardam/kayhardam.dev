@@ -2,22 +2,26 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The palettes Inkt (Kay, 20 November 2026) and Hars (Kay, 15 November 2026): their
-// colours as custom properties in tokens.css, and nowhere a loose hex value. Allowed,
-// each for its reason:
+// The palettes Oranje (Kay, 25 November 2026), Inkt (Kay, 20 November 2026) and Hars (Kay,
+// 15 November 2026): their colours as custom properties in tokens.css, and nowhere a loose hex
+// value, as "#…" or as a number "0x…". Allowed, each for its reason:
 // - tokens.css: where the colours are defined (tokens.test.ts checks them);
 // - Court.svelte: Coachboard's copy, unchanged (src/lib/coachboard.test.ts);
-// - board.css: Court.svelte's colours as selectors, [fill="#…"], which give each
-//   its Hars token; never as a value;
-// - BaseLayout.astro: theme-color, as a <meta> can't read a custom property; it
-//   must be the ground of the site's palette, papier or espresso.
-// Two more things are skipped: a comment line, which paints nothing, and public/,
-// where the favicons are phase 10's images: the ink blue of Inkt.
+// - src/lib/opening/colours.ts: the 3D scene's colours, as numbers for three.js, which can't
+//   read a custom property (its own colours.test.ts holds the ones it shares with the tokens
+//   and with Court.svelte);
+// - board.css: Court.svelte's colours as selectors, [fill="#…"], which give each its Hars
+//   token; never as a value;
+// - BaseLayout.astro: theme-color, as a <meta> can't read a custom property; it must be the
+//   ground of the site's palette, krijt, papier or espresso.
+// Two more things are skipped: a comment line, which paints nothing, and public/, where the
+// favicons are phase 10's images: the ink blue of Inkt.
 
 const root = new URL("../../", import.meta.url).pathname;
-const hex = /#[0-9a-f]{3,8}\b/gi;
+const hex = /#[0-9a-f]{3,8}\b|\b0x[0-9a-f]{6}\b/gi;
 /** BaseLayout.astro's one line with hex values: each palette's ground. */
-const themeColor = 'const themeColor = palette === "hars" ? "#16110d" : "#fdfbf8";';
+const themeColor = 'const themeColor = { oranje: "#f8fafc", inkt: "#fdfbf8", hars: "#16110d" }[palette];';
+const sceneColours = "src/lib/opening/colours.ts";
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
@@ -35,6 +39,7 @@ function loose(file: string): string[] {
     const found = line.match(hex);
     if (!found) return [];
     if (file === "src/components/board/Court.svelte") return [];
+    if (file === sceneColours) return [];
     // The favicons are images, made by scripts/favicons.mjs; the colours of the logo, not of the page.
     if (file.startsWith("public/")) return [];
     if (file === "src/styles/tokens.css" && /^\s*--[\w-]+:\s*#[0-9a-f]{6};/i.test(line)) return [];
@@ -47,15 +52,17 @@ function loose(file: string): string[] {
 }
 
 describe("colours", () => {
-  it("has no loose hex value: only the tokens of Inkt and Hars", () => {
+  it("has no loose hex value: only the tokens of the three palettes", () => {
     expect(files.flatMap(loose)).toEqual([]);
   });
 
-  it("has the ground of the site's palette as theme-color: papier in Inkt, espresso in Hars", () => {
+  it("has the ground of the site's palette as theme-color: krijt in Oranje, papier in Inkt, espresso in Hars", () => {
     const tokens = readFileSync(join(root, "src/styles/tokens.css"), "utf8");
+    expect(tokens).toMatch(/--krijt: #f8fafc;/);
     expect(tokens).toMatch(/--papier: #fdfbf8;/);
     expect(tokens).toMatch(/--espresso: #16110d;/);
     expect(tokens).toMatch(/:root \{\n  --ground: var\(--papier\);/);
+    expect(tokens).toMatch(/:root\[data-palette="oranje"\] \{\n  --ground: var\(--krijt\);/);
     expect(tokens).toMatch(/:root\[data-palette="hars"\] \{\n  --ground: var\(--espresso\);/);
     const layout = readFileSync(join(root, "src/layouts/BaseLayout.astro"), "utf8");
     expect(layout).toContain(themeColor);
@@ -63,10 +70,13 @@ describe("colours", () => {
     expect(layout).toContain("<html lang={locale} data-palette={palette}>");
   });
 
-  it("has no green anywhere but in Court.svelte's copy, and in board.css only as a selector", () => {
-    const green = /#(15803d|16a34a|4ade80|22c55e)\b/i;
+  // Coachboard's green is Coachboard's: in Court.svelte's copy, in board.css only as a selector,
+  // and in the scene's colours, where the keeper wears it and the board at the end has it
+  // (Kay, 25 November 2026).
+  it("has no green anywhere but in Court.svelte's copy, the scene's colours, and in board.css as a selector", () => {
+    const green = /(#|\b0x)(15803d|16a34a|4ade80|22c55e)\b/i;
     const found = files
-      .filter((f) => f !== "src/components/board/Court.svelte")
+      .filter((f) => f !== "src/components/board/Court.svelte" && f !== sceneColours)
       .flatMap((file) =>
         readFileSync(join(root, file), "utf8")
           .split("\n")

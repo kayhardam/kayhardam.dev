@@ -1,8 +1,8 @@
 /*
  * Design tokens.
  *
- * Two palettes, and nothing else except transparencies of their colours
- * (color-mix with transparent). No loose hex value anywhere outside the two
+ * Three palettes, and nothing else except transparencies of their colours
+ * (color-mix with transparent). No loose hex value anywhere outside the three
  * blocks below; src/styles/tokens.test.ts checks the values and the contrasts
  * the pages rely on. The site is in one palette at a time: src/data/palette.ts.
  *
@@ -11,6 +11,18 @@
  *   @media (min-width: 560px)  — large phone / small tablet
  *   @media (min-width: 860px)  — tablet landscape and up
  */
+
+/* The palette "Oranje" (Kay, 25 November 2026): five colours, for the landing page and the
+   404 page. The home colour of the Dutch handball team on Coachboard's light court; the 3D
+   scene's own colours are in src/lib/opening/colours.ts. The five names are Claude's, until
+   Kay agrees. */
+:root {
+  --krijt: #f8fafc; /* the ground, text on marine */
+  --marine: #0f172a; /* text, the foot */
+  --leisteen: #475569; /* secondary text */
+  --oranje: #ea580c; /* the accent: the button, the lines under links, the focus ring */
+  --oranje-donker: #c2410c; /* orange as text: the statement's second sentence, the steps' counters */
+}
 
 /* The palette "Inkt" (Kay, 20 November 2026): five colours, for the holding page
    and the 404 page. The ink blue is the favicons' and the share image's. */
@@ -37,13 +49,21 @@
 
 /* What the parts that every page shares use (base.css, Header.astro, 404.astro):
    five roles, filled by the site's palette. Inkt, unless BaseLayout.astro has put
-   data-palette="hars" on <html>. */
+   data-palette="oranje" or data-palette="hars" on <html>. */
 :root {
   --ground: var(--papier);
   --on-ground: var(--inkt); /* text on the ground */
   --second: var(--grafiet); /* secondary text on the ground */
   --accent: var(--inktblauw);
   --on-accent: var(--papier); /* text on the accent */
+}
+
+:root[data-palette="oranje"] {
+  --ground: var(--krijt);
+  --on-ground: var(--marine);
+  --second: var(--leisteen);
+  --accent: var(--oranje);
+  --on-accent: var(--marine);
 }
 
 :root[data-palette="hars"] {

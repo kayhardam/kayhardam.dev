@@ -1,13 +1,15 @@
 // Checks the built site against size budgets. Run after `astro build`:
 //   node scripts/check-budget.mjs
 // After Coachboard's scripts/check-budget.mjs (commit 4ceafd4), cut down to
-// what this site has: three islands (the board card since phase 5; Hars added two).
+// what this site has: four islands (the board card since phase 5; Hars added two;
+// the landing page one, with the 3D scene).
 //
-// - The only JavaScript is the islands (Hars, 15 November 2026): the hero
-//   (BoardCard), the figures (Figures) and the lens (Lens), each at most once on
-//   a page, each with client="visible". The 404 page has none. An inline
-//   <script> only on a page with an island: Astro's own, at most two. No
-//   <script src> and no modulepreload. JSON-LD is allowed.
+// - The only JavaScript is the islands: the landing page's opening (Opening, with
+//   three.js; Kay, 25 November 2026) and, on the full page of Hars, the hero
+//   (BoardCard), the figures (Figures) and the lens (Lens). Each at most once on a
+//   page, each with client="visible". The 404 page has none. An inline <script>
+//   only on a page with an island: Astro's own, at most two. No <script src> and
+//   no modulepreload. JSON-LD is allowed.
 // - The islands' JS: the files from their component-url and renderer-url plus
 //   everything they import statically. Dynamic imports count as lazy JS.
 // - All JS: every .js file in _astro/, so code moved into a lazy chunk still counts.
@@ -34,10 +36,13 @@ import { gzipSync } from "node:zlib";
 // the photo in phase 7, the share image with the photo in "De keten: vindbaarheid" (27 October 2026), the
 // fonts in phase 10 (Plus Jakarta Sans, half the size of Barlow Condensed: the budget went down with them), and
 // up again for the fonts of "Hars" (Kay, 15 November 2026: Barlow Condensed, Barlow and JetBrains Mono).
+// The landing page's own budget for JS (Kay, 25 November 2026: a live 3D scene, with three.js):
+// 158.3 KB for the opening, three.js included, plus 15%. The full page of Hars had 28.4 KB
+// (24.7 KB measured): bring that budget back with that page.
 export const BUDGETS = {
-  js: 28_400, // 24.7 KB with Hars (15 November 2026): the hero, the figures and the lens, Svelte's runtime and Astro's renderer (21.24 KB with the board's card alone)
-  lazyJs: 0, // 0 KB: no dynamic imports
-  allJs: 28_400, // 24.7 KB: the three islands' files are all there is
+  js: 182_000, // 158.3 KB for the landing page (25 November 2026): the opening with three.js, Svelte's runtime and Astro's renderer
+  lazyJs: 0, // 0 KB: no dynamic imports; three.js loads with the opening's island
+  allJs: 182_000, // 158.3 KB: the opening's files are all there is
   css: 1_000, // 0 KB: Astro inlines all CSS for now
   html: 15_200, // 13.2 KB for / with Hars (15 November 2026; 10.13 KB in phase 10): the hero, the figures, the lens with its props (the measured areas), the work and the close
   font: 26_200, // 22.77 KB for Barlow 600, the largest of the six (Barlow 500/600, Barlow Condensed 700/800, JetBrains Mono 400/700)
@@ -62,8 +67,8 @@ export const ICONS = ["favicon.svg", "favicon.ico", "apple-touch-icon.png"];
 /** The share image in the root of the site, one for both languages. */
 export const SHARE_IMAGE = "og.png";
 
-/** The islands, each hydrated when it comes into view: the hero, the figures and the lens. */
-export const ISLANDS = ["BoardCard", "Figures", "Lens"];
+/** The islands, each hydrated when it comes into view: the full page's hero, figures and lens, and the landing page's opening. */
+export const ISLANDS = ["BoardCard", "Figures", "Lens", "Opening"];
 export const ISLAND_CLIENT = "visible";
 /** Astro's inline scripts on a page with islands: its loader and the one for client:visible. */
 export const ISLAND_SCRIPTS = 2;

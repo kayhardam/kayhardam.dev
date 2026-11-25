@@ -50,8 +50,8 @@ describe("checkBudget", () => {
     ["a script file next to the island", `${island()}<script src="/_astro/x.js"></script>`, /the only JS is the islands/],
     ["a modulepreload", `<link rel="modulepreload" href="/_astro/x.js">`, /the only JS is the islands/],
     ["the same island twice", `${island()}${island()}`, /each island at most once on a page/],
-    ["another island", island({ name: "Other" }), /an island is BoardCard, Figures, Lens or nothing, with client="visible"/],
-    ["the island with client:load", island({ client: "load" }), /an island is BoardCard, Figures, Lens or nothing, with client="visible"/],
+    ["another island", island({ name: "Other" }), /an island is BoardCard, Figures, Lens, Opening or nothing, with client="visible"/],
+    ["the island with client:load", island({ client: "load" }), /an island is BoardCard, Figures, Lens, Opening or nothing, with client="visible"/],
     ["a third inline script", `${island()}<script>1</script><script>2</script><script>3</script>`, /at most 2 inline scripts/],
   ])("fails on %s", (_, html, why) => {
     const { rows, errors } = build({ "en/index.html": html, ...islandFiles });
@@ -69,6 +69,13 @@ describe("checkBudget", () => {
 
   it("allows the three islands together, the hero, the figures and the lens, with Astro's two inline scripts", () => {
     const html = `<script>a</script><script>b</script>${island()}${island({ name: "Figures" })}${island({ name: "Lens" })}`;
+    const { rows, errors } = build({ "index.html": html, ...islandFiles });
+    expect(errors).toEqual([]);
+    expect(row(rows, "Scripts").measured).toBe(0);
+  });
+
+  it("allows the landing page's opening with Astro's two inline scripts", () => {
+    const html = `<script>a</script><script>b</script>${island({ name: "Opening" })}`;
     const { rows, errors } = build({ "index.html": html, ...islandFiles });
     expect(errors).toEqual([]);
     expect(row(rows, "Scripts").measured).toBe(0);

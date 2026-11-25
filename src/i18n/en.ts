@@ -23,6 +23,13 @@ export const en: Text = {
   hero: {
     button: "Edit this play in Coachboard",
   },
+  // opening: the button is Coachboard's own English, "Draw your first play.", without the full
+  // stop; home and away are a proposal (25 November 2026), not yet agreed with Kay.
+  opening: {
+    button: "Draw your first play",
+    home: "Home",
+    away: "Away",
+  },
   board: {
     court: "Handball court",
     // counter, steps and ball: a proposal (Hars, 15 November 2026), not yet agreed with Kay.

@@ -31,8 +31,19 @@ export const nl = {
     button: "Naar Coachboard",
   },
   hero: {
-    // The link under the step lines: it opens the attack in Coachboard.
+    // The link under the step lines: it opens the attack in Coachboard. The landing page has it too.
     button: "Bewerk deze aanval in Coachboard",
+  },
+  // The landing page (Kay, 25 November 2026): the opening "van zaal naar bord". It also shows
+  // holding.statement, holding.product and hero.button; the step sentences and the attack's
+  // title are in its share link (src/data/opening.ts).
+  opening: {
+    // The link to Coachboard's board: Coachboard's own "Teken je eerste aanval." (its home page),
+    // without the full stop, as in the mockup Kay agreed to.
+    button: "Teken je eerste aanval",
+    // The teams on the scoreboard in the hall: a proposal (the mockup, 25 November 2026), not yet agreed with Kay.
+    home: "Thuis",
+    away: "Uit",
   },
   board: {
     court: "Handbalveld",

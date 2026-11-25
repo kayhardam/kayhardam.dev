@@ -1,13 +1,21 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// The two palettes in tokens.css, as custom properties, and the contrasts the pages
+// The three palettes in tokens.css, as custom properties, and the contrasts the pages
 // rely on (WCAG 2.2 AA): text at least 4.5:1, large text and lines (players, the
-// ball, the court's lines, the focus ring) at least 3:1. "Inkt" (Kay, 20 November
-// 2026) is the holding page's and the 404 page's; "Hars" (Kay, 15 November 2026)
-// is the full page's.
+// ball, the court's lines, the focus ring) at least 3:1. "Oranje" (Kay, 25 November
+// 2026) is the landing page's and the 404 page's; "Inkt" (Kay, 20 November 2026) the
+// holding page's; "Hars" (Kay, 15 November 2026) the full page's.
 
 const css = readFileSync(new URL("./tokens.css", import.meta.url), "utf8");
+
+const ORANJE = {
+  krijt: "#f8fafc",
+  marine: "#0f172a",
+  leisteen: "#475569",
+  oranje: "#ea580c",
+  "oranje-donker": "#c2410c",
+} as const;
 
 const INKT = {
   papier: "#fdfbf8",
@@ -28,7 +36,7 @@ const HARS = {
   gloed: "#ff5a2b",
 } as const;
 
-const colours = { ...INKT, ...HARS };
+const colours = { ...ORANJE, ...INKT, ...HARS };
 type Colour = keyof typeof colours;
 
 /** The colours in the :root block that follows the comment naming the palette. */
@@ -49,21 +57,49 @@ function contrast(a: Colour, b: Colour): number {
 }
 
 describe("the tokens", () => {
-  it("have no hex value outside the two palettes", () => {
+  it("have no hex value outside the three palettes", () => {
     const all = [...css.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,8})\b/gi)].map(([, token, hex]) => [token!, hex!.toLowerCase()]);
     expect(Object.fromEntries(all)).toEqual(colours);
     expect(all).toHaveLength(Object.keys(colours).length);
   });
 
   // The roles the shared parts use (base.css, Header.astro, 404.astro), per palette.
-  it("fill the five roles from Inkt, and from Hars under data-palette", () => {
+  it("fill the five roles from Inkt, and from Oranje and Hars under data-palette", () => {
     const roles = (selector: string) => {
       const start = css.indexOf(`${selector} {\n  --ground`);
       const block = css.slice(start, css.indexOf("}", start));
       return Object.fromEntries([...block.matchAll(/--([\w-]+):\s*var\(--([\w-]+)\)/g)].map(([, role, token]) => [role!, token!]));
     };
     expect(roles(":root")).toEqual({ ground: "papier", "on-ground": "inkt", second: "grafiet", accent: "inktblauw", "on-accent": "papier" });
+    expect(roles(':root[data-palette="oranje"]')).toEqual({ ground: "krijt", "on-ground": "marine", second: "leisteen", accent: "oranje", "on-accent": "marine" });
     expect(roles(':root[data-palette="hars"]')).toEqual({ ground: "espresso", "on-ground": "room", second: "zand", accent: "amber", "on-accent": "espresso" });
+  });
+});
+
+describe("the palette Oranje", () => {
+  it("is exactly the five colours, as custom properties", () => {
+    expect(palette("Oranje")).toEqual(ORANJE);
+  });
+
+  // Text: the foreground on the background it stands on.
+  it.each<[Colour, Colour]>([
+    ["marine", "krijt"], // the header, the statement's first sentence, the steps, the sentence about Coachboard, the 404 page
+    ["oranje-donker", "krijt"], // the statement's second sentence, the steps' counters, a link under the pointer
+    ["leisteen", "krijt"], // secondary text: the other language, the attack's title
+    ["marine", "oranje"], // the button
+    ["krijt", "oranje-donker"], // the button under the pointer
+    ["krijt", "marine"], // the address on the foot
+  ])("text: %s on %s is at least 4.5:1", (fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Lines: what has to be seen against what it touches.
+  it.each<[Colour, Colour]>([
+    ["oranje", "krijt"], // the focus ring on the ground, the line under a link, an attacker's disc
+    ["oranje", "marine"], // the focus ring and the line under the address, on the foot
+    ["krijt", "marine"], // the ring's krijt edge, on the foot
+  ])("a line: %s on %s is at least 3:1", (fg, bg) => {
+    expect(contrast(fg, bg)).toBeGreaterThanOrEqual(3);
   });
 });
 

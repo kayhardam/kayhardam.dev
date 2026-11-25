@@ -1,9 +1,9 @@
 ---
-// The holding page while Kay redesigns the site (20 November 2026). The full page is
-// ../components/Home.astro: to bring it back, import it here and in en/index.astro, and
-// set the palette to "hars" in ../data/palette.ts (AGENTS.md, "The holding page").
-// playwright.config.ts and ../data/palette.test.ts read this file.
-import Page from "../components/Holding.astro";
+// The landing page (Kay, 25 November 2026): the opening "van zaal naar bord". The holding page
+// (../components/Holding.astro) and the full page of Hars (../components/Home.astro) stay in the
+// repo, unbuilt: to bring one back, import it here and in en/index.astro, and set its palette in
+// ../data/palette.ts (AGENTS.md). playwright.config.ts and ../data/palette.test.ts read this file.
+import Page from "../components/Landing.astro";
 ---
 
 <Page />

@@ -1278,3 +1278,49 @@ De budgetten zijn niet aangepast: ze horen bij de volledige pagina.
 - `npm run verify` groen: 183 unittests, links (22 interne links in 3 pagina's), budget (18 controles).
 - e2e in de container, alleen project `android` (geen WebKit): alle 127 groen, waarvan 68 in `e2e/holding.spec.ts`. De specs van de volledige pagina draaien niet zolang de tussenpagina er staat (`playwright.config.ts`). De volledige e2e in beide projecten: CI op de pull request.
 - De weg terug, twee stappen: `Home.astro` weer in de twee paginabestanden en `"hars"` in `src/data/palette.ts`. Dan is `npm run verify` groen (183 unittests, 24 interne links, 30 budgetcontroles) en draaien de 272 tests van de volledige pagina groen (project `android`), in Hars als voorheen; `e2e/holding.spec.ts` draait niet. Met één van de twee stappen faalt `src/data/palette.test.ts`.
+
+## Landingspagina (25 november 2026)
+
+De opening "van zaal naar bord" uit Kays mockup: zijn statement, "Kruising MO–LO" uit de bibliotheek van Coachboard als 3D-scène die met het scrollen meeloopt, en het bord van Coachboard aan het eind. Eigen regels voor deze pagina (Kay, 25 november 2026): een live 3D-scène met three.js, met een eigen JS-budget.
+
+### Het palet Oranje
+
+| Kleur op achtergrond | Wat | Contrast |
+|---|---|--:|
+| marine op krijt | tekst, de stappen | 17,1:1 |
+| oranje-donker op krijt | de tweede zin van het statement, de tellers van de stappen | 4,9:1 |
+| leisteen op krijt | de andere taal, de titel van de aanval | 7,2:1 |
+| marine op oranje | de knop | 5,0:1 |
+| krijt op marine | het adres | 17,1:1 |
+| oranje op krijt | de focusring, de lijn onder links, een schijf van de aanval | 3,4:1 |
+| oranje op marine | de focusring en de lijn onder het adres op de voet | 5,0:1 |
+
+### Geen overloop, tikvlakken, axe
+
+- **Breedtes:** 320, 360, 390, 430, 560, 859, 860, 1024, 1280 en 1440 px, NL en EN, met en zonder minder beweging, bij 0, 50 en 100% van de opening: nergens horizontaal scrollen; het statement op vier regels zonder afgekapte regel.
+- **Tikvlakken:** 7 links in het Nederlands (de naam, NL, EN, de titel van de aanval, "Bewerk deze aanval in Coachboard", de knop, het adres), 6 in het Engels (de titel is daar tekst: de bibliotheek heeft geen Engelse pagina); geen onder 44 px, op telefoonbreedte en op 1280 px.
+- **axe** (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`): 0 bevindingen, op telefoonbreedte en op 1280 px. Tab bereikt elke link in volgorde, met de ring; de kopbalk bedekt nooit wat de focus heeft.
+- **Langs het scrollen:** het statement bij 0%, stap 1 bij 20%, stap 2 bij 38%, stap 3 bij 49%, stap 4 bij 65%, het bord bij 100% (`e2e/landing.spec.ts`). De scène en het bord liggen aan het eind op elkaar: op 390 × 844 een overlay van de twee zonder verschuiving.
+- **Minder beweging:** de gewone opening, zonder scène en zonder hoge sectie.
+
+### Groottes
+
+`npm run budget`:
+
+| Meting | Tussenpagina | Landingspagina | Budget |
+|---|--:|--:|--:|
+| JS op de pagina (gzip) | 0 KB | 158,3 KB (de opening met three.js, de runtime van Svelte en de renderer van Astro) | 182,0 KB |
+| Lazy JS (gzip) | 0 KB | 0 KB | 0 KB |
+| Alle JS in `_astro/` (gzip) | 9,8 KB | 158,3 KB | 182,0 KB |
+| HTML `/` (gzip) | 3,7 KB | 9,0 KB (de CSS en het bord als SVG erin) | 15,2 KB |
+
+Het JS-budget is gemeten plus 15%. De volledige pagina had 28,4 KB: dat budget komt terug met die pagina.
+
+### Lighthouse
+
+Nog niet gemeten: in de container draait geen Lighthouse. Te meten op de preview-URL van de branch, twee keer per methode.
+
+### Tests
+
+- `npm run verify` groen: 214 unittests, links (22 interne links in 3 pagina's), budget (22 controles).
+- e2e in de container, alleen project `android` (geen WebKit), met de Chrome van de container (WebGL via SwiftShader): alle 111 groen, waarvan 52 in `e2e/landing.spec.ts`. De volledige e2e in beide projecten: CI op de pull request.

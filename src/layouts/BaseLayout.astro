@@ -48,8 +48,8 @@ const person = JSON.stringify({
   url: canonical,
   sameAs: [github, coachboardSite],
 }).replaceAll("<", "\\u003c");
-// The ground of the site's palette, papier or espresso: a <meta> can't read a custom property (src/styles/colours.test.ts).
-const themeColor = palette === "hars" ? "#16110d" : "#fdfbf8";
+// The ground of the site's palette, krijt, papier or espresso: a <meta> can't read a custom property (src/styles/colours.test.ts).
+const themeColor = { oranje: "#f8fafc", inkt: "#fdfbf8", hars: "#16110d" }[palette];
 ---
 
 <!doctype html>

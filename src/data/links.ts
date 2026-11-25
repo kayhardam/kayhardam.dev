@@ -6,6 +6,12 @@ export const coachboard: Record<Locale, string> = {
   en: "https://handballcoachboard.com/en/",
 };
 
+// Coachboard's board, empty: the landing page's "Teken je eerste aanval" (Kay, 25 November 2026).
+export const coachboardBoard: Record<Locale, string> = {
+  nl: "https://handballcoachboard.com/nl/board/",
+  en: "https://handballcoachboard.com/en/board/",
+};
+
 export const github = "https://github.com/kayhardam";
 
 // Coachboard itself, for sameAs in the JSON-LD: the root sends a visitor on to their language.

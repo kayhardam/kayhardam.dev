@@ -27,13 +27,14 @@ export const missingPages = ["/does-not-exist/", "/en/does-not-exist/"];
  * accent. The page says which palette it is in, on <html> (src/data/palette.ts).
  */
 const palettes = {
+  oranje: { ground: "rgb(248, 250, 252)", text: "rgb(15, 23, 42)", accent: "rgb(234, 88, 12)" },
   inkt: { ground: "rgb(253, 251, 248)", text: "rgb(31, 26, 23)", accent: "rgb(30, 64, 175)" },
   hars: { ground: "rgb(22, 17, 13)", text: "rgb(255, 246, 232)", accent: "rgb(255, 179, 0)" },
 } as const;
 
 export async function paletteOf(page: Page) {
   const name = await page.locator("html").getAttribute("data-palette");
-  if (name !== "inkt" && name !== "hars") throw new Error(`<html> has data-palette="${name}"`);
+  if (name !== "oranje" && name !== "inkt" && name !== "hars") throw new Error(`<html> has data-palette="${name}"`);
   return palettes[name];
 }
 
